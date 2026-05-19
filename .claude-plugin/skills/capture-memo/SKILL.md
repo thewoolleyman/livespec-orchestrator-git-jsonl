@@ -1,6 +1,6 @@
 ---
 name: capture-memo
-description: Low-friction free-text deposit of an in-flight observation. Memos are transient by construction and flow through `process-memos` for disposition. Required heavyweight authored skill per livespec-core/SPECIFICATION/contracts.md §"Heavyweight authored skills (6)". Invoke as `/livespec-impl-plaintext:capture-memo`.
+description: Low-friction free-text deposit of an in-flight observation. Memos are transient by construction and flow through `process-memos` for disposition. Required heavyweight authored skill per livespec/SPECIFICATION/contracts.md §"Heavyweight authored skills (6)". Invoke as `/livespec-impl-plaintext:capture-memo`.
 allowed-tools: Bash, Write
 ---
 
@@ -56,7 +56,7 @@ that's the next skill's job.
 - **Transient by construction** — every memo MUST eventually flow
   through `process-memos` to one of the four canonical dispositions
   (spec-bound, impl-bound, persistent-knowledge, discard) per
-  livespec-core/SPECIFICATION/spec.md §"Memo".
+  livespec/SPECIFICATION/spec.md §"Memo".
 - **Low-friction** — no classification, no topic, no linkage at
   capture time. The whole skill is "ask for text, store it."
 - **Doctor's memo-hygiene invariant** — when the untriaged queue grows

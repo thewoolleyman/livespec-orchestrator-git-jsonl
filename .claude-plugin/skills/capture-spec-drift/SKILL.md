@@ -1,6 +1,6 @@
 ---
 name: capture-spec-drift
-description: Detect impl→spec drift heuristically (LLM-driven) and hand off each finding to /livespec-core:propose-change with user consent. Required heavyweight authored skill per livespec-core/SPECIFICATION/contracts.md §"Heavyweight authored skills (6)". Invoke as `/livespec-impl-plaintext:capture-spec-drift`.
+description: Detect impl→spec drift heuristically (LLM-driven) and hand off each finding to /livespec:propose-change with user consent. Required heavyweight authored skill per livespec/SPECIFICATION/contracts.md §"Heavyweight authored skills (6)". Invoke as `/livespec-impl-plaintext:capture-spec-drift`.
 allowed-tools: Bash, Read, Grep, Glob, Write
 ---
 
@@ -12,9 +12,9 @@ have evolved beyond what the spec documents, in ways no static
 pattern-match can flag. The skill drives an LLM-assisted comparison
 between the canonical Specification (via the Spec Reader) and the
 working impl tree, surfaces each candidate finding to the user, and
-hands the confirmed findings off to `/livespec-core:propose-change`
+hands the confirmed findings off to `/livespec:propose-change`
 via the cross-boundary handoff (red-edge handoff 1 per
-livespec-core/SPECIFICATION/contracts.md §"Cross-boundary handoffs").
+livespec/SPECIFICATION/contracts.md §"Cross-boundary handoffs").
 
 ## Pre-requisites
 
@@ -22,8 +22,8 @@ livespec-core/SPECIFICATION/contracts.md §"Cross-boundary handoffs").
   declared in `.livespec.jsonc` (default: `SPECIFICATION/`).
 - The consumer project's impl tree (the rest of the repo besides
   `<spec-root>/`).
-- livespec-core installed and accessible — the
-  `/livespec-core:propose-change` cross-boundary handoff requires it.
+- livespec installed and accessible — the
+  `/livespec:propose-change` cross-boundary handoff requires it.
 
 ## Flow
 
@@ -72,11 +72,11 @@ For each `no` / `partial` finding:
 3. On consent, invoke the cross-boundary handoff:
 
 ```bash
-/livespec-core:propose-change --spec-target SPECIFICATION/ --topic <slug> --body <draft>
+/livespec:propose-change --spec-target SPECIFICATION/ --topic <slug> --body <draft>
 ```
 
 The proposed-change file lands under `<spec-root>/proposed_changes/`
-awaiting a subsequent `/livespec-core:revise` pass.
+awaiting a subsequent `/livespec:revise` pass.
 
 ### Step 4 — Summary
 
@@ -92,7 +92,7 @@ When all candidates are processed, print a summary:
   explicit user consent before a propose-change is filed. The skill
   does NOT auto-file.
 - **Read-only on the impl tree** — the skill never modifies source
-  code. Spec authorship happens through `/livespec-core:propose-change`,
+  code. Spec authorship happens through `/livespec:propose-change`,
   not here.
 - **Spec-side write goes through the cross-boundary handoff** — this
   plugin never writes to `<spec-root>/proposed_changes/` directly. The
@@ -102,6 +102,6 @@ When all candidates are processed, print a summary:
 
 - Does NOT modify the impl tree.
 - Does NOT modify the spec tree directly. Routes through
-  `/livespec-core:propose-change`.
+  `/livespec:propose-change`.
 - Does NOT detect spec→impl gaps. That's `capture-impl-gaps`.
 - Does NOT auto-accept findings. User confirms every handoff.

@@ -1,7 +1,7 @@
 """Spec Reader adapter for livespec-impl-plaintext.
 
 Implements the four required capabilities defined in
-livespec-core/SPECIFICATION/contracts.md §"Spec Reader required-capability
+livespec/SPECIFICATION/contracts.md §"Spec Reader required-capability
 surface" and concretized for this plugin in SPECIFICATION/contracts.md
 §"Spec Reader internal API".
 
@@ -26,7 +26,7 @@ Public functions (all keyword-only):
 The well-known spec file set is discovered by directory traversal rather
 than hardcoded. The Spec Reader honors the `version-directories-complete`
 exemption (a vNNN/ directory may carry a `PRUNED_HISTORY.json` marker
-indicating it was pruned per /livespec-core:prune-history); pruned
+indicating it was pruned per /livespec:prune-history); pruned
 versions are returned as SpecSnapshots whose `files` map carries only the
 `PRUNED_HISTORY.json` content.
 """

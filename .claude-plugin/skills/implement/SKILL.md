@@ -1,6 +1,6 @@
 ---
 name: implement
-description: Drive Red→Green for a single work-item. For gap-tied items, verify closure by re-running capture-impl-gaps in dry-run mode. Required heavyweight authored skill per livespec-core/SPECIFICATION/contracts.md §"Heavyweight authored skills (6)". Invoke as `/livespec-impl-plaintext:implement [<work-item-id>]`.
+description: Drive Red→Green for a single work-item. For gap-tied items, verify closure by re-running capture-impl-gaps in dry-run mode. Required heavyweight authored skill per livespec/SPECIFICATION/contracts.md §"Heavyweight authored skills (6)". Invoke as `/livespec-impl-plaintext:implement [<work-item-id>]`.
 allowed-tools: Bash, Read, Grep, Glob, Edit, Write
 ---
 
@@ -8,7 +8,7 @@ allowed-tools: Bash, Read, Grep, Glob, Edit, Write
 
 The Red→Green driver. Walks a single work-item from open through
 implementation to closed-with-audit. Closure branches on `origin ×
-disposition` per livespec-core/SPECIFICATION/contracts.md
+disposition` per livespec/SPECIFICATION/contracts.md
 §"Heavyweight authored skills (6)" → implement.
 
 ## Pre-requisites

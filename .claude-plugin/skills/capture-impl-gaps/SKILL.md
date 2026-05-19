@@ -1,6 +1,6 @@
 ---
 name: capture-impl-gaps
-description: Detect spec→impl gaps mechanically via the Spec Reader and file gap-tied work-items into the JSONL store with per-gap user consent. Required heavyweight authored skill per livespec-core/SPECIFICATION/contracts.md §"Heavyweight authored skills (6)". Invoke as `/livespec-impl-plaintext:capture-impl-gaps`.
+description: Detect spec→impl gaps mechanically via the Spec Reader and file gap-tied work-items into the JSONL store with per-gap user consent. Required heavyweight authored skill per livespec/SPECIFICATION/contracts.md §"Heavyweight authored skills (6)". Invoke as `/livespec-impl-plaintext:capture-impl-gaps`.
 allowed-tools: Bash, Read, Grep, Glob, Write
 ---
 
@@ -110,7 +110,7 @@ When all candidates are processed, print a summary:
 
 - **In-memory ephemeral detection state** — no persistent intermediate
   artifact. The candidate list is discarded at skill exit per
-  livespec-core/SPECIFICATION/contracts.md §"Heavyweight authored
+  livespec/SPECIFICATION/contracts.md §"Heavyweight authored
   skills (6)" → capture-impl-gaps.
 - **Per-gap user consent is REQUIRED** — never auto-file without
   explicit confirmation.

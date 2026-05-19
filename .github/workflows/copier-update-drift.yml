@@ -1,33 +1,33 @@
 # Copier-update drift detection for livespec-impl-plaintext.
 #
-# Generated from livespec-core/templates/impl-plugin/.github/workflows/
+# Generated from livespec/templates/impl-plugin/.github/workflows/
 # copier-update-drift.yml.jinja at copier-copy time; re-sync via
-# `copier update` when livespec-core publishes a new release.
+# `copier update` when livespec publishes a new release.
 #
-# Authority: livespec-core/SPECIFICATION/contracts.md
+# Authority: livespec/SPECIFICATION/contracts.md
 #   §"Shared content sync — copier template" — each impl repo's CI
 #   SHOULD run `copier update --dry-run` and fail or warn on detected
 #   drift. `.claude/skills/loop/SKILL.md` MUST be excluded from drift
 #   detection because local divergence of the Layer 3 loop driver is
 #   expected and load-bearing.
 #
-# Authority: livespec-core/SPECIFICATION/non-functional-requirements.md
+# Authority: livespec/SPECIFICATION/non-functional-requirements.md
 #   §"Project-local orchestration layer" — the loop SKILL exemption
 #   rationale.
 #
 # This workflow surfaces drift between livespec-impl-plaintext's
-# generated content and livespec-core's current template. To re-sync
+# generated content and livespec's current template. To re-sync
 # after detected drift: run `copier update` locally and resolve any
 # 3-way merge conflicts.
 
 name: copier-update-drift
 
 # Bootstrap note (2026-05-19): triggers reduced to workflow_dispatch only
-# until livespec-core publishes a release tag this repo can pin against
+# until livespec publishes a release tag this repo can pin against
 # (Phase E of research/workflow-processes/multi-repo-split-execution-plan.md).
 # Once a real release tag exists and .copier-answers.yml's compat.pinned is
 # updated to a real value, restore the original pull_request + push +
-# schedule trigger block from livespec-core/templates/impl-plugin/.github/
+# schedule trigger block from livespec/templates/impl-plugin/.github/
 # workflows/copier-update-drift.yml.jinja.
 on:
   workflow_dispatch:

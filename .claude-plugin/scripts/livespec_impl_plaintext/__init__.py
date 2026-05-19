@@ -1,4 +1,4 @@
-"""livespec_impl_plaintext — JSONL-backed implementation plugin for livespec-core.
+"""livespec_impl_plaintext — JSONL-backed implementation plugin for livespec.
 
 Public package layout:
 
@@ -8,7 +8,7 @@ Public package layout:
   materialize + filter) for work-items and memos files.
 - `livespec_impl_plaintext.spec_reader` — Spec Reader adapter implementing
   the four required capabilities defined in
-  livespec-core/SPECIFICATION/contracts.md
+  livespec/SPECIFICATION/contracts.md
   §"Spec Reader required-capability surface".
 - `livespec_impl_plaintext.errors` — exception types for the expected-error
   surface (missing file, malformed line, schema violation, version not

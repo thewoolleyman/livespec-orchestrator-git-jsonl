@@ -1,6 +1,6 @@
 ---
 name: process-memos
-description: Per-memo handholding dialogue with four canonical dispositions — spec-bound, impl-bound, persistent-knowledge, discard. Required heavyweight authored skill per livespec-core/SPECIFICATION/contracts.md §"Heavyweight authored skills (6)". Invoke as `/livespec-impl-plaintext:process-memos`.
+description: Per-memo handholding dialogue with four canonical dispositions — spec-bound, impl-bound, persistent-knowledge, discard. Required heavyweight authored skill per livespec/SPECIFICATION/contracts.md §"Heavyweight authored skills (6)". Invoke as `/livespec-impl-plaintext:process-memos`.
 allowed-tools: Bash, Read, Grep, Glob, Edit, Write
 ---
 
@@ -8,14 +8,14 @@ allowed-tools: Bash, Read, Grep, Glob, Edit, Write
 
 The drain half of the memo lifecycle. Iterates over untriaged memos
 and routes each to its canonical disposition per
-livespec-core/SPECIFICATION/spec.md §"Disposition (memo)". The four
+livespec/SPECIFICATION/spec.md §"Disposition (memo)". The four
 dispositions are mutually exclusive; every memo lands in exactly one.
 
 ## Pre-requisites
 
 - The memos JSONL store path is reachable.
-- `livespec-core` installed (the spec-bound disposition requires the
-  `/livespec-core:propose-change` cross-boundary handoff).
+- `livespec` installed (the spec-bound disposition requires the
+  `/livespec:propose-change` cross-boundary handoff).
 - The consumer project has `CLAUDE.md` and/or `AGENTS.md` at the root
   (the persistent-knowledge disposition writes references into them).
 
@@ -56,11 +56,11 @@ The memo content belongs in the Specification.
 
 1. Ask the user for a propose-change topic slug (kebab-case).
 2. Invoke the cross-boundary handoff (red-edge entry 2 per
-   livespec-core/SPECIFICATION/contracts.md §"Cross-boundary
+   livespec/SPECIFICATION/contracts.md §"Cross-boundary
    handoffs"):
 
 ```bash
-/livespec-core:propose-change --spec-target SPECIFICATION/ \
+/livespec:propose-change --spec-target SPECIFICATION/ \
     --topic <slug> --body "<memo-text>"
 ```
 
@@ -139,7 +139,7 @@ remaining untriaged: P
   SPECIFICATION/constraints.md §"Persistent Agent Knowledge
   constraints").
 - **Cross-boundary handoff is namespace-scoped** — invoke
-  `/livespec-core:propose-change`, never `python3
+  `/livespec:propose-change`, never `python3
   ~/.claude/plugins/.../bin/propose_change.py`. Discoverability
   through the slash command is the contract.
 
@@ -149,7 +149,7 @@ remaining untriaged: P
 - Does NOT delete memo records. `discard` is a state transition, not
   a removal.
 - Does NOT modify the Specification. The spec-bound disposition
-  routes through `/livespec-core:propose-change`, which is the only
+  routes through `/livespec:propose-change`, which is the only
   permitted spec-write surface.
 - Does NOT graduate persistent-knowledge content silently — the
   `CLAUDE.md` / `AGENTS.md` reference is part of the disposition

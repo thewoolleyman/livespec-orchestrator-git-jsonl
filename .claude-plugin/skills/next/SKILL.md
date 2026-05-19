@@ -1,6 +1,6 @@
 ---
 name: next
-description: Rank the most-ripe impl-side action from the JSONL work-items store. Required thin-transport surface per livespec-core/SPECIFICATION/contracts.md §"Thin-transport skills (3) — required machine query surface". Pure function of file state; no LLM in the ranking path. Invoke as `/livespec-impl-plaintext:next [--json]`.
+description: Rank the most-ripe impl-side action from the JSONL work-items store. Required thin-transport surface per livespec/SPECIFICATION/contracts.md §"Thin-transport skills (3) — required machine query surface". Pure function of file state; no LLM in the ranking path. Invoke as `/livespec-impl-plaintext:next [--json]`.
 allowed-tools: Bash
 ---
 
@@ -23,7 +23,7 @@ Supported flags:
 
 ## Output schema
 
-Per livespec-core/SPECIFICATION/contracts.md §"Implementation-plugin
+Per livespec/SPECIFICATION/contracts.md §"Implementation-plugin
 contract — the 9-skill surface" → next:
 
 ```json
@@ -39,7 +39,7 @@ contract — the 9-skill surface" → next:
 
 - User asks "what should I work on next?"
 - The project-local Layer 3 loop driver composes
-  `/livespec-core:next` + `/livespec-impl-plaintext:next` outputs into
+  `/livespec:next` + `/livespec-impl-plaintext:next` outputs into
   per-iteration recommendations.
 
 ## What this skill does NOT do

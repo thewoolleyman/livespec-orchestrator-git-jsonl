@@ -14,7 +14,7 @@ The ranker is a pure function of work-items JSONL state. The algorithm:
    c. captured_at (oldest first),
    d. id (lexicographic tiebreaker).
 3. The top-ranked ready item becomes the recommendation. Output schema
-   matches livespec-core/SPECIFICATION/contracts.md §"Implementation-
+   matches livespec/SPECIFICATION/contracts.md §"Implementation-
    plugin contract — the 9-skill surface" → next:
    {action, work_item_ref, urgency, reason}.
 

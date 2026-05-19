@@ -1,6 +1,6 @@
 ---
 name: list-memos
-description: List memos from the JSONL memos store. Required thin-transport surface per livespec-core/SPECIFICATION/contracts.md §"Thin-transport skills (3) — required machine query surface". Invoke as `/livespec-impl-plaintext:list-memos [--filter <name>] [--json]`.
+description: List memos from the JSONL memos store. Required thin-transport surface per livespec/SPECIFICATION/contracts.md §"Thin-transport skills (3) — required machine query surface". Invoke as `/livespec-impl-plaintext:list-memos [--filter <name>] [--json]`.
 allowed-tools: Bash
 ---
 

@@ -1,6 +1,6 @@
 """Exception types for the expected-error surface of livespec-impl-plaintext.
 
-Per SPECIFICATION/constraints.md §"Inherited from livespec-core" (the
+Per SPECIFICATION/constraints.md §"Inherited from livespec" (the
 Result-vs-bugs split), these are the EXPECTED errors the substrate or
 external input can produce. Each carries enough context for the calling
 skill to surface a clear narration to the user.

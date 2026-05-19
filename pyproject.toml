@@ -130,7 +130,7 @@ ban-relative-imports = "all"
 # /tmp paths, token-suffixed variable names, long descriptive
 # docstrings. Per livespec-core's tests/ per-file-ignore set.
 "tests/**.py" = [
-    "S101", "PLR2004", "S603", "S607", "PT018", "S108", "S105", "TRY003", "E501",
+    "S101", "PLR2004", "S603", "S607", "PT018", "S108", "S105", "TRY003", "E501", "PLR0913",
 ]
 # dev-tooling/checks/ scripts shell out to git, ruff, python via
 # subprocess.run with fixed argv lists per the canonical-target

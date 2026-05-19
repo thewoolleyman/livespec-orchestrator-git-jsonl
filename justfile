@@ -197,3 +197,15 @@ fmt:
 
 lint-fix:
     uv run ruff check --fix .
+
+# ---------------------------------------------------------------
+# One-shot migration utilities.
+# ---------------------------------------------------------------
+
+# Translate a beads .beads/issues.jsonl export into work-items.jsonl
+# records. One-shot — re-running on the same input produces duplicates.
+# Use during the Phase D.10 cutover only.
+migrate-beads beads_jsonl out_jsonl:
+    uv run python3 .claude-plugin/scripts/bin/migrate_beads.py \
+        --beads-jsonl {{beads_jsonl}} \
+        --work-items-out {{out_jsonl}}

@@ -2,7 +2,7 @@
 #
 # Tracked per livespec/SPECIFICATION/contracts.md
 # §"Shared content sync — copier template".
-_commit: fbafa6e0cf5f55086c688ffcd624e11681892825
+_commit: b30e727a2605c2852badde201b4d009679279a3a
 _src_path: gh:thewoolleyman/livespec
 plugin_short_name: plaintext
 plugin_full_name: livespec-impl-plaintext

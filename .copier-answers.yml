@@ -2,15 +2,8 @@
 #
 # Tracked per livespec/SPECIFICATION/contracts.md
 # §"Shared content sync — copier template".
-#
-# Bootstrap note (2026-05-19): this file was authored by hand because the
-# initial scaffold was generated from a local-path copier source
-# (/data/projects/livespec/templates/impl-plugin) ahead of livespec's
-# Phase E rename + first published release tag. The next `copier update`
-# pass — once livespec publishes a real release tag and this repo
-# bumps its compat.pinned field — will overwrite this file.
-_commit: fbafa6e0cf5f55086c688ffcd624e11681892825
-_src_path: gh:thewoolleyman/livespec/templates/impl-plugin
+_commit: b30e727a2605c2852badde201b4d009679279a3a
+_src_path: gh:thewoolleyman/livespec
 plugin_short_name: plaintext
 plugin_full_name: livespec-impl-plaintext
 plugin_description: JSONL-backed implementation plugin for livespec

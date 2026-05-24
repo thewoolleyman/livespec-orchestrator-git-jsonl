@@ -489,6 +489,7 @@ dev = [
     { name = "hypothesis-jsonschema" },
     { name = "import-linter" },
     { name = "livespec-dev-tooling" },
+    { name = "livespec-runtime" },
     { name = "mutmut" },
     { name = "pyright" },
     { name = "pytest" },
@@ -507,6 +508,7 @@ dev = [
     { name = "hypothesis-jsonschema", specifier = "==0.23.1" },
     { name = "import-linter", specifier = "==2.1" },
     { name = "livespec-dev-tooling", git = "https://github.com/thewoolleyman/livespec-dev-tooling.git?tag=v0.1.0" },
+    { name = "livespec-runtime", git = "https://github.com/thewoolleyman/livespec-runtime.git?tag=v0.2.0" },
     { name = "mutmut", specifier = "==3.2.3" },
     { name = "pyright", specifier = "==1.1.391" },
     { name = "pytest", specifier = "==8.3.4" },
@@ -514,6 +516,14 @@ dev = [
     { name = "pytest-icdiff", specifier = "==0.9" },
     { name = "pytest-xdist", specifier = "==3.8.0" },
     { name = "ruff", specifier = "==0.8.6" },
+]
+
+[[package]]
+name = "livespec-runtime"
+version = "0.2.0"
+source = { git = "https://github.com/thewoolleyman/livespec-runtime.git?tag=v0.2.0#f1ed73af84a8587ecab07c9f1694639cfe1343a4" }
+dependencies = [
+    { name = "typing-extensions" },
 ]
 
 [[package]]

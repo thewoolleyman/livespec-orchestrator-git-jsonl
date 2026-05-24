@@ -120,7 +120,7 @@ def test_main_filter_blocked(
     assert rc == 0
 
 
-def test_main_filter_ready_excludes_unresolved_deps(
+def test_main_filter_ready_excludes_open_local_deps(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
     capsys: pytest.CaptureFixture[str],
@@ -129,12 +129,30 @@ def test_main_filter_ready_excludes_unresolved_deps(
     path = tmp_path / "work-items.jsonl"
     append_work_item(path=path, item=_item(id_="li-a"))
     append_work_item(path=path, item=_item(id_="li-b", depends_on=("li-a",)))
-    append_work_item(path=path, item=_item(id_="li-c", depends_on=("li-missing",)))
     rc = main(["--filter=ready"])
     captured = capsys.readouterr()
     assert "li-a" in captured.out
     assert "li-b" not in captured.out
-    assert "li-c" not in captured.out
+    assert rc == 0
+
+
+def test_main_filter_ready_does_not_exclude_missing_local_dep(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """Missing local ids resolve to UNKNOWN; only OPEN excludes per the v072 contract.
+
+    The doctor's `no-orphan-dependency` invariant is the right surface
+    for missing-local detection — the next ranker and the ready filter
+    deliberately do not double up.
+    """
+    monkeypatch.chdir(tmp_path)
+    path = tmp_path / "work-items.jsonl"
+    append_work_item(path=path, item=_item(id_="li-c", depends_on=("li-missing",)))
+    rc = main(["--filter=ready"])
+    captured = capsys.readouterr()
+    assert "li-c" in captured.out
     assert rc == 0
 
 

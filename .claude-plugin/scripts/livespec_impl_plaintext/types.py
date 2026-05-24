@@ -11,7 +11,9 @@ SPECIFICATION/contracts.md §"Spec Reader internal API".
 
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Literal
+from typing import Any, Literal
+
+DependsOnRaw = str | dict[str, Any]
 
 WorkItemStatus = Literal["open", "in_progress", "blocked", "closed", "deferred"]
 WorkItemType = Literal["bug", "feature", "task", "chore", "epic"]
@@ -56,7 +58,7 @@ class WorkItem:
     gap_id: str | None
     priority: int
     assignee: str | None
-    depends_on: tuple[str, ...]
+    depends_on: tuple[DependsOnRaw, ...]
     captured_at: str
     resolution: Resolution | None
     reason: str | None

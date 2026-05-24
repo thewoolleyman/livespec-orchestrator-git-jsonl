@@ -108,10 +108,12 @@ def test_rank_closed_dependency_unblocks_item() -> None:
     assert result["work_item_ref"] == "li-ready"
 
 
-def test_rank_missing_dependency_excludes_item() -> None:
+def test_rank_missing_local_dependency_does_not_exclude_item() -> None:
+    """Missing local ids resolve to UNKNOWN; only OPEN excludes per v072 contract."""
     items = [_item(id_="li-x", depends_on=("li-missing",))]
     result = rank(items=items)
-    assert result["action"] == "none"
+    assert result["action"] == "implement"
+    assert result["work_item_ref"] == "li-x"
 
 
 def test_rank_urgency_high_for_p0() -> None:

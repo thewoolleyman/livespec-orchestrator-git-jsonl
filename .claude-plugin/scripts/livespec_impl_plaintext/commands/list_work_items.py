@@ -29,7 +29,10 @@ from dataclasses import asdict
 from pathlib import Path
 from typing import Literal
 
+from livespec_runtime.cross_repo.types import CrossRepoManifest
+
 from livespec_impl_plaintext.commands._config import resolve_store_config
+from livespec_impl_plaintext.commands._cross_repo import is_item_ready, load_manifest
 from livespec_impl_plaintext.errors import StoreFileMissingError
 from livespec_impl_plaintext.store import materialize_work_items, read_work_items
 from livespec_impl_plaintext.types import WorkItem
@@ -48,17 +51,21 @@ def main(argv: list[str] | None = None) -> int:
     _ = parser.add_argument("--with-gap-id", dest="with_gap_id", default=None)
     _ = parser.add_argument("--json", dest="as_json", action="store_true")
     _ = parser.add_argument("--work-items-path", dest="work_items_path", default=None)
+    _ = parser.add_argument("--project-root", dest="project_root", default=None)
     args = parser.parse_args(argv)
+    project_root = Path(args.project_root) if args.project_root is not None else Path.cwd()
     config = resolve_store_config(
-        cwd=Path.cwd(),
+        cwd=project_root,
         work_items_arg=args.work_items_path,
         memos_arg=None,
     )
     materialized = _load_work_items(path=config.work_items_path)
+    manifest = load_manifest(project_root=project_root)
     filtered = _filter_work_items(
         materialized=materialized,
         name=args.filter_name,
         with_gap_id=args.with_gap_id,
+        manifest=manifest,
     )
     if args.as_json:
         _write_json(items=filtered)
@@ -79,25 +86,30 @@ def _filter_work_items(
     materialized: list[WorkItem],
     name: str,
     with_gap_id: str | None,
+    manifest: CrossRepoManifest,
 ) -> list[WorkItem]:
-    by_name = _filter_by_name(materialized=materialized, name=name)
+    by_name = _filter_by_name(materialized=materialized, name=name, manifest=manifest)
     if with_gap_id is None:
         return by_name
     return [item for item in by_name if item.gap_id == with_gap_id]
 
 
-def _filter_by_name(*, materialized: list[WorkItem], name: str) -> list[WorkItem]:
+def _filter_by_name(
+    *,
+    materialized: list[WorkItem],
+    name: str,
+    manifest: CrossRepoManifest,
+) -> list[WorkItem]:
+    index = {item.id: item for item in materialized}
     predicates: dict[str, Callable[[WorkItem, dict[str, WorkItem]], bool]] = {
         "all": lambda _item, _ix: True,
         "gap-tied": lambda item, _ix: item.origin == "gap-tied",
         "freeform": lambda item, _ix: item.origin == "freeform",
         "blocked": lambda item, _ix: item.status == "blocked",
-        "ready": lambda item, ix: item.status == "open"
-        and all((ix[dep].status == "closed") if dep in ix else False for dep in item.depends_on),
+        "ready": lambda item, ix: is_item_ready(item=item, index=ix, manifest=manifest),
         "closed": lambda item, _ix: item.status == "closed",
     }
     predicate = predicates[name]
-    index = {item.id: item for item in materialized}
     return [item for item in materialized if predicate(item, index)]
 
 

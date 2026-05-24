@@ -167,6 +167,13 @@ exclude = ["**/_vendor/**", "**/__pycache__/**"]
 pythonVersion = "3.10.16"
 typeCheckingMode = "strict"
 
+# livespec-runtime ships without a py.typed marker as of v0.2.0;
+# enabling useLibraryCodeForTypes lets pyright derive types from the
+# package's inline annotations rather than treating every import as
+# Unknown. Follow-up: file py.typed in livespec-runtime + bump-pin.
+useLibraryCodeForTypes = true
+reportMissingTypeStubs = "none"
+
 reportUnusedCallResult = "error"
 reportImplicitOverride = "error"
 reportUninitializedInstanceVariable = "error"

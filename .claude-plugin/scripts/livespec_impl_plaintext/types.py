@@ -47,7 +47,18 @@ class AuditRecord:
 
 @dataclass(frozen=True, kw_only=True)
 class WorkItem:
-    """A single JSONL work-item record (one line of the work-items file)."""
+    """A single JSONL work-item record (one line of the work-items file).
+
+    `spec_commitment_hint` is the OPTIONAL pairing field landed for
+    livespec PC #4 sub-proposal 3 (livespec v083). When the work-item
+    is filed in response to a spec-side `spec_commitments.impl_followups[]`
+    declaration, this field carries the originating `id_hint` verbatim.
+    For freeform work-items unrelated to any spec commitment, it is
+    `None`. Legacy records lacking the field on disk read back as
+    `None` (no in-place migration required); the field is OPTIONAL on
+    the read path but always written explicitly on append (as `null`
+    or the value).
+    """
 
     id: str
     type: WorkItemType
@@ -64,6 +75,7 @@ class WorkItem:
     reason: str | None
     audit: AuditRecord | None
     superseded_by: str | None
+    spec_commitment_hint: str | None = None
 
 
 @dataclass(frozen=True, kw_only=True)

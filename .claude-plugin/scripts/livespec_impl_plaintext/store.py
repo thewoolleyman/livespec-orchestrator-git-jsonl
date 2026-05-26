@@ -64,6 +64,14 @@ _WORK_ITEM_REQUIRED_KEYS = frozenset(
     }
 )
 
+# OPTIONAL work-item keys: present in records authored after their
+# introduction; missing in legacy records pre-dating their landing.
+# Read path treats absence as `None`; write path always serializes
+# (per livespec PC #4 sub-proposal 3 — `spec_commitment_hint`).
+_WORK_ITEM_OPTIONAL_KEYS = frozenset({"spec_commitment_hint"})
+
+_WORK_ITEM_ALLOWED_KEYS = _WORK_ITEM_REQUIRED_KEYS | _WORK_ITEM_OPTIONAL_KEYS
+
 _MEMO_REQUIRED_KEYS = frozenset(
     {
         "id",
@@ -185,6 +193,7 @@ def _validate_work_item_payload(
         line_number=line_number,
         parsed=parsed,
         required=_WORK_ITEM_REQUIRED_KEYS,
+        optional=_WORK_ITEM_OPTIONAL_KEYS,
     )
     _check_in_enum(
         path=path,
@@ -223,6 +232,17 @@ def _validate_work_item_payload(
             line_number=line_number,
             parsed=audit_value,
         )
+    if "spec_commitment_hint" in parsed:
+        hint_value = parsed["spec_commitment_hint"]
+        if hint_value is not None and not isinstance(hint_value, str):
+            raise SchemaViolationError(
+                path=path,
+                line_number=line_number,
+                detail=(
+                    f"field 'spec_commitment_hint' must be string or null, "
+                    f"got {type(hint_value).__name__}"
+                ),
+            )
 
 
 def _parse_work_item(*, path: Path, line_number: int, parsed: dict[str, Any]) -> WorkItem:
@@ -249,6 +269,7 @@ def _parse_work_item(*, path: Path, line_number: int, parsed: dict[str, Any]) ->
         reason=parsed["reason"],
         audit=audit_record,
         superseded_by=parsed["superseded_by"],
+        spec_commitment_hint=parsed.get("spec_commitment_hint"),
     )
 
 
@@ -332,10 +353,23 @@ def _check_required_keys(
     line_number: int,
     parsed: dict[str, Any],
     required: frozenset[str],
+    optional: frozenset[str] = frozenset(),
 ) -> None:
+    """Verify `parsed` carries exactly the union of required + optional keys.
+
+    Required keys MUST be present (missing → SchemaViolationError).
+    Optional keys MAY be present (their absence is silent; consumers
+    default the field on read). Any key outside `required | optional`
+    is an unexpected extra and fires SchemaViolationError.
+
+    The optional set lets new schema fields land without rejecting
+    legacy records that pre-date the field — see PC #4 sub-proposal
+    3 (`spec_commitment_hint`).
+    """
     parsed_keys = frozenset(parsed.keys())
+    allowed = required | optional
     missing = required - parsed_keys
-    extra = parsed_keys - required
+    extra = parsed_keys - allowed
     if missing:
         raise SchemaViolationError(
             path=path,

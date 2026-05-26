@@ -2,7 +2,8 @@
 
 CLI surface per SPECIFICATION/contracts.md §"list-work-items":
 
-  list-work-items [--filter <name>] [--with-gap-id <id>] [--json]
+  list-work-items [--filter <name>] [--with-gap-id <id>]
+                  [--with-spec-commitment-hint <id_hint>] [--json]
                   [--work-items-path <path>]
 
 Filters:
@@ -14,11 +15,18 @@ Filters:
 - `--filter=all` (default)
 
 `--with-gap-id=<id>` filters to exact gap_id match (combinable with --filter).
+`--with-spec-commitment-hint=<id_hint>` filters to exact
+spec_commitment_hint match. Both `--with-*` flags are combinable with
+`--filter` and with each other.
 
 Output:
 
 - Default: one-line summary per work-item.
-- `--json`: an array of work-item materialized views.
+- `--json`: an array of work-item materialized views. Each entry
+  includes the optional `spec_commitment_hint` field (string or
+  `null`) — the pairing surface livespec's
+  `unresolved-spec-commitment` doctor invariant matches against
+  per livespec PC #4 sub-proposal 3.
 """
 
 import argparse
@@ -49,6 +57,11 @@ def main(argv: list[str] | None = None) -> int:
         choices=["all", "gap-tied", "freeform", "blocked", "ready", "closed"],
     )
     _ = parser.add_argument("--with-gap-id", dest="with_gap_id", default=None)
+    _ = parser.add_argument(
+        "--with-spec-commitment-hint",
+        dest="with_spec_commitment_hint",
+        default=None,
+    )
     _ = parser.add_argument("--json", dest="as_json", action="store_true")
     _ = parser.add_argument("--work-items-path", dest="work_items_path", default=None)
     _ = parser.add_argument("--project-root", dest="project_root", default=None)
@@ -65,6 +78,7 @@ def main(argv: list[str] | None = None) -> int:
         materialized=materialized,
         name=args.filter_name,
         with_gap_id=args.with_gap_id,
+        with_spec_commitment_hint=args.with_spec_commitment_hint,
         manifest=manifest,
     )
     if args.as_json:
@@ -86,12 +100,16 @@ def _filter_work_items(
     materialized: list[WorkItem],
     name: str,
     with_gap_id: str | None,
+    with_spec_commitment_hint: str | None,
     manifest: CrossRepoManifest,
 ) -> list[WorkItem]:
     by_name = _filter_by_name(materialized=materialized, name=name, manifest=manifest)
-    if with_gap_id is None:
-        return by_name
-    return [item for item in by_name if item.gap_id == with_gap_id]
+    by_gap = (
+        by_name if with_gap_id is None else [item for item in by_name if item.gap_id == with_gap_id]
+    )
+    if with_spec_commitment_hint is None:
+        return by_gap
+    return [item for item in by_gap if item.spec_commitment_hint == with_spec_commitment_hint]
 
 
 def _filter_by_name(

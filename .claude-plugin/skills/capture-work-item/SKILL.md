@@ -31,6 +31,18 @@ Optional follow-ups (skip-confirmable):
 
 - **Assignee** — string or null (default null).
 - **Depends-on** — comma-separated `li-` ids; empty list permitted.
+- **Spec-commitment-hint** — string `id_hint` or null (default null).
+  Supplied via `--spec-commitment-hint <id_hint>` when the work-item
+  is being filed in response to a spec-side
+  `spec_commitments.impl_followups[].id_hint` declaration (per livespec
+  `SPECIFICATION/contracts.md` §"Implementation-plugin contract — the
+  10-skill surface" → "Work-item `spec_commitment_hint` field"). When
+  supplied, the resulting record's `spec_commitment_hint` MUST equal
+  the verbatim `id_hint`; when omitted, the field defaults to `null`
+  (the freeform case). This is the surface livespec's
+  `unresolved-spec-commitment` doctor invariant queries via
+  `list-work-items --json` to verify each declared spec→impl
+  commitment maps to a filed work-item.
 
 ### Step 2 — Confirm and file
 
@@ -59,6 +71,7 @@ item = WorkItem(
     reason=None,
     audit=None,
     superseded_by=None,
+    spec_commitment_hint=spec_commitment_hint,  # str | None; None for freeform.
 )
 append_work_item(path=Path("work-items.jsonl"), item=item)
 ```

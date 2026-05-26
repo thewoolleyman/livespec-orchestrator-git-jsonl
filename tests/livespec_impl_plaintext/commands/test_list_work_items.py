@@ -17,6 +17,7 @@ def _item(
     gap_id: str | None = None,
     depends_on: tuple[str, ...] = (),
     priority: int = 2,
+    spec_commitment_hint: str | None = None,
 ) -> WorkItem:
     return WorkItem(
         id=id_,
@@ -40,6 +41,7 @@ def _item(
         if status == "closed"
         else None,
         superseded_by=None,
+        spec_commitment_hint=spec_commitment_hint,
     )
 
 
@@ -245,3 +247,127 @@ def test_main_with_custom_work_items_path(
     captured = capsys.readouterr()
     assert rc == 0
     assert "li-a" in captured.out
+
+
+# -- spec_commitment_hint surface (livespec PC #4 sub-proposal 3) --------
+
+
+def test_main_json_output_includes_spec_commitment_hint_when_set(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """`--json` exposes spec_commitment_hint so the doctor invariant can match."""
+    monkeypatch.chdir(tmp_path)
+    path = tmp_path / "work-items.jsonl"
+    append_work_item(
+        path=path,
+        item=_item(id_="li-a", spec_commitment_hint="spec-impl-commitment-tracking"),
+    )
+    rc = main(["--json"])
+    captured = capsys.readouterr()
+    assert rc == 0
+    payload = json.loads(captured.out)
+    assert payload[0]["spec_commitment_hint"] == "spec-impl-commitment-tracking"
+
+
+def test_main_json_output_includes_null_spec_commitment_hint_when_unset(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """`--json` carries explicit null for freeform work-items (the unset case)."""
+    monkeypatch.chdir(tmp_path)
+    path = tmp_path / "work-items.jsonl"
+    append_work_item(path=path, item=_item(id_="li-a"))
+    rc = main(["--json"])
+    captured = capsys.readouterr()
+    assert rc == 0
+    payload = json.loads(captured.out)
+    assert "spec_commitment_hint" in payload[0]
+    assert payload[0]["spec_commitment_hint"] is None
+
+
+def test_main_with_spec_commitment_hint_filter(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """`--with-spec-commitment-hint=<id_hint>` filters to exact hint match."""
+    monkeypatch.chdir(tmp_path)
+    path = tmp_path / "work-items.jsonl"
+    append_work_item(path=path, item=_item(id_="li-match", spec_commitment_hint="topic-x"))
+    append_work_item(path=path, item=_item(id_="li-other", spec_commitment_hint="topic-y"))
+    append_work_item(path=path, item=_item(id_="li-none"))
+    rc = main(["--with-spec-commitment-hint", "topic-x"])
+    captured = capsys.readouterr()
+    assert rc == 0
+    assert "li-match" in captured.out
+    assert "li-other" not in captured.out
+    assert "li-none" not in captured.out
+
+
+def test_main_with_spec_commitment_hint_filter_no_matches(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """A hint with no matching record yields the empty-listing message."""
+    monkeypatch.chdir(tmp_path)
+    path = tmp_path / "work-items.jsonl"
+    append_work_item(path=path, item=_item(id_="li-a"))
+    rc = main(["--with-spec-commitment-hint", "no-match"])
+    captured = capsys.readouterr()
+    assert rc == 0
+    assert "(no work-items)" in captured.out
+
+
+def test_main_with_spec_commitment_hint_filter_combines_with_filter_name(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """Hint filter composes with --filter (intersect, not union)."""
+    monkeypatch.chdir(tmp_path)
+    path = tmp_path / "work-items.jsonl"
+    append_work_item(
+        path=path,
+        item=_item(id_="li-open", status="open", spec_commitment_hint="topic-x"),
+    )
+    append_work_item(
+        path=path,
+        item=_item(id_="li-closed", status="closed", spec_commitment_hint="topic-x"),
+    )
+    rc = main(["--filter=closed", "--with-spec-commitment-hint", "topic-x"])
+    captured = capsys.readouterr()
+    assert rc == 0
+    assert "li-closed" in captured.out
+    assert "li-open" not in captured.out
+
+
+def test_main_with_spec_commitment_hint_filter_combines_with_gap_id(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """Hint filter composes with --with-gap-id (intersect, not union)."""
+    monkeypatch.chdir(tmp_path)
+    path = tmp_path / "work-items.jsonl"
+    append_work_item(
+        path=path,
+        item=_item(
+            id_="li-a",
+            origin="gap-tied",
+            gap_id="G1",
+            spec_commitment_hint="topic-x",
+        ),
+    )
+    append_work_item(
+        path=path,
+        item=_item(id_="li-b", spec_commitment_hint="topic-x"),
+    )
+    rc = main(["--with-gap-id", "G1", "--with-spec-commitment-hint", "topic-x"])
+    captured = capsys.readouterr()
+    assert rc == 0
+    assert "li-a" in captured.out
+    assert "li-b" not in captured.out

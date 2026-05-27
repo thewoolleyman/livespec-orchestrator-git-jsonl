@@ -1,6 +1,6 @@
 ---
 name: next
-description: Rank the most-ripe impl-side action from the JSONL work-items store. Required thin-transport surface per livespec/SPECIFICATION/contracts.md §"Thin-transport skills (3) — required machine query surface". Pure function of file state; no LLM in the ranking path. Invoke as `/livespec-impl-plaintext:next [--json]`.
+description: Rank the most-ripe impl-side action from the JSONL work-items store. Required thin-transport surface per livespec/SPECIFICATION/contracts.md §"Thin-transport skills (3) — required machine query surface". Pure function of file state; no LLM in the ranking path. Invoke as `/livespec-impl-plaintext:next [--limit <count>] [--offset <count>] [--json]`.
 allowed-tools: Bash
 ---
 
@@ -17,23 +17,51 @@ uv run python3 .claude-plugin/scripts/bin/next.py "$@"
 
 Supported flags:
 
-- `--json` — emit the recommendation as JSON
-  `{action, work_item_ref, urgency, reason}`
+- `--limit <count>` — positive integer, default `5`. Maximum number
+  of candidates returned in the `candidates` array. Non-positive
+  values cause the wrapper to exit `2` with a usage error.
+- `--offset <count>` — non-negative integer, default `0`. Number of
+  ranked candidates to skip from the front of the ranked list
+  before returning. Negative values cause the wrapper to exit `2`.
+- `--json` — emit the envelope as JSON (see below)
 - `--work-items-path <path>` — override the default location
+- `--project-root <path>` — override the project root used for
+  cross-repo manifest resolution
 
 ## Output schema
 
 Per livespec/SPECIFICATION/contracts.md §"Implementation-plugin
-contract — the 9-skill surface" → next:
+contract — the 10-skill surface" → next and v005 §"next" → "Output
+schema":
 
 ```json
 {
-  "action": "implement" | "none",
-  "work_item_ref": "<id>" | null,
-  "urgency": "high" | "medium" | "low",
-  "reason": "<one-line narration>"
+  "candidates": [
+    {
+      "action": "implement",
+      "work_item_ref": "<id>",
+      "urgency": "high" | "medium" | "low",
+      "reason": "<one-line narration>",
+      "priority": <int>,
+      "origin": "gap-tied" | "freeform"
+    }
+  ],
+  "pagination": {
+    "offset": 0,
+    "limit": 5,
+    "total": 12,
+    "has_more": true
+  }
 }
 ```
+
+Empty `candidates[]` IS the no-work signal — the wrapper does NOT
+degrade to any legacy single-object shape. When `offset >= total`,
+the wrapper emits `candidates: []` with `has_more: false`.
+
+The `priority` and `origin` fields are impl-plaintext-specific
+extensions; the cross-plugin contract permits additional fields on
+each candidate per the upstream §"Output schema".
 
 ## Layer 3 discoverability nudge
 

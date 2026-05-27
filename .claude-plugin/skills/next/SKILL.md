@@ -63,59 +63,24 @@ The `priority` and `origin` fields are impl-plaintext-specific
 extensions; the cross-plugin contract permits additional fields on
 each candidate per the upstream §"Output schema".
 
-## Layer 3 discoverability nudge
-
-On direct user invocation (the user typed
-`/livespec-impl-plaintext:next` or asked for the next impl-side
-move in plain language), before invoking the wrapper, surface a
-one-time nudge per livespec/SPECIFICATION/contracts.md
-§"Implementation-plugin contract — the 10-skill surface" → `next`
-bullet, parallel-and-symmetric to the upstream `/livespec:next`
-nudge documented at livespec's `.claude-plugin/skills/next/SKILL.md`
-§"Layer 3 discoverability nudge". The nudge MUST:
-
-- Inform the user that `.claude/skills/loop/SKILL.md` (the
-  project-local Layer 3 loop driver per livespec/SPECIFICATION/spec.md
-  §"Three-layer orchestration architecture" → "Layer 3 — Project-local
-  composition") is the cohesive cross-side composition surface that
-  combines `/livespec:next` (spec-side ranking over
-  `<spec-root>/proposed_changes/` and `<spec-root>/history/`) with
-  `/livespec-impl-plaintext:next` (impl-side ranking over the JSONL
-  work-items store at `<work-items-path>`).
-- Ask the user to confirm they want to run
-  `/livespec-impl-plaintext:next` directly rather than via the
-  project's Layer 3 driver.
-
-SKIP the nudge when `/livespec-impl-plaintext:next` is invoked by
-another skill (e.g., the Layer 3 driver itself, the `doctor`
-cross-boundary surface consuming `--json` output, the `implement`
-skill chaining its own ranking pass) rather than by a direct user
-request. The detection mechanism is per-harness; this skill simply
-gates the nudge on whether the entry path is a direct user
-invocation.
-
-When `.claude/skills/loop/SKILL.md` is absent in the current
-project (the file is OPTIONAL per livespec/SPECIFICATION/spec.md
-§"Layer 3 — Project-local composition"), the nudge MAY soften to a
-documentation pointer (e.g., "consider authoring a Layer 3 loop
-driver per livespec/SPECIFICATION/spec.md §...") rather than being
-suppressed. The discoverability discipline applies whenever direct
-user invocation is the entry path, regardless of whether the driver
-exists.
-
-The nudge is informational only — it points the user at the Layer 3
-surface but never selects the cross-side weighting itself,
-preserving the §"Cross-side composition exclusion" invariant. The
-wrapper at `.claude-plugin/scripts/bin/next.py` MUST NOT accrete any
-confirmation dialogue or opt-in flag; the nudge is SKILL.md-prose
-discipline only.
-
 ## When to use
 
 - User asks "what should I work on next?"
-- The project-local Layer 3 loop driver composes
+- livespec's resident Layer 3 loop driver (at
+  `livespec/.claude/skills/loop/SKILL.md`) composes
   `/livespec:next` + `/livespec-impl-plaintext:next` outputs into
   per-iteration recommendations.
+
+Per the v089 upstream recast (livespec/SPECIFICATION/spec.md
+§"Three-layer orchestration architecture" → "Layer 3 — Cross-repo
+orchestration (livespec-resident)"), this skill does NOT carry a
+Layer 3 discoverability nudge — that contract applies only to
+/livespec:next, which is colocated with the resident Layer 3
+driver in livespec. impl-plugin repos do NOT carry their own
+Layer 3 driver, so a nudge from this skill would have no in-repo
+surface to point at. The wrapper at
+`.claude-plugin/scripts/bin/next.py` remains a pure
+thin-transport pass-through.
 
 ## What this skill does NOT do
 

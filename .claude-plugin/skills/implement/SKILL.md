@@ -46,7 +46,7 @@ and exit.
 Ask the user up-front:
 
 > Resolution path for this work-item:
-> 1. Fix (Red→Green; this is the default)
+> 1. Completed (Red→Green; this is the default)
 > 2. wontfix / duplicate / spec-revised / no-longer-applicable /
 >    resolved-out-of-band
 
@@ -108,7 +108,7 @@ audit = (
         commits=tuple(verified_commit_shas),
         files_changed=tuple(verified_files),
     )
-    if resolution == "fix" and target.origin == "gap-tied"
+    if resolution == "completed" and target.origin == "gap-tied"
     else None
 )
 
@@ -139,13 +139,13 @@ Print "closed `<id>` (`<resolution>`)" to the user.
 - **Same `id`, new record** — closure does NOT mutate the open record.
   It appends a new record with the same `id`; the materialized view
   (latest-record-wins) shows the closed state.
-- **Audit fields REQUIRED for gap-tied fix closure** —
+- **Audit fields REQUIRED for gap-tied completed closure** —
   `verification_timestamp`, `commits`, `files_changed`. Doctor catches
   missing audits.
 - **Admin closures take a `reason`** — `wontfix`, `duplicate`,
   `spec-revised`, `no-longer-applicable`, `resolved-out-of-band` all
   require a user-supplied `reason` field.
-- **`fix` closure on `freeform` items takes a simple `reason`** — no
+- **`completed` closure on `freeform` items takes a simple `reason`** — no
   audit object needed.
 
 ## What this skill does NOT do

@@ -27,7 +27,7 @@ that introduced a new MUST clause not yet honored in the impl.
 5. At closure, the skill re-runs `capture-impl-gaps` in dry-run
    mode and confirms the `gap_id` is no longer detected. On
    success, it appends a closing record with `status: closed`,
-   `resolution: fix`, and the audit object
+   `resolution: completed`, and the audit object
    (`verification_timestamp`, `commits`, `files_changed`,
    `merge_sha`, optional `pr_number`).
 
@@ -83,7 +83,7 @@ The user spots a bug unrelated to any open gap.
 2. The user invokes `/livespec-impl-plaintext:implement` for that
    item. Red → Green proceeds normally.
 3. At closure, the skill takes the freeform path: append a closing
-   record with `status: closed`, `resolution: fix`, and the
+   record with `status: closed`, `resolution: completed`, and the
    user-supplied `--reason`. No `gap_id` re-detection runs.
 
 ## Scenario 5 — Doctor cross-boundary read

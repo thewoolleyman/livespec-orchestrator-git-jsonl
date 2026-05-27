@@ -73,12 +73,12 @@ def test_translate_open_gap_tied_record() -> None:
 def test_translate_closed_with_resolution_label() -> None:
     parsed = _beads_dict(
         status="closed",
-        labels=["gap-id:gap-0007", "resolution:fix"],
+        labels=["gap-id:gap-0007", "resolution:completed"],
         close_reason="all green",
     )
     item = translate_record(parsed=parsed)
     assert item.status == "closed"
-    assert item.resolution == "fix"
+    assert item.resolution == "completed"
     assert item.reason == "all green"
 
 
@@ -90,7 +90,7 @@ def test_translate_closed_gap_tied_extracts_audit_from_notes() -> None:
     )
     parsed = _beads_dict(
         status="closed",
-        labels=["gap-id:gap-0007", "resolution:fix"],
+        labels=["gap-id:gap-0007", "resolution:completed"],
         close_reason="closed",
         notes=notes,
     )
@@ -114,7 +114,7 @@ def test_translate_closed_freeform_no_audit() -> None:
 def test_translate_closed_gap_tied_missing_notes_no_audit() -> None:
     parsed = _beads_dict(
         status="closed",
-        labels=["gap-id:gap-0007", "resolution:fix"],
+        labels=["gap-id:gap-0007", "resolution:completed"],
         close_reason="closed",
     )
     item = translate_record(parsed=parsed)
@@ -124,7 +124,7 @@ def test_translate_closed_gap_tied_missing_notes_no_audit() -> None:
 def test_translate_closed_gap_tied_notes_without_timestamp_no_audit() -> None:
     parsed = _beads_dict(
         status="closed",
-        labels=["gap-id:gap-0007", "resolution:fix"],
+        labels=["gap-id:gap-0007", "resolution:completed"],
         close_reason="closed",
         notes="Gap id: gap-0007\nVerification run_id: x\n",
     )

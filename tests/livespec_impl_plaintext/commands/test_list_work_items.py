@@ -31,7 +31,7 @@ def _item(
         assignee=None,
         depends_on=depends_on,
         captured_at="2026-05-19T00:00:00Z",
-        resolution="fix" if status == "closed" else None,
+        resolution="completed" if status == "closed" else None,
         reason="done" if status == "closed" else None,
         audit=AuditRecord(
             verification_timestamp="2026-05-19T01:00:00Z",

@@ -86,7 +86,7 @@ def test_append_work_item_with_audit_roundtrips(tmp_path: Path) -> None:
         commits=("deadbeef",),
         files_changed=("a.py",),
     )
-    item = _minimal_work_item(id_="li-zzz999", status="closed", resolution="fix", audit=audit)
+    item = _minimal_work_item(id_="li-zzz999", status="closed", resolution="completed", audit=audit)
     append_work_item(path=path, item=item)
     [read_back] = list(read_work_items(path=path))
     assert read_back == item
@@ -175,7 +175,7 @@ def test_read_work_items_bad_enum_origin_raises(tmp_path: Path) -> None:
 
 def test_read_work_items_bad_enum_resolution_raises(tmp_path: Path) -> None:
     path = tmp_path / "work-items.jsonl"
-    item = _minimal_work_item(status="closed", resolution="fix")
+    item = _minimal_work_item(status="closed", resolution="completed")
     append_work_item(path=path, item=item)
     payload = json.loads(path.read_text(encoding="utf-8"))
     payload["resolution"] = "not-a-real-resolution"
@@ -199,7 +199,7 @@ def test_read_work_items_audit_missing_keys_raises(tmp_path: Path) -> None:
         "assignee": None,
         "depends_on": [],
         "captured_at": "2026-05-19T00:00:00Z",
-        "resolution": "fix",
+        "resolution": "completed",
         "reason": "fixed",
         "audit": {"verification_timestamp": "2026-05-19T00:00:00Z"},
         "superseded_by": None,
@@ -277,7 +277,7 @@ def test_read_memos_bad_enum_disposition_raises(tmp_path: Path) -> None:
 def test_materialize_work_items_latest_wins(tmp_path: Path) -> None:
     path = tmp_path / "work-items.jsonl"
     first = _minimal_work_item(id_="li-a", status="open")
-    second = _minimal_work_item(id_="li-a", status="closed", resolution="fix")
+    second = _minimal_work_item(id_="li-a", status="closed", resolution="completed")
     other = _minimal_work_item(id_="li-b")
     append_work_item(path=path, item=first)
     append_work_item(path=path, item=second)

@@ -85,15 +85,15 @@ skill walks the user through:
 
 Closure branches on `origin × disposition`:
 
-- **gap-tied fix** — invoke `detect-impl-gaps --json`; confirm
+- **gap-tied completion** — invoke `detect-impl-gaps --json`; confirm
   the `gap_id` is NO LONGER in the returned gap-id set; append
-  a closing record with `status: closed`, `resolution: fix`,
+  a closing record with `status: closed`, `resolution: completed`,
   and audit fields (`verification_timestamp`, `commits`,
   `files_changed`, `merge_sha`, optional `pr_number`).
-- **freeform fix** — append a closing record with
-  `status: closed`, `resolution: fix`, and a user-supplied
+- **freeform completion** — append a closing record with
+  `status: closed`, `resolution: completed`, and a user-supplied
   `--reason`.
-- **non-fix administrative closure** — append a closing record with
+- **non-completion administrative closure** — append a closing record with
   `status: closed` and `resolution: <wontfix | duplicate |
   spec-revised | no-longer-applicable | resolved-out-of-band>`,
   carrying a user-supplied `--reason`.
@@ -425,12 +425,12 @@ violations fire as doctor `fail` findings):
 - `captured_at` — ISO-8601 UTC timestamp of the record's
   authorship.
 - `resolution` — string or `null`. REQUIRED non-null when
-  `status == closed`; one of: `fix`, `wontfix`, `duplicate`,
+  `status == closed`; one of: `completed`, `wontfix`, `duplicate`,
   `spec-revised`, `no-longer-applicable`, `resolved-out-of-band`.
 - `reason` — string or `null`. Closure narration; REQUIRED
   non-null for closure records.
 - `audit` — object or `null`. Present when `resolution` is one
-  of `{fix, spec-revised, resolved-out-of-band}` (the
+  of `{completed, spec-revised, resolved-out-of-band}` (the
   resolutions that imply git activity landed on the canonical
   branch); null otherwise. Schema:
   - `verification_timestamp` (string, required). UTC ISO-8601
@@ -452,7 +452,7 @@ violations fire as doctor `fail` findings):
 
   The previous version of this spec stated audit is captured
   "at fix-resolution closure time." The widened rule is: audit
-  MUST be present when `resolution` is one of `{fix,
+  MUST be present when `resolution` is one of `{completed,
   spec-revised, resolved-out-of-band}` — all three carry an
   implied canonical-branch merge that the audit attests.
   Resolutions in `{wontfix, duplicate, no-longer-applicable}`
@@ -508,7 +508,7 @@ and applies the following rules.
 
 For each work-item with `status == "closed"`:
 
-- If `resolution` is in `{fix, spec-revised, resolved-out-of-band}`:
+- If `resolution` is in `{completed, spec-revised, resolved-out-of-band}`:
   - REQUIRE `audit` is non-null.
   - REQUIRE `audit.merge_sha` is non-empty.
   - REQUIRE `git cat-file -e <merge_sha>` exits 0 (the SHA

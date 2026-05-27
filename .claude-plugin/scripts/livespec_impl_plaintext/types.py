@@ -19,7 +19,7 @@ WorkItemStatus = Literal["open", "in_progress", "blocked", "closed", "deferred"]
 WorkItemType = Literal["bug", "feature", "task", "chore", "epic"]
 Origin = Literal["gap-tied", "freeform"]
 Resolution = Literal[
-    "fix",
+    "completed",
     "wontfix",
     "duplicate",
     "spec-revised",
@@ -38,7 +38,7 @@ Disposition = Literal[
 
 @dataclass(frozen=True, kw_only=True)
 class AuditRecord:
-    """Audit-trail fields captured at fix-resolution closure time."""
+    """Audit-trail fields captured at completed-resolution closure time."""
 
     verification_timestamp: str
     commits: tuple[str, ...]

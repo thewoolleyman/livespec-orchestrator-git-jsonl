@@ -16,9 +16,12 @@ the load-bearing surfaces this skill composes.
 
 - The consumer project has a `<spec-root>/` directory at the path
   declared in `.livespec.jsonc` (default: `SPECIFICATION/`).
-- The `livespec-impl-plaintext` Python package is on the import path
-  (uv-managed; verified by `uv run python3 -c "import
-  livespec_impl_plaintext"`).
+- The `livespec-impl-plaintext` Python package is on the import path.
+  The shipped wrappers self-bootstrap this: `bin/_bootstrap.py` adds
+  `scripts/` and `scripts/_vendor/` to `sys.path`, so each
+  `python3 "${CLAUDE_PLUGIN_ROOT}/scripts/bin/<name>.py"` invocation
+  resolves `livespec_impl_plaintext` and the vendored
+  `livespec_runtime` with no `uv` and no project venv.
 - The work-items JSONL store path is reachable (created on first
   append if absent).
 
@@ -38,11 +41,11 @@ to the user in Step 2:
 
 ```bash
 # Authoritative gap-id set:
-uv run python3 .claude-plugin/scripts/bin/detect_impl_gaps.py --json
+python3 "${CLAUDE_PLUGIN_ROOT}/scripts/bin/detect_impl_gaps.py" --json
 # → {"gap_ids": ["gap-abc123", "gap-def456", ...]}
 
 # Rich human-readable context for display:
-uv run python3 .claude-plugin/scripts/bin/detect_impl_gaps.py
+python3 "${CLAUDE_PLUGIN_ROOT}/scripts/bin/detect_impl_gaps.py"
 # → each line: <spec-file> > <heading-path>  [<gap_id>]  <rule-text>
 ```
 
@@ -62,8 +65,8 @@ content differs between historical version `<vN>` and the live spec.
 
 ```bash
 # Scoped to changes introduced since v082:
-uv run python3 .claude-plugin/scripts/bin/detect_impl_gaps.py --json --since-version v082
-uv run python3 .claude-plugin/scripts/bin/detect_impl_gaps.py --since-version v082
+python3 "${CLAUDE_PLUGIN_ROOT}/scripts/bin/detect_impl_gaps.py" --json --since-version v082
+python3 "${CLAUDE_PLUGIN_ROOT}/scripts/bin/detect_impl_gaps.py" --since-version v082
 ```
 
 The flag is the user-facing surface that callers (notably

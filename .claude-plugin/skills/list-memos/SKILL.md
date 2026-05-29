@@ -14,7 +14,7 @@ constraints". Do NOT add orchestration logic here; every behavior lives in
 ## Invocation
 
 ```bash
-uv run python3 .claude-plugin/scripts/bin/list_memos.py "$@"
+python3 "${CLAUDE_PLUGIN_ROOT}/scripts/bin/list_memos.py" "$@"
 ```
 
 Forwards all arguments to the wrapper. Supported flags:

@@ -12,7 +12,7 @@ Thin-transport pass-through. All behavior lives in
 ## Invocation
 
 ```bash
-uv run python3 .claude-plugin/scripts/bin/next.py "$@"
+python3 "${CLAUDE_PLUGIN_ROOT}/scripts/bin/next.py" "$@"
 ```
 
 Supported flags:

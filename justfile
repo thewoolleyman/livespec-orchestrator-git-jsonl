@@ -124,16 +124,28 @@ check:
         check-skill-invocation-paths
         check-supervisor-discipline
         check-tests-mirror-pairing
+        check-tool-backed-check-completeness
         check-vendor-manifest
         check-wrapper-shape
         # ---- livespec-impl-plaintext-private block ----
-        # Tool-backed checks specific to this repo's toolchain wiring.
-        # `check-coverage` is intentionally absent: it overlaps with
-        # canonical `check-per-file-coverage`. Likewise the canonical
-        # `check-check-tools` subsumes any private check-tools recipe.
+        # Tool-backed checks (ruff lint, ruff format, pyright types,
+        # aggregate coverage) — helper recipes, NOT canonical slugs
+        # (not under livespec_dev_tooling/checks/), so check-aggregate-
+        # completeness does not enforce them. They are wired here as
+        # LITERAL members so the local `just check` aggregate gives full
+        # lint / format / types / coverage feedback and matches the CI
+        # check-python matrix; the check-tool-backed-check-completeness
+        # meta-check (canonical block above, dev-tooling v0.8.0)
+        # enforces that both-surfaces wiring (epic li-pyright-gate,
+        # work-item li-pyright-gate-wi3, LITERAL-membership design).
+        # check-coverage gates the aggregate `fail_under = 100` off the
+        # SINGLE pytest run that the canonical check-per-file-coverage
+        # already performed (it reads the existing `.coverage`), so
+        # wiring it here adds NO duplicate suite run.
         check-format
         check-lint
         check-types
+        check-coverage
     )
     failed=()
     for t in "${targets[@]}"; do
@@ -162,14 +174,36 @@ check-format:
 check-types:
     uv run pyright
 
-# Livespec-impl-plaintext-private alias for the canonical per-file
-# coverage gate. Retained for CI matrix + branch-protection.json
-# compatibility (the matrix entry name `check-coverage` is referenced
-# by the protected-status-checks list). The aggregate above wires
-# the canonical `check-per-file-coverage` directly; this alias just
-# delegates so the matrix path still works.
+# Aggregate (total) coverage gate at `fail_under = 100` (pyproject.toml
+# [tool.coverage.report]). Wired as a LITERAL member of the `check:`
+# targets array (private block) AND the CI check-python matrix; the
+# check-tool-backed-check-completeness meta-check (dev-tooling v0.8.0)
+# enforces that both-surfaces wiring. To avoid a DUPLICATE full pytest
+# run when invoked inside `just check`, this recipe gates off the
+# EXISTING `.coverage` data file when present — the canonical
+# check-per-file-coverage slug runs `pytest --cov` upfront and sorts
+# alphabetically BEFORE this private extra, so `.coverage` already
+# exists by the time this runs locally. When `.coverage` is ABSENT —
+# the CI check-python matrix runs check-coverage as a standalone job in
+# its own runner with no prior pytest — the recipe runs the suite
+# itself so the aggregate gate still fires there. The Red-mode skip is
+# preserved (commit-msg replay hook is the verifier; aggregate-time
+# coverage is not load-bearing in Red mode). Mirrors dev-tooling's
+# coverage-reuse recipe.
 check-coverage:
-    just check-per-file-coverage
+    #!/usr/bin/env bash
+    set -uo pipefail
+    if [[ -n "${LIVESPEC_PRECOMMIT_RED_MODE:-}" ]]; then
+        echo ":: check-coverage skipped (Red-mode pre-commit; verified at Green amend)"
+        exit 0
+    fi
+    if [[ -f .coverage ]]; then
+        echo ":: check-coverage: reading existing .coverage (produced by check-per-file-coverage); no duplicate suite run"
+        uv run coverage report --fail-under=100
+    else
+        echo ":: check-coverage: no .coverage data file (CI standalone job); running the suite"
+        uv run pytest -n auto --cov --cov-branch --cov-config=pyproject.toml --cov-report=term-missing
+    fi
 
 # ---------------------------------------------------------------
 # Canonical structural checks (shared from livespec-dev-tooling).
@@ -409,11 +443,43 @@ check-supervisor-discipline:
 check-tests-mirror-pairing:
     uv run python -m livespec_dev_tooling.checks.tests_mirror_pairing
 
+# Tool-backed-check completeness meta-check (epic li-pyright-gate,
+# work-item li-pyright-gate-wi3; shared from livespec-dev-tooling
+# v0.8.0). Asserts each tool-backed check (check-lint / check-format /
+# check-types / check-coverage) is a LITERAL member of BOTH this
+# justfile's `check:` targets=(...) array AND the CI check-python
+# matrix. Self-passes because the targets array (private block) + CI
+# matrix wire all four literally.
+check-tool-backed-check-completeness:
+    uv run python -m livespec_dev_tooling.checks.tool_backed_check_completeness
+
 check-vendor-manifest:
     uv run python -m livespec_dev_tooling.checks.vendor_manifest
 
 check-wrapper-shape:
     uv run python -m livespec_dev_tooling.checks.wrapper_shape
+
+# ---------------------------------------------------------------
+# CLI end-to-end harness (top-of-pyramid, user-surface tier).
+# ---------------------------------------------------------------
+
+# Run the CLI end-to-end harness against this plugin's own per-skill
+# fixtures (per livespec/SPECIFICATION/contracts.md §"CLI end-to-end
+# harness contract"). The harness ships from livespec-dev-tooling
+# (v0.8.0) and is consumed via the imported test_workflow_full_round_
+# trip entry point wired in tests/e2e-cli/. Defaults to the MOCK tier
+# (LIVESPEC_E2E_HARNESS=mock — the one mocked boundary is the
+# `claude -p` subprocess; real install-shape setup, real structural
+# skill discovery, the real fail-closed time-bomb coverage gate, and
+# the real per-skill orchestration loop all run). The fail-closed
+# coverage gate raises CoverageGateError when a `/livespec-impl-
+# plaintext:*` skill lacks a fixture, failing this target. The CI
+# `e2e-cli` job delegates here (no direct tool invocation in the
+# workflow). The mock-tier test ALSO runs as part of the normal suite
+# under check-per-file-coverage; this target is the dedicated,
+# explicitly-named tier entry point CI reports as its own status.
+check-e2e-cli:
+    uv run pytest tests/e2e-cli -v
 
 # ---------------------------------------------------------------
 # Pre-commit aggregate — Red-mode-aware. Classifies the staged

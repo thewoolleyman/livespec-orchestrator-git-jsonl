@@ -1,0 +1,2 @@
+# Gap-tied work-items are appended to the JSONL work-items store.
+work-items.jsonl

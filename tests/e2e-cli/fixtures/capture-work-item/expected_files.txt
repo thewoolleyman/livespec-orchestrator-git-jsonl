@@ -1,0 +1,3 @@
+# The freeform-filing skill appends an `origin: freeform`, `gap_id: null`
+# record to the JSONL work-items store at the project root.
+work-items.jsonl

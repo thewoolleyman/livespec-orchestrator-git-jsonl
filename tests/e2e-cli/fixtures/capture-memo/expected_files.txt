@@ -1,0 +1,2 @@
+# The memo is appended to the JSONL memos store at the project root.
+memos.jsonl

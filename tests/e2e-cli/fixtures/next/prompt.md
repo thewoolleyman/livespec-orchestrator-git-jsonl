@@ -1,0 +1,1 @@
+/livespec-impl-plaintext:next --json Rank the most-ripe impl-side action from the JSONL work-items store and emit it as JSON. Pure function of file state; no LLM in the ranking path; never mutate the store.

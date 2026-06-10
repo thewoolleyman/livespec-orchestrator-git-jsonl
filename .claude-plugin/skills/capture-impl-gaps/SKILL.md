@@ -1,6 +1,6 @@
 ---
 name: capture-impl-gaps
-description: Detect spec→impl gaps by invoking the sibling detect-impl-gaps thin-transport skill, then file gap-tied work-items into the JSONL store with per-gap user consent. Required heavyweight authored skill per livespec/SPECIFICATION/contracts.md §"Heavyweight authored skills (6)". Invoke as `/livespec-impl-plaintext:capture-impl-gaps`.
+description: Detect spec→impl gaps by invoking the sibling detect-impl-gaps thin-transport skill, then file gap-tied work-items into the JSONL store with per-gap user consent. Required heavyweight authored skill per livespec/SPECIFICATION/contracts.md §"Heavyweight authored skills (6)". Invoke as `/livespec-impl-git-jsonl:capture-impl-gaps`.
 allowed-tools: Bash, Read, Grep, Glob, Write
 ---
 
@@ -16,11 +16,11 @@ the load-bearing surfaces this skill composes.
 
 - The consumer project has a `<spec-root>/` directory at the path
   declared in `.livespec.jsonc` (default: `SPECIFICATION/`).
-- The `livespec-impl-plaintext` Python package is on the import path.
+- The `livespec-impl-git-jsonl` Python package is on the import path.
   The shipped wrappers self-bootstrap this: `bin/_bootstrap.py` adds
   `scripts/` and `scripts/_vendor/` to `sys.path`, so each
   `python3 "${CLAUDE_PLUGIN_ROOT}/scripts/bin/<name>.py"` invocation
-  resolves `livespec_impl_plaintext` and the vendored
+  resolves `livespec_impl_git_jsonl` and the vendored
   `livespec_runtime` with no `uv` and no project venv.
 - The work-items JSONL store path is reachable (created on first
   append if absent).
@@ -116,9 +116,9 @@ hashing; shape `gap-<8-char-base32-suffix>`). Then:
 3. On confirm, append a new work-item JSONL record:
 
 ```python
-from livespec_impl_plaintext._ids import new_work_item_id
-from livespec_impl_plaintext.store import append_work_item
-from livespec_impl_plaintext.types import WorkItem
+from livespec_impl_git_jsonl._ids import new_work_item_id
+from livespec_impl_git_jsonl.store import append_work_item
+from livespec_impl_git_jsonl.types import WorkItem
 from datetime import datetime, timezone
 from pathlib import Path
 

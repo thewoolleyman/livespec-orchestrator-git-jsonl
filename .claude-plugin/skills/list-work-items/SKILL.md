@@ -1,13 +1,13 @@
 ---
 name: list-work-items
-description: List work-items from the JSONL work-items store. Required thin-transport surface per livespec/SPECIFICATION/contracts.md §"Thin-transport skills (3) — required machine query surface". Invoke as `/livespec-impl-plaintext:list-work-items [--filter <name>] [--with-gap-id <id>] [--json]`.
+description: List work-items from the JSONL work-items store. Required thin-transport surface per livespec/SPECIFICATION/contracts.md §"Thin-transport skills (3) — required machine query surface". Invoke as `/livespec-impl-git-jsonl:list-work-items [--filter <name>] [--with-gap-id <id>] [--json]`.
 allowed-tools: Bash
 ---
 
 # list-work-items
 
 Thin-transport pass-through. All behavior lives in
-`.claude-plugin/scripts/livespec_impl_plaintext/commands/list_work_items.py`.
+`.claude-plugin/scripts/livespec_impl_git_jsonl/commands/list_work_items.py`.
 
 ## Invocation
 
@@ -27,6 +27,6 @@ Supported flags:
 
 - User asks "what work-items are open / ready / blocked?"
 - Doctor's four work-item structural invariants invoke
-  `/livespec-impl-plaintext:list-work-items --json` to enumerate the
+  `/livespec-impl-git-jsonl:list-work-items --json` to enumerate the
   materialized state.
 - The project-local Layer 3 loop driver inspects the queue.

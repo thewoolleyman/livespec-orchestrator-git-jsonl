@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
-"""Shebang wrapper for list-memos. No logic; see livespec_impl_plaintext.commands.list_memos."""
+"""Shebang wrapper for list-memos. No logic; see livespec_impl_git_jsonl.commands.list_memos."""
 
 from _bootstrap import bootstrap
 
 bootstrap()
 
-from livespec_impl_plaintext.commands.list_memos import main
+from livespec_impl_git_jsonl.commands.list_memos import main
 
 raise SystemExit(main())

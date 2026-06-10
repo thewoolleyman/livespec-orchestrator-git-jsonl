@@ -1,6 +1,6 @@
-"""Pre-livespec_impl_plaintext-import bootstrap: sys.path setup + Python version check.
+"""Pre-livespec_impl_git_jsonl-import bootstrap: sys.path setup + Python version check.
 
-Imported by every bin/*.py wrapper before any livespec_impl_plaintext import.
+Imported by every bin/*.py wrapper before any livespec_impl_git_jsonl import.
 Lives under bin/ so the wrappers can `raise SystemExit(main())` per the
 shebang-wrapper contract.
 """
@@ -11,7 +11,7 @@ from pathlib import Path
 
 def bootstrap() -> None:
     if sys.version_info < (3, 10):
-        sys.stderr.write("livespec-impl-plaintext requires Python 3.10+; install via uv.\n")
+        sys.stderr.write("livespec-impl-git-jsonl requires Python 3.10+; install via uv.\n")
         raise SystemExit(127)
     bundle_scripts = Path(__file__).resolve().parent.parent
     bundle_vendor = bundle_scripts / "_vendor"

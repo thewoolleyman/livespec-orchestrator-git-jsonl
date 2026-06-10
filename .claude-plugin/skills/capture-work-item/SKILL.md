@@ -1,6 +1,6 @@
 ---
 name: capture-work-item
-description: Freeform direct filing of an impl-side work item (bugs, refactors, tactical tasks). Required heavyweight authored skill per livespec/SPECIFICATION/contracts.md §"Heavyweight authored skills (6)". Filed records carry `origin: freeform` and `gap_id: null`. Invoke as `/livespec-impl-plaintext:capture-work-item`.
+description: Freeform direct filing of an impl-side work item (bugs, refactors, tactical tasks). Required heavyweight authored skill per livespec/SPECIFICATION/contracts.md §"Heavyweight authored skills (6)". Filed records carry `origin: freeform` and `gap_id: null`. Invoke as `/livespec-impl-git-jsonl:capture-work-item`.
 allowed-tools: Bash, Read, Grep, Write
 ---
 
@@ -13,7 +13,7 @@ rule. For spec-traceable items, use `capture-impl-gaps` instead.
 ## Pre-requisites
 
 - The work-items JSONL store path is reachable.
-- `livespec_impl_plaintext` package on import path.
+- `livespec_impl_git_jsonl` package on import path.
 
 ## Flow
 
@@ -49,9 +49,9 @@ Optional follow-ups (skip-confirmable):
 Show the user the assembled record and ask "file?". On `yes`, append:
 
 ```python
-from livespec_impl_plaintext._ids import new_work_item_id
-from livespec_impl_plaintext.store import append_work_item
-from livespec_impl_plaintext.types import WorkItem
+from livespec_impl_git_jsonl._ids import new_work_item_id
+from livespec_impl_git_jsonl.store import append_work_item
+from livespec_impl_git_jsonl.types import WorkItem
 from datetime import datetime, timezone
 from pathlib import Path
 

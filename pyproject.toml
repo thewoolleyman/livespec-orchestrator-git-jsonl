@@ -1,4 +1,4 @@
-# pyproject.toml — livespec-impl-plaintext dev tooling configuration.
+# pyproject.toml — livespec-impl-git-jsonl dev tooling configuration.
 #
 # Generated from livespec/templates/impl-plugin/pyproject.toml.jinja
 # at copier-copy time; re-sync via `copier update` when livespec
@@ -15,7 +15,7 @@
 # contract — the 9-skill surface").
 
 [project]
-name = "livespec-impl-plaintext"
+name = "livespec-impl-git-jsonl"
 version = "0.0.0"
 description = "JSONL-backed implementation plugin for livespec"
 requires-python = ">=3.10.16"
@@ -61,7 +61,7 @@ dev = [
 #
 # livespec-runtime is the shared runtime sibling library
 # (livespec_runtime.cross_repo package). The data-migration script
-# under `livespec_impl_plaintext.migration.depends_on_typed_form`
+# under `livespec_impl_git_jsonl.migration.depends_on_typed_form`
 # uses its types module for the canonical typed-dict shape.
 # Pin matches livespec's pin (>=0.2.0; ~/livespec).
 [tool.uv.sources]

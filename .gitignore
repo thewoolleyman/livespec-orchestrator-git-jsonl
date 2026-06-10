@@ -20,4 +20,4 @@ htmlcov/
 
 ### UV local state
 .venv/
-livespec_impl_plaintext.egg-info/
+livespec_impl_git_jsonl.egg-info/

@@ -1,4 +1,4 @@
-# contracts.md — livespec-impl-plaintext
+# contracts.md — livespec-impl-git-jsonl
 
 Wire-level surfaces this plugin exposes (slash commands and internal
 APIs), plus the on-disk JSONL schemas the skills read and write.
@@ -8,7 +8,7 @@ upstream.
 
 ## Plugin namespace
 
-The plugin's slash commands live under `/livespec-impl-plaintext:`.
+The plugin's slash commands live under `/livespec-impl-git-jsonl:`.
 That namespace is fixed by `.claude-plugin/plugin.json` and may not
 be changed without a coordinated rename across consumers (because
 doctor's cross-boundary invariants in `livespec` invoke skills
@@ -29,7 +29,7 @@ contract — the 10-skill surface" and apply uniformly.
 #### `capture-impl-gaps`
 
 Detect spec → impl gaps by invoking the sibling
-`/livespec-impl-plaintext:detect-impl-gaps --json` thin-transport
+`/livespec-impl-git-jsonl:detect-impl-gaps --json` thin-transport
 skill (no in-skill duplication of the detection logic; both this
 skill and doctor consume the same canonical surface). The returned
 gap-ids are presented to the user one at a time; on consent, a new
@@ -289,7 +289,7 @@ Field semantics:
   human-readable narration), `urgency` (one of `high`,
   `medium`, `low`), and `work_item_ref` (the `id` of the ranked
   work-item, or `null` for `action: "none"`). Each candidate
-  MAY include additional impl-plaintext-specific fields the
+  MAY include additional impl-git-jsonl-specific fields the
   wrapper emits (e.g., `priority`, `origin`); the cross-plugin
   contract MUST NOT prescribe `additionalProperties` discipline
   per upstream.
@@ -309,7 +309,7 @@ An empty `candidates` array IS the no-work signal; it does NOT
 degrade to any legacy single-object shape. The Layer 2 surface
 MUST NOT bake a hygiene fallback into the emission: emission of
 the empty array is purely advisory, and any "what to do when
-both `/livespec:next` and `/livespec-impl-plaintext:next` are
+both `/livespec:next` and `/livespec-impl-git-jsonl:next` are
 quiet" handoff is a Layer 3 (project-local orchestration)
 concern (per `scenarios.md` Scenario 6's empty-queue handoff
 sub-step).
@@ -560,7 +560,7 @@ The check is invoked by the impl plugin's
 check that runs against every spec tree's project root). Exact
 wiring is determined at implementation time.
 
-The check is plugin-private to `livespec-impl-plaintext` (it
+The check is plugin-private to `livespec-impl-git-jsonl` (it
 depends on the JSONL schema this plugin defines). A future
 sibling impl plugin using a different storage format would ship
 its own equivalent.
@@ -627,13 +627,13 @@ is exposed; pending proposals are not yet intent.
 The Spec Reader is consumed by `detect-impl-gaps`,
 `capture-spec-drift`, `implement`, and `process-memos`. It is
 NOT a slash command and NOT exposed through the
-`/livespec-impl-plaintext:` namespace.
+`/livespec-impl-git-jsonl:` namespace.
 
 ## Persistent Agent Knowledge realization
 
 Per `livespec/SPECIFICATION/contracts.md` §"Persistent Agent
 Knowledge realization", the per-plugin form is
-implementation-dependent. `livespec-impl-plaintext` realizes the
+implementation-dependent. `livespec-impl-git-jsonl` realizes the
 store as:
 
 - A directory `.ai/` at the consumer project's root containing
@@ -664,12 +664,12 @@ upstream contract slot).
 Per `livespec/SPECIFICATION/contracts.md` §"Cross-repo
 coordination — pin-and-bump", every consuming project's
 `.livespec.jsonc` declares a `compat` block for each active
-impl-plugin. For `livespec-impl-plaintext`:
+impl-plugin. For `livespec-impl-git-jsonl`:
 
 ```jsonc
 {
-  "implementation": { "plugin": "livespec-impl-plaintext" },
-  "livespec-impl-plaintext": {
+  "implementation": { "plugin": "livespec-impl-git-jsonl" },
+  "livespec-impl-git-jsonl": {
     "format": "jsonl",
     "compat": {
       "livespec": ">=2.0.0,<3.0.0",
@@ -712,18 +712,18 @@ from doctor's `contract-version-compatibility` invariant
 Per `livespec/SPECIFICATION/contracts.md` §"Cross-boundary
 handoffs", this plugin participates in these red-edge handoffs:
 
-1. `/livespec-impl-plaintext:capture-spec-drift` →
+1. `/livespec-impl-git-jsonl:capture-spec-drift` →
    `/livespec:propose-change` (drift findings).
-2. `/livespec-impl-plaintext:process-memos` →
+2. `/livespec-impl-git-jsonl:process-memos` →
    `/livespec:propose-change` (spec-bound memo disposition).
 3. `/livespec:doctor` →
-   `/livespec-impl-plaintext:list-memos --filter=untriaged --json`
+   `/livespec-impl-git-jsonl:list-memos --filter=untriaged --json`
    (memo-hygiene invariant).
 4. `/livespec:doctor` →
-   `/livespec-impl-plaintext:list-work-items --json` (work-item
+   `/livespec-impl-git-jsonl:list-work-items --json` (work-item
    structural invariants).
 5. `/livespec:doctor` →
-   `/livespec-impl-plaintext:detect-impl-gaps --json` (gap-
+   `/livespec-impl-git-jsonl:detect-impl-gaps --json` (gap-
    detection invariants `gap-tracking-one-to-one` and
    `no-stale-gap-tied`).
 

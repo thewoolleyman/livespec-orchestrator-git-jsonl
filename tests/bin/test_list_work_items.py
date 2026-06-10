@@ -8,6 +8,6 @@ def test_list_work_items_wrapper_threads_exit_code(
 ) -> None:
     wrapper_runner(
         "list_work_items.py",
-        "livespec_impl_plaintext.commands.list_work_items",
+        "livespec_impl_git_jsonl.commands.list_work_items",
         0,
     )

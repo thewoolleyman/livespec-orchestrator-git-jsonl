@@ -1,4 +1,4 @@
-"""CLI end-to-end harness wiring for livespec-impl-plaintext (mock tier).
+"""CLI end-to-end harness wiring for livespec-impl-git-jsonl (mock tier).
 
 Per `livespec/SPECIFICATION/contracts.md` §"CLI end-to-end harness contract"
 (requirement 6 — single canonical implementation in `livespec-dev-tooling`;
@@ -18,7 +18,7 @@ The `real` tier (`LIVESPEC_E2E_HARNESS=real`) shells out to the actual
 `claude` binary, requires `ANTHROPIC_API_KEY`, installs the upstream
 `livespec` plugin paired in lockstep, and is NOT part of `just check`.
 
-The plugin slash-command prefix (`livespec-impl-plaintext`) and the skill set
+The plugin slash-command prefix (`livespec-impl-git-jsonl`) and the skill set
 are discovered structurally from `<plugin>/plugin.json` `name` + the
 `skills/*/SKILL.md` layout — there is no parallel manifest (contract
 requirement 3). Every discovered skill MUST carry a fixture or the coverage
@@ -51,7 +51,7 @@ _REPO_ROOT = Path(__file__).resolve().parents[2]
 _PLUGIN_DIR = _REPO_ROOT / ".claude-plugin"
 _FIXTURES_ROOT = Path(__file__).resolve().parent / "fixtures"
 
-# No skill is exempt: every discovered impl-plaintext skill MUST carry a
+# No skill is exempt: every discovered impl-git-jsonl skill MUST carry a
 # fixture (contract requirement 5). An empty exempt table keeps the time-bomb
 # coverage gate fully armed — adding a new skill to the plugin trips it until a
 # fixture directory lands here.
@@ -101,11 +101,11 @@ def _expected_by_prompt(*, fixtures: dict[str, FixturedSkill]) -> dict[str, tupl
 
 def _config() -> HarnessConfig:
     return HarnessConfig(
-        impl_plugin_id="livespec-impl-plaintext",
-        marketplace="thewoolleyman/livespec-impl-plaintext",
+        impl_plugin_id="livespec-impl-git-jsonl",
+        marketplace="thewoolleyman/livespec-impl-git-jsonl",
         enabled_plugins=(
             "livespec@livespec",
-            "livespec-impl-plaintext@livespec-impl-plaintext",
+            "livespec-impl-git-jsonl@livespec-impl-git-jsonl",
         ),
         plugin_install_dirs=(_PLUGIN_DIR,),
         fixtures_root=_FIXTURES_ROOT,
@@ -113,11 +113,11 @@ def _config() -> HarnessConfig:
     )
 
 
-def test_cli_e2e_round_trip_against_impl_plaintext(*, tmp_path: Path) -> None:
+def test_cli_e2e_round_trip_against_impl_git_jsonl(*, tmp_path: Path) -> None:
     """Drive the imported harness against this plugin's own fixtures (mock tier).
 
     Asserts the full discovery → coverage-gate → per-skill orchestration loop
-    passes: every `/livespec-impl-plaintext:*` skill discovered structurally
+    passes: every `/livespec-impl-git-jsonl:*` skill discovered structurally
     from `.claude-plugin/` carries a fixture under `tests/e2e-cli/fixtures/`,
     and each skill's mock round-trip materializes its declared expected files
     and exits 0. `run_full_round_trip` raises `CoverageGateError` (fail-closed)

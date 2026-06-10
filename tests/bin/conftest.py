@@ -2,7 +2,7 @@
 
 Provides `wrapper_runner` — a callable that exec()'s a shebang
 wrapper file with stubbed `_bootstrap` + stubbed
-`livespec_impl_plaintext.<module>.main` + an expected exit code,
+`livespec_impl_git_jsonl.<module>.main` + an expected exit code,
 asserts the wrapper raises `SystemExit` with that code.
 """
 

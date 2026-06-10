@@ -1,13 +1,13 @@
 ---
 name: detect-impl-gaps
-description: Detect spec→impl gaps mechanically via the Spec Reader and emit the current gap-id set as JSON. Required thin-transport surface per livespec/SPECIFICATION/contracts.md §"Thin-transport skills (4) — required machine query surface". Pure read-and-emit pass-through — never mutates the work-items JSONL, never prompts the user. Invoke as `/livespec-impl-plaintext:detect-impl-gaps [--spec-target <path>] [--project-root <path>] [--json] [--since-version <vN>]`.
+description: Detect spec→impl gaps mechanically via the Spec Reader and emit the current gap-id set as JSON. Required thin-transport surface per livespec/SPECIFICATION/contracts.md §"Thin-transport skills (4) — required machine query surface". Pure read-and-emit pass-through — never mutates the work-items JSONL, never prompts the user. Invoke as `/livespec-impl-git-jsonl:detect-impl-gaps [--spec-target <path>] [--project-root <path>] [--json] [--since-version <vN>]`.
 allowed-tools: Bash
 ---
 
 # detect-impl-gaps
 
 Thin-transport pass-through. All behavior lives in
-`.claude-plugin/scripts/livespec_impl_plaintext/commands/detect_impl_gaps.py`.
+`.claude-plugin/scripts/livespec_impl_git_jsonl/commands/detect_impl_gaps.py`.
 
 ## Invocation
 

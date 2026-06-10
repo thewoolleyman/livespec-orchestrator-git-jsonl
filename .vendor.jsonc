@@ -2,7 +2,7 @@
 //
 // Single entry: livespec_runtime, vendored from the upstream
 // source repository at tag v0.3.0 into
-// .claude-plugin/scripts/_vendor/livespec_runtime/. impl-plaintext's
+// .claude-plugin/scripts/_vendor/livespec_runtime/. impl-git-jsonl's
 // shipped skills import only livespec_runtime.cross_repo.*; this
 // vendored copy makes those imports resolve from the published
 // installed-cache bundle without a `uv sync` step (li-k5dadf).

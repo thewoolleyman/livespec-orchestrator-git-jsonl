@@ -1,6 +1,6 @@
 ---
 name: implement
-description: Drive Red→Green for a single work-item. For gap-tied items, verify closure by re-running capture-impl-gaps in dry-run mode. Required heavyweight authored skill per livespec/SPECIFICATION/contracts.md §"Heavyweight authored skills (6)". Invoke as `/livespec-impl-plaintext:implement [<work-item-id>]`.
+description: Drive Red→Green for a single work-item. For gap-tied items, verify closure by re-running capture-impl-gaps in dry-run mode. Required heavyweight authored skill per livespec/SPECIFICATION/contracts.md §"Heavyweight authored skills (6)". Invoke as `/livespec-impl-git-jsonl:implement [<work-item-id>]`.
 allowed-tools: Bash, Read, Grep, Glob, Edit, Write
 ---
 
@@ -27,14 +27,14 @@ disposition` per livespec/SPECIFICATION/contracts.md
 If `<work-item-id>` was supplied, load it from the JSONL store:
 
 ```python
-from livespec_impl_plaintext.store import materialize_work_items, read_work_items
+from livespec_impl_git_jsonl.store import materialize_work_items, read_work_items
 from pathlib import Path
 
 ix = materialize_work_items(read_work_items(path=Path("work-items.jsonl")))
 target = ix[work_item_id]
 ```
 
-If no id was supplied, invoke `/livespec-impl-plaintext:next --json`,
+If no id was supplied, invoke `/livespec-impl-git-jsonl:next --json`,
 parse the `work_item_ref`, and confirm with the user before
 proceeding.
 
@@ -97,8 +97,8 @@ Append a new JSONL record with `status: closed`. The exact shape
 branches on the resolution choice:
 
 ```python
-from livespec_impl_plaintext.store import append_work_item
-from livespec_impl_plaintext.types import AuditRecord, WorkItem
+from livespec_impl_git_jsonl.store import append_work_item
+from livespec_impl_git_jsonl.types import AuditRecord, WorkItem
 from datetime import datetime, timezone
 from pathlib import Path
 

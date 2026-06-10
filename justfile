@@ -1,4 +1,4 @@
-# justfile — livespec-impl-plaintext dev-tooling task runner.
+# justfile — livespec-impl-git-jsonl dev-tooling task runner.
 #
 # Generated from livespec/templates/impl-plugin/justfile.jinja at
 # copier-copy time; re-sync via `copier update` when livespec
@@ -21,7 +21,7 @@
 #   §"Shared code sync — livespec-dev-tooling" (v094 wiring-
 #   completeness invariant) — every canonical slug emitted by
 #   `livespec_dev_tooling.canonical_checks` MUST be wired in this
-#   `check:` aggregate in alphabetical order; livespec-impl-plaintext-
+#   `check:` aggregate in alphabetical order; livespec-impl-git-jsonl-
 #   private extras MAY follow after the canonical block. The in-repo
 #   gate `check-aggregate-completeness` enforces this on every run.
 
@@ -89,7 +89,7 @@ check:
     # Canonical-check aggregate, per SPECIFICATION/contracts.md
     # §"Wiring-completeness invariant" (v094): every canonical slug
     # emitted by `livespec_dev_tooling.canonical_checks` MUST appear
-    # here in alphabetical order; livespec-impl-plaintext-private
+    # here in alphabetical order; livespec-impl-git-jsonl-private
     # checks MAY follow after the canonical block in any order. The
     # in-repo gate is `check-aggregate-completeness`, which fails if
     # any canonical slug is missing or out-of-order.
@@ -148,7 +148,7 @@ check:
         check-tool-backed-check-completeness
         check-vendor-manifest
         check-wrapper-shape
-        # ---- livespec-impl-plaintext-private block ----
+        # ---- livespec-impl-git-jsonl-private block ----
         # Tool-backed checks (ruff lint, ruff format, pyright types,
         # aggregate coverage) — helper recipes, NOT canonical slugs
         # (not under livespec_dev_tooling/checks/), so check-aggregate-
@@ -200,7 +200,7 @@ check:
     printf '\nAll %d targets passed.\n' "$ran"
 
 # ---------------------------------------------------------------
-# Tool-backed checks (livespec-impl-plaintext-private).
+# Tool-backed checks (livespec-impl-git-jsonl-private).
 # ---------------------------------------------------------------
 
 check-lint:
@@ -451,7 +451,7 @@ check-wrapper-shape:
 # skill discovery, the real fail-closed time-bomb coverage gate, and
 # the real per-skill orchestration loop all run). The fail-closed
 # coverage gate raises CoverageGateError when a `/livespec-impl-
-# plaintext:*` skill lacks a fixture, failing this target. The CI
+# git-jsonl:*` skill lacks a fixture, failing this target. The CI
 # `e2e-cli` job delegates here (no direct tool invocation in the
 # workflow). The mock-tier test ALSO runs as part of the normal suite
 # under check-per-file-coverage; this target is the dedicated,

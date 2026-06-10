@@ -24,6 +24,6 @@ jobs:
     uses: thewoolleyman/livespec-dev-tooling/.github/workflows/reusable-release-dispatch.yml@master
     secrets: inherit
     with:
-      source_repo: livespec-impl-plaintext
+      source_repo: livespec-impl-git-jsonl
       tag: ${{ github.event.release.tag_name }}
       release_url: ${{ github.event.release.html_url }}

@@ -1,6 +1,6 @@
-# spec.md — livespec-impl-plaintext
+# spec.md — livespec-impl-git-jsonl
 
-This is the natural-language specification for `livespec-impl-plaintext`,
+This is the natural-language specification for `livespec-impl-git-jsonl`,
 the JSONL-backed implementation plugin for `livespec`. The plugin
 dogfoods `livespec` — this `SPECIFICATION/` tree evolves through
 `/livespec:seed` / `propose-change` / `revise` / `doctor` /
@@ -9,7 +9,7 @@ project uses.
 
 ## Purpose
 
-`livespec-impl-plaintext` is one realization of the abstract
+`livespec-impl-git-jsonl` is one realization of the abstract
 implementation-plugin contract that `livespec` publishes in
 `livespec/SPECIFICATION/contracts.md` §"Implementation-plugin
 contract — the 9-skill surface". Other realizations exist on paper
@@ -38,7 +38,7 @@ pin-and-bump mechanism), at which point this `SPECIFICATION/` may
 require companion revisions to honor the new surface. The current
 pinned `livespec` reference is recorded in `.copier-answers.yml`
 (`livespec_release_tag`) and in `.livespec.jsonc`'s
-`livespec-impl-plaintext.compat` block.
+`livespec-impl-git-jsonl.compat` block.
 
 ## Terminology
 
@@ -75,14 +75,14 @@ contribute to current state.
 **Persistent Agent Knowledge file** — A markdown file under
 `.ai/<topic>.md` referenced from `CLAUDE.md` and/or `AGENTS.md` in the
 consumer project. Per `contracts.md` §"Persistent Agent Knowledge
-realization", `livespec-impl-plaintext` realizes the
+realization", `livespec-impl-git-jsonl` realizes the
 upstream-mandated Persistent Agent Knowledge store as these files
 plus the harness instruction files that load them progressively.
 
 ## Substrate properties
 
 - Files live at paths configured in the consumer project's
-  `.livespec.jsonc` under the `livespec-impl-plaintext` section.
+  `.livespec.jsonc` under the `livespec-impl-git-jsonl` section.
   Default paths: `work-items.jsonl`, `memos.jsonl`, both at the
   project root. The defaults MAY be overridden via the configuration
   block.

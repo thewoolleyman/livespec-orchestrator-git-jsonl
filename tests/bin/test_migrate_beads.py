@@ -8,6 +8,6 @@ def test_migrate_beads_wrapper_threads_exit_code(
 ) -> None:
     wrapper_runner(
         "migrate_beads.py",
-        "livespec_impl_plaintext.migration.beads_to_jsonl",
+        "livespec_impl_git_jsonl.migration.beads_to_jsonl",
         0,
     )

@@ -1,4 +1,4 @@
-# constraints.md — livespec-impl-plaintext
+# constraints.md — livespec-impl-git-jsonl
 
 Architecture-level constraints this plugin operates under. Each
 constraint is a binary, mechanically-checkable rule; lint /

@@ -1,9 +1,9 @@
 # tests/
 
 The pytest suite. Mirrors `.claude-plugin/scripts/bin/` and
-`.claude-plugin/scripts/livespec_impl_plaintext/` one-to-one:
+`.claude-plugin/scripts/livespec_impl_git_jsonl/` one-to-one:
 `tests/bin/` covers the shebang wrappers; `tests/
-livespec_impl_plaintext/` mirrors the package's directory shape
+livespec_impl_git_jsonl/` mirrors the package's directory shape
 (top-level `test_<module>.py` for top-level package modules,
 subdirectories for subpackages).
 

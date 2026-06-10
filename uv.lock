@@ -478,7 +478,7 @@ version = "0.10.0"
 source = { git = "https://github.com/thewoolleyman/livespec-dev-tooling.git?tag=v0.10.0#f3c2e1673d861d101a4efecd0ee77e4187bc97f2" }
 
 [[package]]
-name = "livespec-impl-plaintext"
+name = "livespec-impl-git-jsonl"
 version = "0.0.0"
 source = { virtual = "." }
 

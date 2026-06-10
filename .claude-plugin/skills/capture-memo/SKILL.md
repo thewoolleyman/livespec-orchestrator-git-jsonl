@@ -1,6 +1,6 @@
 ---
 name: capture-memo
-description: Low-friction free-text deposit of an in-flight observation. Memos are transient by construction and flow through `process-memos` for disposition. Required heavyweight authored skill per livespec/SPECIFICATION/contracts.md §"Heavyweight authored skills (6)". Invoke as `/livespec-impl-plaintext:capture-memo`.
+description: Low-friction free-text deposit of an in-flight observation. Memos are transient by construction and flow through `process-memos` for disposition. Required heavyweight authored skill per livespec/SPECIFICATION/contracts.md §"Heavyweight authored skills (6)". Invoke as `/livespec-impl-git-jsonl:capture-memo`.
 allowed-tools: Bash, Write
 ---
 
@@ -13,7 +13,7 @@ which drains the queue.
 ## Pre-requisites
 
 - The memos JSONL store path is reachable.
-- `livespec_impl_plaintext` package on import path.
+- `livespec_impl_git_jsonl` package on import path.
 
 ## Flow
 
@@ -29,9 +29,9 @@ Classification happens in `process-memos`.
 ### Step 2 — Append
 
 ```python
-from livespec_impl_plaintext._ids import new_memo_id
-from livespec_impl_plaintext.store import append_memo
-from livespec_impl_plaintext.types import Memo
+from livespec_impl_git_jsonl._ids import new_memo_id
+from livespec_impl_git_jsonl.store import append_memo
+from livespec_impl_git_jsonl.types import Memo
 from datetime import datetime, timezone
 from pathlib import Path
 

@@ -1,6 +1,6 @@
 ---
 name: capture-spec-drift
-description: Detect impl→spec drift heuristically (LLM-driven) and hand off each finding to /livespec:propose-change with user consent. Required heavyweight authored skill per livespec/SPECIFICATION/contracts.md §"Heavyweight authored skills (6)". Invoke as `/livespec-impl-plaintext:capture-spec-drift`.
+description: Detect impl→spec drift heuristically (LLM-driven) and hand off each finding to /livespec:propose-change with user consent. Required heavyweight authored skill per livespec/SPECIFICATION/contracts.md §"Heavyweight authored skills (6)". Invoke as `/livespec-impl-git-jsonl:capture-spec-drift`.
 allowed-tools: Bash, Read, Grep, Glob, Write
 ---
 
@@ -32,7 +32,7 @@ livespec/SPECIFICATION/contracts.md §"Cross-boundary handoffs").
 Use the Spec Reader to load the current specification:
 
 ```python
-from livespec_impl_plaintext.spec_reader import read_current_specification
+from livespec_impl_git_jsonl.spec_reader import read_current_specification
 from pathlib import Path
 
 snapshot = read_current_specification(spec_root=Path("SPECIFICATION"))

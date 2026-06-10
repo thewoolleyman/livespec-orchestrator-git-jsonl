@@ -1,7 +1,7 @@
-# livespec-impl-plaintext — SPECIFICATION/
+# livespec-impl-git-jsonl — SPECIFICATION/
 
 This directory holds the natural-language specification for
-`livespec-impl-plaintext`, the JSONL-backed implementation plugin
+`livespec-impl-git-jsonl`, the JSONL-backed implementation plugin
 for `livespec`. Per
 `livespec/SPECIFICATION/non-functional-requirements.md`
 §"Implementation plugin ecosystem", every `livespec-impl-*`

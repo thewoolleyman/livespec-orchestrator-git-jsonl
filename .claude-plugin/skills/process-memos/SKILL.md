@@ -1,6 +1,6 @@
 ---
 name: process-memos
-description: Per-memo handholding dialogue with four canonical dispositions — spec-bound, impl-bound, persistent-knowledge, discard. Required heavyweight authored skill per livespec/SPECIFICATION/contracts.md §"Heavyweight authored skills (6)". Invoke as `/livespec-impl-plaintext:process-memos`.
+description: Per-memo handholding dialogue with four canonical dispositions — spec-bound, impl-bound, persistent-knowledge, discard. Required heavyweight authored skill per livespec/SPECIFICATION/contracts.md §"Heavyweight authored skills (6)". Invoke as `/livespec-impl-git-jsonl:process-memos`.
 allowed-tools: Bash, Read, Grep, Glob, Edit, Write
 ---
 
@@ -27,7 +27,7 @@ Use the existing list-memos thin-transport skill, or invoke
 materialize_memos directly:
 
 ```python
-from livespec_impl_plaintext.store import materialize_memos, read_memos
+from livespec_impl_git_jsonl.store import materialize_memos, read_memos
 from pathlib import Path
 
 memos = list(materialize_memos(read_memos(path=Path("memos.jsonl"))).values())
@@ -74,7 +74,7 @@ The memo content belongs in the Specification.
 The memo content is a freeform impl-side work-item (bug, refactor,
 tactical task).
 
-1. Invoke `/livespec-impl-plaintext:capture-work-item` internally with
+1. Invoke `/livespec-impl-git-jsonl:capture-work-item` internally with
    the memo text pre-filled as the description (user confirms title /
    type / priority).
 2. Capture the resulting `work_item_id`.

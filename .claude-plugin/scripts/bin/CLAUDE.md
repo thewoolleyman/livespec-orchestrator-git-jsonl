@@ -8,13 +8,13 @@ shape:
 
 ```
 #!/usr/bin/env python3
-"""Shebang wrapper for <cmd>. No logic; see livespec_impl_plaintext.commands.<cmd>."""
+"""Shebang wrapper for <cmd>. No logic; see livespec_impl_git_jsonl.commands.<cmd>."""
 
 from _bootstrap import bootstrap
 
 bootstrap()
 
-from livespec_impl_plaintext.commands.<cmd> import main
+from livespec_impl_git_jsonl.commands.<cmd> import main
 
 raise SystemExit(main())
 ```
@@ -35,4 +35,4 @@ NOT add argument parsing, business logic, or I/O to a wrapper — that
 belongs in the `commands/` module so it stays under test coverage.
 The migration wrappers (`migrate_beads.py`) follow the same
 zero-logic shape; the translation logic lives under
-`livespec_impl_plaintext/migration/`.
+`livespec_impl_git_jsonl/migration/`.

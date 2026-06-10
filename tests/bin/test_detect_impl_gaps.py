@@ -8,6 +8,6 @@ def test_detect_impl_gaps_wrapper_threads_exit_code(
 ) -> None:
     wrapper_runner(
         "detect_impl_gaps.py",
-        "livespec_impl_plaintext.commands.detect_impl_gaps",
+        "livespec_impl_git_jsonl.commands.detect_impl_gaps",
         0,
     )

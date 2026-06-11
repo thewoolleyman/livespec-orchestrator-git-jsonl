@@ -184,6 +184,7 @@ check:
         # doctor — the work-items and memos stores are orchestrator-
         # private under the re-steered contract).
         check-no-divergent-heads
+        check-no-raw-store-read
     )
     failed=()
     ran=0
@@ -267,6 +268,15 @@ check-coverage:
 # store files are skipped; malformed/schema-violating stores fail.
 check-no-divergent-heads:
     uv run python3 .claude-plugin/scripts/bin/check_no_divergent_heads.py
+
+# Fails when shipped code (committed .py under .claude-plugin/scripts/
+# and dev-tooling/, _vendor/ excluded) opens a declared backing store
+# path directly, bypassing the reducer/query surface. The canonical
+# store module is the one exemption. Scope is committed code only —
+# ad-hoc interactive shell reads are defended by the record
+# self-identification + order-independent-reduction obligations.
+check-no-raw-store-read:
+    uv run python3 .claude-plugin/scripts/bin/check_no_raw_store_read.py
 
 # ---------------------------------------------------------------
 # Canonical structural checks (shared from livespec-dev-tooling).

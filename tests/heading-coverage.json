@@ -193,6 +193,6 @@
     "spec_root": "SPECIFICATION",
     "spec_file": "contracts.md",
     "test": "tests.livespec_impl_git_jsonl.test_store.test_materialize_work_items_is_order_independent",
-    "reason": "Realized by work-item livespec-impl-plaintext-lhq: the supersedes field, the sha256 per-record identity, the order-independent supersession-chain-head reduction, and the .gitattributes '*.jsonl merge=union' entry. The mapped test pins order independence; the sibling reduction tests in test_store.py cover tie-breaks, divergence surfacing, and identical-line collapse. The two store-integrity checks (no-divergent-heads, no-raw-store-read) remain follow-up work-items."
+    "reason": "Realized by work-item livespec-impl-plaintext-lhq: the supersedes field, the sha256 per-record identity, the order-independent supersession-chain-head reduction, and the .gitattributes '*.jsonl merge=union' entry. The mapped test pins order independence; the sibling reduction tests in test_store.py cover tie-breaks, divergence surfacing, and identical-line collapse. The two store-integrity checks (no-divergent-heads, no-raw-store-read) are realized by work-items livespec-impl-git-jsonl-5ej + livespec-impl-git-jsonl-p3q: tests/livespec_impl_git_jsonl/checks/ exercises both, and the checks are wired into the just check aggregate as private extras consuming the canonical reducer / query surface."
   }
 ]

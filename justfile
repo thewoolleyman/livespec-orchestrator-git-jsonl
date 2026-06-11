@@ -70,11 +70,17 @@ bootstrap:
     just ensure-plugins
 
 # Idempotent: `claude plugin marketplace add` and `claude plugin install`
-# both exit 0 when the target is already present.
+# both exit 0 when the target is already present. livespec@livespec is
+# the core artifact carrier (prose + reference CLIs);
+# livespec@livespec-driver-claude is the Claude Code Driver that
+# exposes the /livespec:* commands — both are required for the
+# spec-side surface (copier-template re-sync, W5 rider).
 ensure-plugins:
     claude plugin marketplace add thewoolleyman/livespec
+    claude plugin marketplace add thewoolleyman/livespec-driver-claude
     claude plugin marketplace add thewoolleyman/livespec-impl-beads
     claude plugin install livespec@livespec
+    claude plugin install livespec@livespec-driver-claude
     claude plugin install livespec-impl-beads@livespec-impl-beads
 
 # ---------------------------------------------------------------

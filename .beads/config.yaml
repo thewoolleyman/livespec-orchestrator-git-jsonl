@@ -74,6 +74,6 @@ dolt.auto-start: false
 dolt.mode: server
 dolt.server-host: 127.0.0.1
 dolt.server-port: 3307
-dolt.server-user: livespec-impl-plaintext
-dolt.database: livespec-impl-plaintext
-dolt.prefix: livespec-impl-plaintext
+dolt.server-user: livespec-impl-git-jsonl
+dolt.database: livespec-impl-git-jsonl
+dolt.prefix: livespec-impl-git-jsonl

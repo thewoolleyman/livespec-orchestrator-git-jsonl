@@ -1,0 +1,6 @@
+# Append-only JSONL stores merge by line union: the materialized-view
+# reduction is order-independent (supersession-chain head per
+# SPECIFICATION/contracts.md "Append-only store disciplines"), so
+# concurrent appends from parallel worktrees merge without manual
+# textual-conflict resolution.
+*.jsonl merge=union

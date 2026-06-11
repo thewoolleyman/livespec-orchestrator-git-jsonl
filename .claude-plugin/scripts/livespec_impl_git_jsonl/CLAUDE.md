@@ -10,10 +10,13 @@ Top-level modules:
   snapshot / diff dataclasses. Consumed by every skill and every
   thin-transport CLI. Dataclasses are `kw_only=True`.
 - `store.py` — append-only JSONL store primitives (append + read +
-  materialize + filter) for the work-items and memos files. The
-  materialized view is the LAST record per `id` by file order; all
-  readers MUST implement that reduction (per
-  `SPECIFICATION/constraints.md` §"JSONL substrate constraints").
+  reduce + materialize) for the work-items and memos files. The
+  materialized view is the supersession-chain head per `id`, computed
+  order-independently from the in-record `supersedes` pointers with
+  the deterministic tie-break (`captured_at`, then the sha256
+  per-record identity); `_reduce_heads` is the ONE canonical reducer
+  every consumer MUST delegate to (per `SPECIFICATION/contracts.md`
+  §"Materialized view" / §"Append-only store disciplines").
 - `spec_reader.py` — read-only Spec Reader adapter implementing the
   four required capabilities from `livespec/SPECIFICATION/
   contracts.md` §"Spec Reader required-capability surface". MUST NOT

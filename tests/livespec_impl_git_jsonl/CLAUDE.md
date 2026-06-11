@@ -10,9 +10,10 @@ under this directory:
 - `test_types.py` — work-item / memo / Spec Reader dataclass
   invariants and serialization round-trips.
 - `test_store.py` — JSONL store primitives: append-only writes, line
-  parsing, the latest-record-per-`id` materialization reduction, and
-  the EXPECTED-error paths (missing file, malformed line, schema
-  violation).
+  parsing, the per-record identity encoding, the order-independent
+  supersession-chain-head reduction (tie-breaks, divergence
+  surfacing, identical-line collapse), and the EXPECTED-error paths
+  (missing file, malformed line, schema violation).
 - `test_spec_reader.py` — the four read-only Spec Reader
   capabilities; asserts the adapter never mutates the spec tree.
 - `test_errors.py` — the `errors.py` exception surface (message

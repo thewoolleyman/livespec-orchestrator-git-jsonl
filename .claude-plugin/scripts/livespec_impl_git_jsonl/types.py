@@ -13,6 +13,23 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Literal
 
+__all__: list[str] = [
+    "AuditRecord",
+    "DependsOnRaw",
+    "Disposition",
+    "FileDiff",
+    "Memo",
+    "MemoState",
+    "Origin",
+    "Resolution",
+    "SpecDiff",
+    "SpecSnapshot",
+    "StoreConfig",
+    "WorkItem",
+    "WorkItemStatus",
+    "WorkItemType",
+]
+
 DependsOnRaw = str | dict[str, Any]
 
 WorkItemStatus = Literal["open", "in_progress", "blocked", "closed", "deferred"]

@@ -31,6 +31,8 @@ import sys
 from pathlib import Path
 from typing import Any
 
+__all__: list[str] = ["main", "migrate_file"]
+
 
 def _coerce_list(*, raw: object) -> list[Any]:
     """Return raw if it's a list, else an empty list."""

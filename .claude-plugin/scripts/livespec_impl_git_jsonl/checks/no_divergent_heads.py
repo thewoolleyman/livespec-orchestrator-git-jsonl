@@ -38,6 +38,7 @@ from livespec_impl_git_jsonl.store import (
     reduce_work_item_heads,
     work_item_record_identity,
 )
+from livespec_impl_git_jsonl.types import Memo, StoreConfig, WorkItem
 
 __all__: list[str] = ["main"]
 
@@ -45,56 +46,69 @@ __all__: list[str] = ["main"]
 _CHECK_NAME = "check-no-divergent-heads"
 
 
-def main(argv: list[str] | None = None) -> int:
+def _parse_config(*, argv: list[str] | None) -> StoreConfig:
     parser = argparse.ArgumentParser(prog=_CHECK_NAME)
     _ = parser.add_argument("--work-items-path", dest="work_items_path", default=None)
     _ = parser.add_argument("--memos-path", dest="memos_path", default=None)
     args = parser.parse_args(argv)
-    config = resolve_store_config(
+    return resolve_store_config(
         cwd=Path.cwd(),
         work_items_arg=args.work_items_path,
         memos_arg=args.memos_path,
     )
-    work_item_notes, work_item_failures = _work_item_store_report(path=config.work_items_path)
-    memo_notes, memo_failures = _memo_store_report(path=config.memos_path)
-    failures = [*work_item_failures, *memo_failures]
-    for line in (*work_item_notes, *memo_notes, *failures):
+
+
+def main(*, argv: list[str] | None = None) -> int:
+    config = _parse_config(argv=argv)
+
+    wi_notes: list[str] = []
+    wi_failures: list[str] = []
+    wi_heads: dict[str, tuple[WorkItem, ...]] = {}
+    try:
+        wi_heads = reduce_work_item_heads(records=read_work_items(path=config.work_items_path))
+    except StoreFileMissingError:
+        wi_notes = [_absent_note(kind="work-items", path=config.work_items_path)]
+    except (MalformedRecordLineError, SchemaViolationError) as exc:
+        wi_failures = [
+            _unreadable_failure(kind="work-items", path=config.work_items_path, detail=str(exc))
+        ]
+    else:
+        wi_failures = _divergence_failures(
+            kind="work-items",
+            path=config.work_items_path,
+            labeled_heads={
+                eid: tuple(work_item_record_identity(item=r) for r in group)
+                for eid, group in wi_heads.items()
+            },
+        )
+
+    m_notes: list[str] = []
+    m_failures: list[str] = []
+    m_heads: dict[str, tuple[Memo, ...]] = {}
+    try:
+        m_heads = reduce_memo_heads(records=read_memos(path=config.memos_path))
+    except StoreFileMissingError:
+        m_notes = [_absent_note(kind="memos", path=config.memos_path)]
+    except (MalformedRecordLineError, SchemaViolationError) as exc:
+        m_failures = [_unreadable_failure(kind="memos", path=config.memos_path, detail=str(exc))]
+    else:
+        m_failures = _divergence_failures(
+            kind="memos",
+            path=config.memos_path,
+            labeled_heads={
+                eid: tuple(memo_record_identity(memo=r) for r in group)
+                for eid, group in m_heads.items()
+            },
+        )
+
+    failures = [*wi_failures, *m_failures]
+    for line in (*wi_notes, *m_notes, *failures):
         _ = sys.stdout.write(line + "\n")
     if failures:
         _ = sys.stdout.write(f"{_CHECK_NAME}: FAIL — {len(failures)} finding(s)\n")
         return 1
     _ = sys.stdout.write(f"{_CHECK_NAME}: OK — no divergent un-superseded heads\n")
     return 0
-
-
-def _work_item_store_report(*, path: Path) -> tuple[list[str], list[str]]:
-    """Return `(notes, failures)` for the work-items store at `path`."""
-    try:
-        heads = reduce_work_item_heads(records=read_work_items(path=path))
-    except StoreFileMissingError:
-        return ([_absent_note(kind="work-items", path=path)], [])
-    except (MalformedRecordLineError, SchemaViolationError) as exc:
-        return ([], [_unreadable_failure(kind="work-items", path=path, detail=str(exc))])
-    labeled_heads = {
-        entity_id: tuple(work_item_record_identity(item=record) for record in group)
-        for entity_id, group in heads.items()
-    }
-    return ([], _divergence_failures(kind="work-items", path=path, labeled_heads=labeled_heads))
-
-
-def _memo_store_report(*, path: Path) -> tuple[list[str], list[str]]:
-    """Return `(notes, failures)` for the memos store at `path`."""
-    try:
-        heads = reduce_memo_heads(records=read_memos(path=path))
-    except StoreFileMissingError:
-        return ([_absent_note(kind="memos", path=path)], [])
-    except (MalformedRecordLineError, SchemaViolationError) as exc:
-        return ([], [_unreadable_failure(kind="memos", path=path, detail=str(exc))])
-    labeled_heads = {
-        entity_id: tuple(memo_record_identity(memo=record) for record in group)
-        for entity_id, group in heads.items()
-    }
-    return ([], _divergence_failures(kind="memos", path=path, labeled_heads=labeled_heads))
 
 
 def _divergence_failures(

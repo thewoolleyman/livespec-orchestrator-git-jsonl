@@ -17,6 +17,7 @@ Output:
 """
 
 import argparse
+import contextlib
 import json
 import sys
 from collections.abc import Callable
@@ -29,10 +30,12 @@ from livespec_impl_git_jsonl.errors import StoreFileMissingError
 from livespec_impl_git_jsonl.store import materialize_memos, read_memos
 from livespec_impl_git_jsonl.types import Memo
 
+__all__: list[str] = ["main"]
+
 FilterChoice = Literal["all", "untriaged", "dispositioned"]
 
 
-def main(argv: list[str] | None = None) -> int:
+def main(*, argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="list-memos")
     _ = parser.add_argument(
         "--filter",
@@ -44,20 +47,15 @@ def main(argv: list[str] | None = None) -> int:
     _ = parser.add_argument("--memos-path", dest="memos_path", default=None)
     args = parser.parse_args(argv)
     config = resolve_store_config(cwd=Path.cwd(), work_items_arg=None, memos_arg=args.memos_path)
-    materialized = _load_memos(path=config.memos_path)
+    materialized: list[Memo] = []
+    with contextlib.suppress(StoreFileMissingError):
+        materialized = list(materialize_memos(records=read_memos(path=config.memos_path)).values())
     filtered = _filter_memos(materialized=materialized, name=args.filter_name)
     if args.as_json:
         _write_json(memos=filtered)
     else:
         _write_human(memos=filtered)
     return 0
-
-
-def _load_memos(*, path: Path) -> list[Memo]:
-    try:
-        return list(materialize_memos(read_memos(path=path)).values())
-    except StoreFileMissingError:
-        return []
 
 
 def _filter_memos(*, materialized: list[Memo], name: str) -> list[Memo]:

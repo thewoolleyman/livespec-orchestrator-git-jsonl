@@ -53,6 +53,8 @@ _HEADING_PATTERN = re.compile(r"^(#{1,6})\s+(.+?)\s*$")
 _CODE_FENCE_PATTERN = re.compile(r"^\s*```")
 _GAP_ID_LENGTH = 8
 
+__all__: list[str] = ["RuleMatch", "detect_rules", "main"]
+
 _EXIT_USAGE_ERROR = 2
 _EXIT_PRECONDITION_ERROR = 3
 
@@ -67,7 +69,7 @@ class RuleMatch:
     gap_id: str
 
 
-def main(argv: list[str] | None = None) -> int:
+def main(*, argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="detect-impl-gaps")
     _ = parser.add_argument(
         "--spec-target",

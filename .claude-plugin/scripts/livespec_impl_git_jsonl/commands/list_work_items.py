@@ -30,6 +30,7 @@ Output:
 """
 
 import argparse
+import contextlib
 import json
 import sys
 from collections.abc import Callable
@@ -45,10 +46,12 @@ from livespec_impl_git_jsonl.errors import StoreFileMissingError
 from livespec_impl_git_jsonl.store import materialize_work_items, read_work_items
 from livespec_impl_git_jsonl.types import WorkItem
 
+__all__: list[str] = ["main"]
+
 FilterChoice = Literal["all", "gap-tied", "freeform", "blocked", "ready", "closed"]
 
 
-def main(argv: list[str] | None = None) -> int:
+def main(*, argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="list-work-items")
     _ = parser.add_argument(
         "--filter",
@@ -72,7 +75,11 @@ def main(argv: list[str] | None = None) -> int:
         work_items_arg=args.work_items_path,
         memos_arg=None,
     )
-    materialized = _load_work_items(path=config.work_items_path)
+    materialized: list[WorkItem] = []
+    with contextlib.suppress(StoreFileMissingError):
+        materialized = list(
+            materialize_work_items(records=read_work_items(path=config.work_items_path)).values()
+        )
     manifest = load_manifest(project_root=project_root)
     filtered = _filter_work_items(
         materialized=materialized,
@@ -86,13 +93,6 @@ def main(argv: list[str] | None = None) -> int:
     else:
         _write_human(items=filtered)
     return 0
-
-
-def _load_work_items(*, path: Path) -> list[WorkItem]:
-    try:
-        return list(materialize_work_items(read_work_items(path=path)).values())
-    except StoreFileMissingError:
-        return []
 
 
 def _filter_work_items(

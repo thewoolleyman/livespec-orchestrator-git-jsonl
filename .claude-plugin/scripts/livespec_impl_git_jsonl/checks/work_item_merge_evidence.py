@@ -47,13 +47,13 @@ import sys
 from pathlib import Path
 from typing import Any, Final, cast
 
-from livespec_impl_git_jsonl.commands import _jsonc
 from livespec_impl_git_jsonl.commands._config import resolve_store_config
 from livespec_impl_git_jsonl.errors import (
     MalformedRecordLineError,
     SchemaViolationError,
     StoreFileMissingError,
 )
+from livespec_impl_git_jsonl.io._jsonc import loads_optional
 from livespec_impl_git_jsonl.store import materialize_work_items, read_work_items
 from livespec_impl_git_jsonl.types import DependsOnRaw, WorkItem
 
@@ -77,7 +77,7 @@ _PLUGIN_BLOCK = "livespec-impl-git-jsonl"
 _CANONICAL_BRANCH_KEY = "canonical_branch"
 
 
-def main(argv: list[str] | None = None) -> int:
+def main(*, argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog=_CHECK_NAME)
     _ = parser.add_argument("--work-items-path", dest="work_items_path", default=None)
     _ = parser.add_argument("--canonical-branch", dest="canonical_branch", default=None)
@@ -93,11 +93,33 @@ def main(argv: list[str] | None = None) -> int:
         if args.canonical_branch is not None
         else resolve_canonical_branch(repo_dir=repo_dir)
     )
-    notes, failures = _store_report(
-        path=config.work_items_path,
-        repo_dir=repo_dir,
-        canonical_branch=canonical_branch,
-    )
+
+    notes: list[str] = []
+    failures: list[str] = []
+    index: dict[str, WorkItem] = {}
+    try:
+        index = materialize_work_items(records=read_work_items(path=config.work_items_path))
+    except StoreFileMissingError:
+        notes = [f"{_CHECK_NAME}: work-items store '{config.work_items_path}' absent — skipped"]
+    except (MalformedRecordLineError, SchemaViolationError) as exc:
+        failures = [
+            f"{_CHECK_NAME}: work-items store '{config.work_items_path}' unreadable — {exc}"
+        ]
+    else:
+        for item_id in sorted(index):
+            item = index[item_id]
+            if item.status != "closed":
+                continue
+            message = _item_violation(
+                repo_dir=repo_dir,
+                item=item,
+                index=index,
+                canonical_branch=canonical_branch,
+            )
+            if message is not None:
+                prefix = f"{_CHECK_NAME}: work-items store '{config.work_items_path}'"
+                failures.append(f"{prefix}: work-item '{item_id}': {message}")
+
     for line in (*notes, *failures):
         _ = sys.stdout.write(line + "\n")
     if failures:
@@ -136,10 +158,7 @@ def _configured_branch(*, repo_dir: Path) -> str | None:
     config_path = repo_dir / _CONFIG_FILENAME
     if not config_path.is_file():
         return None
-    try:
-        parsed = _jsonc.loads(text=config_path.read_text(encoding="utf-8"))
-    except _jsonc.JsoncParseError:
-        return None
+    parsed = loads_optional(text=config_path.read_text(encoding="utf-8"))
     if not isinstance(parsed, dict):
         return None
     block = cast("dict[str, Any]", parsed).get(_PLUGIN_BLOCK)
@@ -149,37 +168,6 @@ def _configured_branch(*, repo_dir: Path) -> str | None:
     if isinstance(value, str) and value != "":
         return value
     return None
-
-
-def _store_report(
-    *,
-    path: Path,
-    repo_dir: Path,
-    canonical_branch: str,
-) -> tuple[list[str], list[str]]:
-    """Return `(notes, failures)` for the work-items store at `path`."""
-    try:
-        index = materialize_work_items(read_work_items(path=path))
-    except StoreFileMissingError:
-        return ([f"{_CHECK_NAME}: work-items store '{path}' absent — skipped"], [])
-    except (MalformedRecordLineError, SchemaViolationError) as exc:
-        return ([], [f"{_CHECK_NAME}: work-items store '{path}' unreadable — {exc}"])
-    failures: list[str] = []
-    for item_id in sorted(index):
-        item = index[item_id]
-        if item.status != "closed":
-            continue
-        message = _item_violation(
-            repo_dir=repo_dir,
-            item=item,
-            index=index,
-            canonical_branch=canonical_branch,
-        )
-        if message is not None:
-            failures.append(
-                f"{_CHECK_NAME}: work-items store '{path}': work-item '{item_id}': {message}"
-            )
-    return ([], failures)
 
 
 def _item_violation(

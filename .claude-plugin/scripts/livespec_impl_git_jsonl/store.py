@@ -48,10 +48,12 @@ from dataclasses import asdict
 from pathlib import Path
 from typing import Any, Protocol, TypeVar, get_args
 
-from livespec_impl_git_jsonl.errors import (
-    MalformedRecordLineError,
-    SchemaViolationError,
-    StoreFileMissingError,
+from livespec_impl_git_jsonl.errors import SchemaViolationError
+from livespec_impl_git_jsonl.io.store import (
+    append_record as _io_append_record,
+)
+from livespec_impl_git_jsonl.io.store import (
+    iter_records as _io_iter_records,
 )
 from livespec_impl_git_jsonl.types import (
     AuditRecord,
@@ -110,6 +112,19 @@ _MEMO_REQUIRED_KEYS = frozenset(
 # OPTIONAL memo keys: same required-on-write / optional-on-read
 # treatment as the work-item optional keys.
 _MEMO_OPTIONAL_KEYS = frozenset({"supersedes"})
+
+__all__: list[str] = [
+    "append_memo",
+    "append_work_item",
+    "materialize_memos",
+    "materialize_work_items",
+    "memo_record_identity",
+    "read_memos",
+    "read_work_items",
+    "reduce_memo_heads",
+    "reduce_work_item_heads",
+    "work_item_record_identity",
+]
 
 
 class _SupersedableRecord(Protocol):
@@ -205,7 +220,7 @@ def reduce_memo_heads(*, records: Iterator[Memo]) -> dict[str, tuple[Memo, ...]]
     return _reduce_heads(entries=entries)
 
 
-def materialize_work_items(records: Iterator[WorkItem]) -> dict[str, WorkItem]:
+def materialize_work_items(*, records: Iterator[WorkItem]) -> dict[str, WorkItem]:
     """Reduce a WorkItem stream to the current-head-per-id dict.
 
     The current head is the supersession-chain head; when an entity
@@ -219,7 +234,7 @@ def materialize_work_items(records: Iterator[WorkItem]) -> dict[str, WorkItem]:
     }
 
 
-def materialize_memos(records: Iterator[Memo]) -> dict[str, Memo]:
+def materialize_memos(*, records: Iterator[Memo]) -> dict[str, Memo]:
     """Reduce a Memo stream to the current-head-per-id dict."""
     return {entity_id: heads[-1] for entity_id, heads in reduce_memo_heads(records=records).items()}
 
@@ -253,42 +268,11 @@ def _reduce_heads(
 
 
 def _iter_records(*, path: Path) -> Iterator[tuple[int, dict[str, Any]]]:
-    if not path.exists():
-        raise StoreFileMissingError(path=path)
-    with path.open(encoding="utf-8") as handle:
-        for line_number, raw_line in enumerate(handle, start=1):
-            stripped = raw_line.rstrip("\n")
-            if stripped == "":
-                raise MalformedRecordLineError(
-                    path=path,
-                    line_number=line_number,
-                    raw_line=raw_line,
-                    detail="empty line not permitted between records",
-                )
-            try:
-                parsed = json.loads(stripped)
-            except json.JSONDecodeError as exc:
-                raise MalformedRecordLineError(
-                    path=path,
-                    line_number=line_number,
-                    raw_line=raw_line,
-                    detail=f"JSON parse error: {exc.msg}",
-                ) from exc
-            if not isinstance(parsed, dict):
-                raise MalformedRecordLineError(
-                    path=path,
-                    line_number=line_number,
-                    raw_line=raw_line,
-                    detail="record root must be a JSON object",
-                )
-            yield line_number, parsed
+    yield from _io_iter_records(path=path)
 
 
 def _append_record(*, path: Path, payload: dict[str, Any]) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    line = json.dumps(payload, separators=(",", ":"), sort_keys=True) + "\n"
-    with path.open("a", encoding="utf-8") as handle:
-        _ = handle.write(line)
+    _io_append_record(path=path, payload=payload)
 
 
 def _validate_work_item_payload(

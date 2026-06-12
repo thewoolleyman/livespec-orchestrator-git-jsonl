@@ -26,18 +26,19 @@ from collections.abc import Callable
 from pathlib import Path
 from typing import Any, cast
 
-from livespec_runtime.cross_repo.errors import CrossRepoSchemaError
 from livespec_runtime.cross_repo.resolve import resolve_ref
 from livespec_runtime.cross_repo.types import (
     CrossRepoManifest,
     DependsOnEntry,
     LocalDependency,
     RefStatus,
-    parse_cross_repo_manifest,
-    parse_depends_on_entry,
 )
 
-from livespec_impl_git_jsonl.commands import _jsonc
+from livespec_impl_git_jsonl.io._cross_repo import (
+    parse_cross_repo_manifest_optional,
+    parse_depends_on_entry_optional,
+)
+from livespec_impl_git_jsonl.io._jsonc import loads_optional
 from livespec_impl_git_jsonl.types import WorkItem
 
 __all__: list[str] = [
@@ -63,11 +64,7 @@ def load_manifest(*, project_root: Path) -> CrossRepoManifest:
     config_path = project_root / _LIVESPEC_CONFIG
     if not config_path.is_file():
         return CrossRepoManifest(targets={})
-    raw_text = config_path.read_text(encoding="utf-8")
-    try:
-        parsed = _jsonc.loads(text=raw_text)
-    except _jsonc.JsoncParseError:
-        return CrossRepoManifest(targets={})
+    parsed = loads_optional(text=config_path.read_text(encoding="utf-8"))
     if not isinstance(parsed, dict):
         return CrossRepoManifest(targets={})
     parsed_dict = cast("dict[str, Any]", parsed)
@@ -75,10 +72,10 @@ def load_manifest(*, project_root: Path) -> CrossRepoManifest:
     if not isinstance(block_raw, dict):
         return CrossRepoManifest(targets={})
     block = cast("dict[str, Any]", block_raw)
-    try:
-        return parse_cross_repo_manifest(parsed=block)
-    except CrossRepoSchemaError:
+    result = parse_cross_repo_manifest_optional(parsed=block)
+    if result is None:
         return CrossRepoManifest(targets={})
+    return result
 
 
 def parse_entry(*, raw: object) -> DependsOnEntry | None:
@@ -94,32 +91,17 @@ def parse_entry(*, raw: object) -> DependsOnEntry | None:
         return LocalDependency(work_item_id=raw)
     if isinstance(raw, dict):
         typed_raw = cast("dict[str, Any]", raw)
-        try:
-            return parse_depends_on_entry(parsed=typed_raw)
-        except CrossRepoSchemaError:
-            return None
+        return parse_depends_on_entry_optional(raw=typed_raw)
     return None
 
 
 def _local_lookup_for(*, index: dict[str, WorkItem]) -> Callable[[str], RefStatus]:
-    """Build the `local_status_lookup` callable resolve_ref expects.
-
-    Missing ids → `UNKNOWN` per the doctor convention; closed items →
-    `CLOSED`; everything else (open / blocked / in_progress / deferred)
-    → `OPEN`. The ranker's exclusion gate fires only on `OPEN`, so a
-    missing reference does NOT exclude the candidate (the doctor's
-    `no-orphan-dependency` invariant is the right surface for that).
-    """
-
-    def _lookup(work_item_id: str) -> RefStatus:
-        record = index.get(work_item_id)
-        if record is None:
-            return RefStatus.UNKNOWN
-        if record.status == "closed":
-            return RefStatus.CLOSED
-        return RefStatus.OPEN
-
-    return _lookup
+    """Build the `local_status_lookup` callable resolve_ref expects."""
+    return lambda work_item_id: (
+        RefStatus.UNKNOWN
+        if work_item_id not in index
+        else (RefStatus.CLOSED if index[work_item_id].status == "closed" else RefStatus.OPEN)
+    )
 
 
 def _entry_blocks(

@@ -10,3 +10,5 @@ flows through this script into the plaintext store at the moment
 livespec itself switches its `.livespec.jsonc` from beads to
 plaintext (Phase D.10).
 """
+
+__all__: list[str] = []

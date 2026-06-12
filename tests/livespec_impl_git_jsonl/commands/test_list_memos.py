@@ -28,7 +28,7 @@ def test_main_missing_store_prints_no_memos(
     capsys: pytest.CaptureFixture[str],
 ) -> None:
     monkeypatch.chdir(tmp_path)
-    rc = main([])
+    rc = main(argv=[])
     captured = capsys.readouterr()
     assert rc == 0
     assert "(no memos)" in captured.out
@@ -42,7 +42,7 @@ def test_main_lists_memos_human(
     monkeypatch.chdir(tmp_path)
     path = tmp_path / "memos.jsonl"
     append_memo(path=path, memo=_memo(id_="mm-aaa", state="untriaged"))
-    rc = main([])
+    rc = main(argv=[])
     captured = capsys.readouterr()
     assert rc == 0
     assert "mm-aaa" in captured.out
@@ -58,7 +58,7 @@ def test_main_filter_untriaged_excludes_dispositioned(
     path = tmp_path / "memos.jsonl"
     append_memo(path=path, memo=_memo(id_="mm-aaa", state="untriaged"))
     append_memo(path=path, memo=_memo(id_="mm-bbb", state="dispositioned"))
-    rc = main(["--filter=untriaged"])
+    rc = main(argv=["--filter=untriaged"])
     captured = capsys.readouterr()
     assert rc == 0
     assert "mm-aaa" in captured.out
@@ -74,7 +74,7 @@ def test_main_filter_dispositioned(
     path = tmp_path / "memos.jsonl"
     append_memo(path=path, memo=_memo(id_="mm-aaa", state="untriaged"))
     append_memo(path=path, memo=_memo(id_="mm-bbb", state="dispositioned"))
-    rc = main(["--filter=dispositioned"])
+    rc = main(argv=["--filter=dispositioned"])
     captured = capsys.readouterr()
     assert rc == 0
     assert "mm-bbb" in captured.out
@@ -89,7 +89,7 @@ def test_main_json_output(
     monkeypatch.chdir(tmp_path)
     path = tmp_path / "memos.jsonl"
     append_memo(path=path, memo=_memo(id_="mm-aaa", state="untriaged"))
-    rc = main(["--json"])
+    rc = main(argv=["--json"])
     captured = capsys.readouterr()
     assert rc == 0
     payload = json.loads(captured.out)
@@ -103,7 +103,7 @@ def test_main_with_custom_memos_path(
 ) -> None:
     path = tmp_path / "custom-memos.jsonl"
     append_memo(path=path, memo=_memo(id_="mm-aaa", state="untriaged"))
-    rc = main(["--memos-path", str(path)])
+    rc = main(argv=["--memos-path", str(path)])
     captured = capsys.readouterr()
     assert rc == 0
     assert "mm-aaa" in captured.out

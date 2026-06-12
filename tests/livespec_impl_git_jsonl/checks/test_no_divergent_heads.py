@@ -74,7 +74,7 @@ def test_main_passes_when_both_stores_absent(
     capsys: pytest.CaptureFixture[str],
 ) -> None:
     monkeypatch.chdir(tmp_path)
-    rc = main([])
+    rc = main(argv=[])
     captured = capsys.readouterr()
     assert rc == 0
     assert captured.out.count("absent — skipped") == 2
@@ -89,7 +89,7 @@ def test_main_passes_on_empty_stores(
     monkeypatch.chdir(tmp_path)
     _ = (tmp_path / "work-items.jsonl").write_text("", encoding="utf-8")
     _ = (tmp_path / "memos.jsonl").write_text("", encoding="utf-8")
-    rc = main([])
+    rc = main(argv=[])
     captured = capsys.readouterr()
     assert rc == 0
     assert "OK" in captured.out
@@ -103,7 +103,7 @@ def test_main_passes_on_clean_stores(
     monkeypatch.chdir(tmp_path)
     append_work_item(path=tmp_path / "work-items.jsonl", item=_work_item())
     append_memo(path=tmp_path / "memos.jsonl", memo=_memo())
-    rc = main([])
+    rc = main(argv=[])
     captured = capsys.readouterr()
     assert rc == 0
     assert "OK" in captured.out
@@ -124,7 +124,7 @@ def test_main_passes_on_resolved_supersession_chain(
         supersedes=work_item_record_identity(item=original),
     )
     append_work_item(path=path, item=amendment)
-    rc = main([])
+    rc = main(argv=[])
     captured = capsys.readouterr()
     assert rc == 0
     assert "OK" in captured.out
@@ -141,7 +141,7 @@ def test_main_fails_on_divergent_work_item_heads(
     second = _work_item(title="head two", captured_at="2026-06-11T01:00:00Z")
     append_work_item(path=path, item=first)
     append_work_item(path=path, item=second)
-    rc = main([])
+    rc = main(argv=[])
     captured = capsys.readouterr()
     assert rc == 1
     assert "li-aaa111" in captured.out
@@ -162,7 +162,7 @@ def test_main_fails_on_divergent_memo_heads(
     second = _memo(text="head two", captured_at="2026-06-11T01:00:00Z")
     append_memo(path=path, memo=first)
     append_memo(path=path, memo=second)
-    rc = main([])
+    rc = main(argv=[])
     captured = capsys.readouterr()
     assert rc == 1
     assert "mm-aaa111" in captured.out
@@ -179,7 +179,7 @@ def test_main_fails_on_malformed_work_items_store(
 ) -> None:
     monkeypatch.chdir(tmp_path)
     _ = (tmp_path / "work-items.jsonl").write_text("not-json\n", encoding="utf-8")
-    rc = main([])
+    rc = main(argv=[])
     captured = capsys.readouterr()
     assert rc == 1
     assert "unreadable" in captured.out
@@ -193,7 +193,7 @@ def test_main_fails_on_schema_violating_memos_store(
 ) -> None:
     monkeypatch.chdir(tmp_path)
     _ = (tmp_path / "memos.jsonl").write_text('{"id": "mm-aaa111"}\n', encoding="utf-8")
-    rc = main([])
+    rc = main(argv=[])
     captured = capsys.readouterr()
     assert rc == 1
     assert "unreadable" in captured.out
@@ -214,7 +214,7 @@ def test_main_with_explicit_store_paths(
     append_work_item(path=work_items_path, item=second)
     append_memo(path=memos_path, memo=_memo())
     rc = main(
-        [
+        argv=[
             "--work-items-path",
             str(work_items_path),
             "--memos-path",

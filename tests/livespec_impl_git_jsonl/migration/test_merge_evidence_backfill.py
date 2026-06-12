@@ -191,7 +191,7 @@ def test_repairs_audit_missing_merge_sha_using_commit_evidence(
     assert rc == 0
     assert "populated audit.merge_sha" in captured.out
     assert path.read_text(encoding="utf-8").count("\n") == 1
-    index = materialize_work_items(read_work_items(path=path))
+    index = materialize_work_items(records=read_work_items(path=path))
     audit = index["li-aaa111"].audit
     assert audit is not None
     assert audit.merge_sha == merge_sha
@@ -211,7 +211,7 @@ def test_repairs_with_commit_itself_when_no_merge_commit_exists(
     rc = main(argv=["--path", str(path)])
     _ = capsys.readouterr()
     assert rc == 0
-    index = materialize_work_items(read_work_items(path=path))
+    index = materialize_work_items(records=read_work_items(path=path))
     audit = index["li-aaa111"].audit
     assert audit is not None
     assert audit.merge_sha == work_sha
@@ -230,7 +230,7 @@ def test_repairs_empty_merge_sha_and_skips_unusable_candidates(
     rc = main(argv=["--path", str(path)])
     _ = capsys.readouterr()
     assert rc == 0
-    index = materialize_work_items(read_work_items(path=path))
+    index = materialize_work_items(records=read_work_items(path=path))
     audit = index["li-aaa111"].audit
     assert audit is not None
     assert audit.merge_sha == work_sha
@@ -247,7 +247,7 @@ def test_repairs_via_id_grep_when_audit_commits_is_empty(
     rc = main(argv=["--path", str(path)])
     _ = capsys.readouterr()
     assert rc == 0
-    index = materialize_work_items(read_work_items(path=path))
+    index = materialize_work_items(records=read_work_items(path=path))
     audit = index["li-aaa111"].audit
     assert audit is not None
     assert audit.merge_sha == work_sha
@@ -331,13 +331,13 @@ def test_grandfather_sentinels_both_phases_without_git(
     rc = main(argv=["--path", str(path), "--grandfather"])
     _ = capsys.readouterr()
     assert rc == 0
-    index = materialize_work_items(read_work_items(path=path))
+    index = materialize_work_items(records=read_work_items(path=path))
     for item_id in ("li-aaa111", "li-bbb222"):
         audit = index[item_id].audit
         assert audit is not None
         assert audit.merge_sha == GRANDFATHER_MERGE_SHA_SENTINEL
     monkeypatch.chdir(tmp_path)
-    check_rc = check_main([])
+    check_rc = check_main(argv=[])
     captured = capsys.readouterr()
     assert check_rc == 0
     assert "OK" in captured.out
@@ -452,7 +452,7 @@ def test_honors_canonical_branch_flag(
     rc = main(argv=["--path", str(path), "--canonical-branch", "release"])
     _ = capsys.readouterr()
     assert rc == 0
-    index = materialize_work_items(read_work_items(path=path))
+    index = materialize_work_items(records=read_work_items(path=path))
     audit = index["li-aaa111"].audit
     assert audit is not None
     assert audit.merge_sha == work_sha

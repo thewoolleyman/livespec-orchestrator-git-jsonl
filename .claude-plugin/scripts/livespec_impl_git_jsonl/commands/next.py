@@ -50,6 +50,7 @@ the wrapper emits `candidates: []` with `has_more: false`.
 """
 
 import argparse
+import contextlib
 import json
 import sys
 from pathlib import Path
@@ -71,7 +72,7 @@ _DEFAULT_LIMIT = 5
 _DEFAULT_OFFSET = 0
 
 
-def main(argv: list[str] | None = None) -> int:
+def main(*, argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="next")
     _ = parser.add_argument("--json", dest="as_json", action="store_true")
     _ = parser.add_argument("--limit", dest="limit_raw", default=str(_DEFAULT_LIMIT))
@@ -91,7 +92,11 @@ def main(argv: list[str] | None = None) -> int:
         work_items_arg=args.work_items_path,
         memos_arg=None,
     )
-    materialized = _load_work_items(path=config.work_items_path)
+    materialized: list[WorkItem] = []
+    with contextlib.suppress(StoreFileMissingError):
+        materialized = list(
+            materialize_work_items(records=read_work_items(path=config.work_items_path)).values()
+        )
     manifest = load_manifest(project_root=project_root)
     ranked = rank_candidates(items=materialized, manifest=manifest)
     envelope = _slice_envelope(ranked=ranked, offset=offset, limit=limit)
@@ -197,13 +202,6 @@ def _urgency_for(*, priority: int) -> str:
     if priority <= _URGENCY_MEDIUM_THRESHOLD:
         return "medium"
     return "low"
-
-
-def _load_work_items(*, path: Path) -> list[WorkItem]:
-    try:
-        return list(materialize_work_items(read_work_items(path=path)).values())
-    except StoreFileMissingError:
-        return []
 
 
 def _parse_positive_int(*, raw: str, flag: str) -> int | None:

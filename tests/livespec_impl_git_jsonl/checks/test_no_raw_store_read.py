@@ -58,7 +58,7 @@ def test_main_passes_on_conforming_tree(
             '    return path.read_text(encoding="utf-8")\n'
         ),
     )
-    rc = main(["--root", str(root)])
+    rc = main(argv=["--root", str(root)])
     captured = capsys.readouterr()
     assert rc == 0
     assert "OK" in captured.out
@@ -69,7 +69,7 @@ def test_main_exempts_the_canonical_store_module(
     capsys: pytest.CaptureFixture[str],
 ) -> None:
     root = _fixture_root(tmp_path=tmp_path)
-    rc = main(["--root", str(root)])
+    rc = main(argv=["--root", str(root)])
     captured = capsys.readouterr()
     assert rc == 0
     assert "store.py" not in captured.out
@@ -91,7 +91,7 @@ def test_main_fails_on_literal_store_basename_open(
             '    return (root / "work-items.jsonl").read_text(encoding="utf-8")\n'
         ),
     )
-    rc = main(["--root", str(root)])
+    rc = main(argv=["--root", str(root)])
     captured = capsys.readouterr()
     assert rc == 1
     assert "offender.py:5" in captured.out
@@ -112,7 +112,7 @@ def test_main_fails_on_declared_path_attribute_open(
             "    return config.memos_path.read_text(encoding='utf-8')\n"
         ),
     )
-    rc = main(["--root", str(root)])
+    rc = main(argv=["--root", str(root)])
     captured = capsys.readouterr()
     assert rc == 1
     assert "attr_offender.py:2" in captured.out
@@ -133,7 +133,7 @@ def test_main_fails_on_builtin_open_of_declared_path_name(
             "        return handle.read()\n"
         ),
     )
-    rc = main(["--root", str(root)])
+    rc = main(argv=["--root", str(root)])
     captured = capsys.readouterr()
     assert rc == 1
     assert "open_offender.py:2" in captured.out
@@ -155,7 +155,7 @@ def test_main_ignores_vendored_code(
             '    return (root / "memos.jsonl").read_text(encoding="utf-8")\n'
         ),
     )
-    rc = main(["--root", str(root)])
+    rc = main(argv=["--root", str(root)])
     captured = capsys.readouterr()
     assert rc == 0
     assert "OK" in captured.out
@@ -177,7 +177,7 @@ def test_main_ignores_non_open_calls_and_unrelated_literals(
             "    return (name, result, numbered)\n"
         ),
     )
-    rc = main(["--root", str(root)])
+    rc = main(argv=["--root", str(root)])
     captured = capsys.readouterr()
     assert rc == 0
     assert "OK" in captured.out
@@ -189,7 +189,7 @@ def test_main_passes_when_shipped_trees_absent(
 ) -> None:
     root = tmp_path / "empty-project"
     root.mkdir()
-    rc = main(["--root", str(root)])
+    rc = main(argv=["--root", str(root)])
     captured = capsys.readouterr()
     assert rc == 0
     assert "OK" in captured.out
@@ -198,7 +198,7 @@ def test_main_passes_when_shipped_trees_absent(
 def test_main_conformance_run_against_this_repo(
     capsys: pytest.CaptureFixture[str],
 ) -> None:
-    rc = main(["--root", str(_REPO_ROOT)])
+    rc = main(argv=["--root", str(_REPO_ROOT)])
     captured = capsys.readouterr()
     assert rc == 0
     assert "OK" in captured.out

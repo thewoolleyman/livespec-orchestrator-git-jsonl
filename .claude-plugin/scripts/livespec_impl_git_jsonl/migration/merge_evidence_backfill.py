@@ -65,6 +65,7 @@ from livespec_impl_git_jsonl.errors import (
     SchemaViolationError,
     StoreFileMissingError,
 )
+from livespec_impl_git_jsonl.io.store import parse_jsonl_line
 from livespec_impl_git_jsonl.store import (
     append_work_item,
     materialize_work_items,
@@ -216,7 +217,7 @@ def _phase_one_repairs(
     repaired: list[str] = []
     orphans: list[str] = []
     for line_number, line in enumerate(lines, start=1):
-        record = _parse_record(path=path, line_number=line_number, line=line)
+        record = parse_jsonl_line(path=path, line_number=line_number, raw_line=line)
         audit_value = record.get("audit")
         if not isinstance(audit_value, dict):
             out_lines.append(line)
@@ -264,7 +265,7 @@ def _phase_two_transitions(
     with tempfile.TemporaryDirectory() as scratch_dir:
         scratch_path = Path(scratch_dir) / "phase-one-preview.jsonl"
         _ = scratch_path.write_text(content, encoding="utf-8")
-        index = materialize_work_items(read_work_items(path=scratch_path))
+        index = materialize_work_items(records=read_work_items(path=scratch_path))
     now = datetime.now(tz=timezone.utc).isoformat(timespec="seconds")
     transitions: list[WorkItem] = []
     appended: list[str] = []
@@ -307,25 +308,6 @@ def _phase_two_transitions(
             f"{item_id}: appended merge-evidence transition record (merge_sha {merge_sha})"
         )
     return tuple(transitions), tuple(appended), tuple(orphans)
-
-
-def _parse_record(*, path: Path, line_number: int, line: str) -> dict[str, Any]:
-    """Parse one raw line as a JSON object; raise MalformedRecordLineError otherwise.
-
-    A line whose root is valid JSON but not an object is a caller-side
-    data bug that surfaces downstream (the phase-2 canonical read
-    rejects it); only the parse failure is the EXPECTED error here.
-    """
-    try:
-        parsed: dict[str, Any] = json.loads(line)
-    except json.JSONDecodeError as exc:
-        raise MalformedRecordLineError(
-            path=path,
-            line_number=line_number,
-            raw_line=line,
-            detail=f"JSON parse error: {exc.msg}",
-        ) from exc
-    return parsed
 
 
 def _orphan_finding(*, work_item_id: str, branch: str) -> str:

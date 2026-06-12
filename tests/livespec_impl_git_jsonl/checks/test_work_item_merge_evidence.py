@@ -107,7 +107,7 @@ def test_main_passes_when_store_absent(
     capsys: pytest.CaptureFixture[str],
 ) -> None:
     monkeypatch.chdir(tmp_path)
-    rc = main([])
+    rc = main(argv=[])
     captured = capsys.readouterr()
     assert rc == 0
     assert "absent — skipped" in captured.out
@@ -121,7 +121,7 @@ def test_main_passes_on_empty_store(
 ) -> None:
     monkeypatch.chdir(tmp_path)
     _ = (tmp_path / "work-items.jsonl").write_text("", encoding="utf-8")
-    rc = main([])
+    rc = main(argv=[])
     captured = capsys.readouterr()
     assert rc == 0
     assert "OK" in captured.out
@@ -134,7 +134,7 @@ def test_main_fails_on_unreadable_store(
 ) -> None:
     monkeypatch.chdir(tmp_path)
     _ = (tmp_path / "work-items.jsonl").write_text("not-json\n", encoding="utf-8")
-    rc = main([])
+    rc = main(argv=[])
     captured = capsys.readouterr()
     assert rc == 1
     assert "unreadable" in captured.out
@@ -152,7 +152,7 @@ def test_main_skips_non_closed_items(
     append_work_item(
         path=path, item=_work_item(id_="li-aaa222", status="deferred", resolution=None)
     )
-    rc = main([])
+    rc = main(argv=[])
     captured = capsys.readouterr()
     assert rc == 0
     assert "OK" in captured.out
@@ -167,7 +167,7 @@ def test_main_passes_on_reachable_merge_sha(
     head = _init_repo(root=tmp_path)
     path = tmp_path / "work-items.jsonl"
     append_work_item(path=path, item=_work_item(audit=_audit(merge_sha=head)))
-    rc = main([])
+    rc = main(argv=[])
     captured = capsys.readouterr()
     assert rc == 0
     assert "OK" in captured.out
@@ -181,7 +181,7 @@ def test_main_fails_when_required_audit_is_missing(
     monkeypatch.chdir(tmp_path)
     path = tmp_path / "work-items.jsonl"
     append_work_item(path=path, item=_work_item(resolution="spec-revised", audit=None))
-    rc = main([])
+    rc = main(argv=[])
     captured = capsys.readouterr()
     assert rc == 1
     assert "li-aaa111" in captured.out
@@ -199,7 +199,7 @@ def test_main_fails_when_merge_sha_is_unknown_to_git(
     path = tmp_path / "work-items.jsonl"
     bogus = "0" * 40
     append_work_item(path=path, item=_work_item(audit=_audit(merge_sha=bogus)))
-    rc = main([])
+    rc = main(argv=[])
     captured = capsys.readouterr()
     assert rc == 1
     assert bogus in captured.out
@@ -219,7 +219,7 @@ def test_main_fails_when_merge_sha_is_not_on_canonical_branch(
     ahead = _run_git(args=["rev-parse", "HEAD"], cwd=tmp_path)
     path = tmp_path / "work-items.jsonl"
     append_work_item(path=path, item=_work_item(audit=_audit(merge_sha=ahead)))
-    rc = main([])
+    rc = main(argv=[])
     captured = capsys.readouterr()
     assert rc == 1
     assert "not reachable from origin/master" in captured.out
@@ -236,7 +236,7 @@ def test_main_exempts_grandfather_sentinel_from_reachability(
         path=path,
         item=_work_item(audit=_audit(merge_sha=GRANDFATHER_MERGE_SHA_SENTINEL)),
     )
-    rc = main([])
+    rc = main(argv=[])
     captured = capsys.readouterr()
     assert rc == 0
     assert "OK" in captured.out
@@ -253,7 +253,7 @@ def test_main_fails_on_administrative_closure_with_audit(
         path=path,
         item=_work_item(resolution="wontfix", audit=_audit(merge_sha="deadbeef")),
     )
-    rc = main([])
+    rc = main(argv=[])
     captured = capsys.readouterr()
     assert rc == 1
     assert "must not carry audit merge-evidence" in captured.out
@@ -267,7 +267,7 @@ def test_main_passes_on_administrative_closure_without_audit(
     monkeypatch.chdir(tmp_path)
     path = tmp_path / "work-items.jsonl"
     append_work_item(path=path, item=_work_item(resolution="duplicate", audit=None))
-    rc = main([])
+    rc = main(argv=[])
     captured = capsys.readouterr()
     assert rc == 0
     assert "OK" in captured.out
@@ -281,7 +281,7 @@ def test_main_fails_on_closed_item_without_resolution(
     monkeypatch.chdir(tmp_path)
     path = tmp_path / "work-items.jsonl"
     append_work_item(path=path, item=_work_item(resolution=None))
-    rc = main([])
+    rc = main(argv=[])
     captured = capsys.readouterr()
     assert rc == 1
     assert "closed work-item without resolution is malformed" in captured.out
@@ -304,7 +304,7 @@ def test_main_fails_on_closed_epic_with_non_closed_child(
             depends_on=({"kind": "local", "work_item_id": "li-chi111"},),
         ),
     )
-    rc = main([])
+    rc = main(argv=[])
     captured = capsys.readouterr()
     assert rc == 1
     assert "closed epic has non-closed child 'li-chi111'" in captured.out
@@ -337,7 +337,7 @@ def test_main_passes_on_closed_epic_with_closed_children(
             ),
         ),
     )
-    rc = main([])
+    rc = main(argv=[])
     captured = capsys.readouterr()
     assert rc == 0
     assert "OK" in captured.out
@@ -363,7 +363,7 @@ def test_main_skips_unresolvable_epic_children(
             ),
         ),
     )
-    rc = main([])
+    rc = main(argv=[])
     captured = capsys.readouterr()
     assert rc == 0
     assert "OK" in captured.out
@@ -379,7 +379,7 @@ def test_main_honors_canonical_branch_flag(
     _ = _run_git(args=["update-ref", "refs/remotes/origin/release", "HEAD"], cwd=tmp_path)
     path = tmp_path / "work-items.jsonl"
     append_work_item(path=path, item=_work_item(audit=_audit(merge_sha=head)))
-    rc = main(["--canonical-branch", "release"])
+    rc = main(argv=["--canonical-branch", "release"])
     captured = capsys.readouterr()
     assert rc == 0
     assert "OK" in captured.out
@@ -394,7 +394,7 @@ def test_main_names_flagged_canonical_branch_in_findings(
     _ = _init_repo(root=tmp_path)
     path = tmp_path / "work-items.jsonl"
     append_work_item(path=path, item=_work_item(audit=_audit(merge_sha="0" * 40)))
-    rc = main(["--canonical-branch", "release"])
+    rc = main(argv=["--canonical-branch", "release"])
     captured = capsys.readouterr()
     assert rc == 1
     assert "not reachable from origin/release" in captured.out
@@ -406,7 +406,7 @@ def test_main_with_explicit_store_path(
 ) -> None:
     path = tmp_path / "custom" / "wi.jsonl"
     append_work_item(path=path, item=_work_item(resolution="completed", audit=None))
-    rc = main(["--work-items-path", str(path)])
+    rc = main(argv=["--work-items-path", str(path)])
     captured = capsys.readouterr()
     assert rc == 1
     assert str(path) in captured.out

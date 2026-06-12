@@ -38,6 +38,13 @@ from pathlib import Path
 from livespec_impl_git_jsonl.errors import SpecVersionNotFoundError
 from livespec_impl_git_jsonl.types import FileDiff, SpecDiff, SpecSnapshot
 
+__all__: list[str] = [
+    "current_specification_version",
+    "diff_specification_versions",
+    "read_current_specification",
+    "read_specification_history",
+]
+
 _VERSION_DIR_PATTERN = re.compile(r"^v(\d+)$")
 
 

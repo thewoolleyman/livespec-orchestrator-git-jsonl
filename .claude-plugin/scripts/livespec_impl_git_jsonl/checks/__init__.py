@@ -8,3 +8,5 @@ checks wire into THIS repo's `just check` aggregate — NOT into
 livespec's doctor (the work-items and memos stores are
 orchestrator-private under the re-steered contract).
 """
+
+__all__: list[str] = []

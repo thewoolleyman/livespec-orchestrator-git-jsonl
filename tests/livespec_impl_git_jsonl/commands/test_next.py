@@ -225,7 +225,7 @@ def test_main_missing_store_emits_empty_envelope_json(
     capsys: pytest.CaptureFixture[str],
 ) -> None:
     monkeypatch.chdir(tmp_path)
-    rc = main(["--json"])
+    rc = main(argv=["--json"])
     captured = capsys.readouterr()
     assert rc == 0
     payload = json.loads(captured.out)
@@ -244,7 +244,7 @@ def test_main_missing_store_human_output_says_no_work(
     capsys: pytest.CaptureFixture[str],
 ) -> None:
     monkeypatch.chdir(tmp_path)
-    rc = main([])
+    rc = main(argv=[])
     captured = capsys.readouterr()
     assert rc == 0
     # Human-readable no-work signal — no JSON, no legacy "none" action.
@@ -259,7 +259,7 @@ def test_main_json_output_envelope_shape(
     monkeypatch.chdir(tmp_path)
     path = tmp_path / "work-items.jsonl"
     append_work_item(path=path, item=_item(id_="li-x"))
-    rc = main(["--json"])
+    rc = main(argv=["--json"])
     captured = capsys.readouterr()
     assert rc == 0
     payload = json.loads(captured.out)
@@ -284,7 +284,7 @@ def test_main_human_output_lists_each_candidate(
     monkeypatch.chdir(tmp_path)
     path = tmp_path / "work-items.jsonl"
     append_work_item(path=path, item=_item(id_="li-x"))
-    rc = main([])
+    rc = main(argv=[])
     captured = capsys.readouterr()
     assert rc == 0
     assert "li-x" in captured.out
@@ -300,7 +300,7 @@ def test_main_limit_applied_in_json(
     path = tmp_path / "work-items.jsonl"
     for i in range(7):
         append_work_item(path=path, item=_item(id_=f"li-{i:02d}", priority=i))
-    rc = main(["--json", "--limit", "3"])
+    rc = main(argv=["--json", "--limit", "3"])
     captured = capsys.readouterr()
     assert rc == 0
     payload = json.loads(captured.out)
@@ -319,7 +319,7 @@ def test_main_offset_applied_in_json(
     path = tmp_path / "work-items.jsonl"
     for i in range(5):
         append_work_item(path=path, item=_item(id_=f"li-{i:02d}", priority=i))
-    rc = main(["--json", "--offset", "2", "--limit", "2"])
+    rc = main(argv=["--json", "--offset", "2", "--limit", "2"])
     captured = capsys.readouterr()
     assert rc == 0
     payload = json.loads(captured.out)
@@ -333,7 +333,7 @@ def test_main_invalid_limit_zero_exits_2(
     capsys: pytest.CaptureFixture[str],
 ) -> None:
     monkeypatch.chdir(tmp_path)
-    rc = main(["--limit", "0"])
+    rc = main(argv=["--limit", "0"])
     captured = capsys.readouterr()
     assert rc == 2
     assert "limit" in captured.err.lower()
@@ -345,7 +345,7 @@ def test_main_invalid_limit_negative_exits_2(
     capsys: pytest.CaptureFixture[str],
 ) -> None:
     monkeypatch.chdir(tmp_path)
-    rc = main(["--limit", "-1"])
+    rc = main(argv=["--limit", "-1"])
     captured = capsys.readouterr()
     assert rc == 2
     assert "limit" in captured.err.lower()
@@ -357,7 +357,7 @@ def test_main_invalid_limit_nonint_exits_2(
     capsys: pytest.CaptureFixture[str],
 ) -> None:
     monkeypatch.chdir(tmp_path)
-    rc = main(["--limit", "abc"])
+    rc = main(argv=["--limit", "abc"])
     captured = capsys.readouterr()
     assert rc == 2
     assert "limit" in captured.err.lower()
@@ -369,7 +369,7 @@ def test_main_invalid_offset_negative_exits_2(
     capsys: pytest.CaptureFixture[str],
 ) -> None:
     monkeypatch.chdir(tmp_path)
-    rc = main(["--offset", "-1"])
+    rc = main(argv=["--offset", "-1"])
     captured = capsys.readouterr()
     assert rc == 2
     assert "offset" in captured.err.lower()
@@ -381,7 +381,7 @@ def test_main_invalid_offset_nonint_exits_2(
     capsys: pytest.CaptureFixture[str],
 ) -> None:
     monkeypatch.chdir(tmp_path)
-    rc = main(["--offset", "xyz"])
+    rc = main(argv=["--offset", "xyz"])
     captured = capsys.readouterr()
     assert rc == 2
     assert "offset" in captured.err.lower()
@@ -396,7 +396,7 @@ def test_main_offset_zero_is_valid(
     monkeypatch.chdir(tmp_path)
     path = tmp_path / "work-items.jsonl"
     append_work_item(path=path, item=_item(id_="li-x"))
-    rc = main(["--json", "--offset", "0"])
+    rc = main(argv=["--json", "--offset", "0"])
     captured = capsys.readouterr()
     assert rc == 0
     payload = json.loads(captured.out)

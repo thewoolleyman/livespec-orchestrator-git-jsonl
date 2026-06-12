@@ -57,7 +57,7 @@ _OPEN_ATTRIBUTE_NAMES = frozenset({"open", "read_text", "read_bytes"})
 _DECLARED_PATH_NAMES = frozenset({"work_items_path", "memos_path"})
 
 
-def main(argv: list[str] | None = None) -> int:
+def main(*, argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog=_CHECK_NAME)
     _ = parser.add_argument("--root", dest="root", default=".")
     args = parser.parse_args(argv)

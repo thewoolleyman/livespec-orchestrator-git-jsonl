@@ -239,3 +239,12 @@ exclude_also = [
     "sys.path.insert",
     "case _:",
 ]
+
+[tool.livespec_dev_tooling]
+source_trees = [".claude-plugin/scripts/livespec_impl_git_jsonl"]
+io_trees = [".claude-plugin/scripts/livespec_impl_git_jsonl/io"]
+commands_trees = [
+    ".claude-plugin/scripts/livespec_impl_git_jsonl/commands",
+    ".claude-plugin/scripts/livespec_impl_git_jsonl/checks",
+    ".claude-plugin/scripts/livespec_impl_git_jsonl/migration",
+]

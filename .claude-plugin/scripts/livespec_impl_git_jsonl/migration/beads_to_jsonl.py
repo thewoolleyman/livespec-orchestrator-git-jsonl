@@ -27,11 +27,13 @@ from typing import Any
 from livespec_impl_git_jsonl.store import append_work_item
 from livespec_impl_git_jsonl.types import AuditRecord, WorkItem
 
+__all__: list[str] = ["main", "translate_record"]
+
 _GAP_ID_LABEL_PREFIX = "gap-id:"
 _RESOLUTION_LABEL_PREFIX = "resolution:"
 
 
-def main(argv: list[str] | None = None) -> int:
+def main(*, argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="migrate-beads")
     _ = parser.add_argument(
         "--beads-jsonl",

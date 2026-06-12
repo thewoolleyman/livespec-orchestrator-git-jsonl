@@ -302,7 +302,7 @@ def test_materialize_work_items_supersession_head_wins(tmp_path: Path) -> None:
     append_work_item(path=path, item=second)
     append_work_item(path=path, item=first)
     append_work_item(path=path, item=other)
-    materialized = materialize_work_items(read_work_items(path=path))
+    materialized = materialize_work_items(records=read_work_items(path=path))
     assert materialized["li-a"].status == "closed"
     assert materialized["li-b"].status == "open"
 
@@ -324,7 +324,7 @@ def test_materialize_memos_supersession_head_wins(tmp_path: Path) -> None:
     )
     append_memo(path=path, memo=second)
     append_memo(path=path, memo=first)
-    materialized = materialize_memos(read_memos(path=path))
+    materialized = materialize_memos(records=read_memos(path=path))
     assert materialized["mm-a"].state == "dispositioned"
 
 
@@ -1018,7 +1018,7 @@ def test_materialize_work_items_is_order_independent(tmp_path: Path) -> None:
         path = tmp_path / f"work-items-{index}.jsonl"
         for record in ordering:
             append_work_item(path=path, item=record)
-        materialized = materialize_work_items(read_work_items(path=path))
+        materialized = materialize_work_items(records=read_work_items(path=path))
         assert materialized == {"li-chain2": c}
 
 
@@ -1035,7 +1035,7 @@ def test_materialize_memos_is_order_independent(tmp_path: Path) -> None:
         path = tmp_path / f"memos-{index}.jsonl"
         for record in ordering:
             append_memo(path=path, memo=record)
-        assert materialize_memos(read_memos(path=path)) == {"mm-chain1": second}
+        assert materialize_memos(records=read_memos(path=path)) == {"mm-chain1": second}
 
 
 def test_materialize_work_items_divergence_tie_breaks_on_captured_at(tmp_path: Path) -> None:
@@ -1050,7 +1050,7 @@ def test_materialize_work_items_divergence_tie_breaks_on_captured_at(tmp_path: P
         path = tmp_path / f"work-items-{index}.jsonl"
         for record in ordering:
             append_work_item(path=path, item=record)
-        assert materialize_work_items(read_work_items(path=path)) == {"li-div1": later}
+        assert materialize_work_items(records=read_work_items(path=path)) == {"li-div1": later}
 
 
 def test_materialize_work_items_divergence_tie_breaks_on_identity(tmp_path: Path) -> None:
@@ -1063,7 +1063,7 @@ def test_materialize_work_items_divergence_tie_breaks_on_identity(tmp_path: Path
         path = tmp_path / f"work-items-{index}.jsonl"
         for record in ordering:
             append_work_item(path=path, item=record)
-        assert materialize_work_items(read_work_items(path=path)) == {"li-div2": expected}
+        assert materialize_work_items(records=read_work_items(path=path)) == {"li-div2": expected}
 
 
 def test_reduce_work_item_heads_surfaces_divergence(tmp_path: Path) -> None:

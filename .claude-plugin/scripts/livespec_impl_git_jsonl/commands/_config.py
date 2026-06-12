@@ -11,6 +11,8 @@ from pathlib import Path
 
 from livespec_impl_git_jsonl.types import StoreConfig
 
+__all__: list[str] = ["resolve_store_config"]
+
 _DEFAULT_WORK_ITEMS = "work-items.jsonl"
 _DEFAULT_MEMOS = "memos.jsonl"
 

@@ -150,7 +150,7 @@ def test_main_writes_records_and_skips_blank_lines(
         json.dumps(_beads_dict(id_="li-b", labels=["gap-id:gap-0001"])),
     ]
     _ = beads_path.write_text("\n".join(lines) + "\n", encoding="utf-8")
-    rc = main(["--beads-jsonl", str(beads_path), "--work-items-out", str(out_path)])
+    rc = main(argv=["--beads-jsonl", str(beads_path), "--work-items-out", str(out_path)])
     captured = capsys.readouterr()
     assert rc == 0
     assert "migrated 2 beads issues" in captured.out
@@ -170,7 +170,7 @@ def test_main_skips_non_object_lines(
         json.dumps(_beads_dict(id_="li-b")),
     ]
     _ = beads_path.write_text("\n".join(lines) + "\n", encoding="utf-8")
-    rc = main(["--beads-jsonl", str(beads_path), "--work-items-out", str(out_path)])
+    rc = main(argv=["--beads-jsonl", str(beads_path), "--work-items-out", str(out_path)])
     captured = capsys.readouterr()
     assert rc == 0
     assert "migrated 2 beads issues" in captured.out

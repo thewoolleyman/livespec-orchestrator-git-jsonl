@@ -15,6 +15,8 @@ race.
 import base64
 import secrets
 
+__all__: list[str] = ["new_memo_id", "new_work_item_id"]
+
 _SUFFIX_BYTES = 4  # 4 bytes → 32 bits → base32 yields ~7 chars; trimmed to 6.
 _SUFFIX_LENGTH = 6
 

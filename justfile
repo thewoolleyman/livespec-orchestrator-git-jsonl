@@ -105,27 +105,25 @@ ensure-plugins:
 check:
     #!/usr/bin/env bash
     set -uo pipefail
-    # Canonical-check aggregate, per SPECIFICATION/contracts.md
-    # §"Wiring-completeness invariant" (v094): every canonical slug
-    # emitted by `livespec_dev_tooling.canonical_checks` MUST appear
-    # here in alphabetical order; livespec-impl-git-jsonl-private
-    # checks MAY follow after the canonical block in any order. The
-    # in-repo gate is `check-aggregate-completeness`, which fails if
-    # any canonical slug is missing or out-of-order.
-    #
-    # Aggregator continues on failure (matches CI fail-fast: false)
-    # and exits non-zero with the failure list if any target failed.
-    #
-    # `skip` is a just VARIABLE (declared at the top of this justfile,
-    # default empty): a space-separated list of target names to omit from
-    # this run (epic li-cvaudit, cvredmd). The Red-mode pre-commit invokes
-    # `just skip="check-coverage check-per-file-coverage" check` so coverage
-    # is not gated at the Red commit (it is verified at the Green amend) —
-    # a self-contained just variable that replaces the prior ambient
-    # `LIVESPEC_PRECOMMIT_RED_MODE` env var. The recipe header stays the
-    # bare `check:` the wiring-completeness checks parse for. Pre-push and
-    # CI invoke `just check` with no `skip`, so the full aggregate stays
-    # the safety net.
+    # Sync the environment ONCE per aggregate pass, then run every
+    # target with UV_NO_SYNC=1 so the per-target `uv run`
+    # invocations skip their redundant per-invocation re-sync
+    # (work-item livespec-7dro). The single up-front sync
+    # keeps the freshness guarantee — a stale lockfile/venv still
+    # fails here, loudly, before any target runs. This also caps the
+    # cost of a corrupted-venv re-sync loop (e.g. an orphaned
+    # dist-info missing its RECORD file, which a sync can never
+    # uninstall and therefore retries on EVERY invocation) at one
+    # sync attempt per pass instead of one per target, and shrinks
+    # the concurrent-sync race window that produces that corruption
+    # in the first place. Standalone `just check-<x>` invocations
+    # keep uv's default sync-on-run behavior; CI's per-target matrix
+    # jobs each sync their own fresh runner and are unaffected.
+    if ! uv sync --all-groups; then
+        echo "ERROR: up-front 'uv sync --all-groups' failed; aborting the check aggregate" >&2
+        exit 1
+    fi
+    export UV_NO_SYNC=1
     read -ra skip_targets <<< "{{skip}}"
     targets=(
         # ---- Canonical block (39 slugs, alphabetical) ----

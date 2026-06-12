@@ -94,10 +94,32 @@ directly to closure.
 ### Step 6 — Append closure record
 
 Append a new JSONL record with `status: closed`. The exact shape
-branches on the resolution choice:
+branches on the resolution choice.
+
+**Merge evidence is REQUIRED for merge-implying resolutions.** Per
+`SPECIFICATION/contracts.md` §"Work-items JSONL record schema" →
+audit, every closure with `resolution` in `{completed, spec-revised,
+resolved-out-of-band}` MUST carry a non-null `audit` whose
+`merge_sha` is the SHA on `origin/<canonical_branch>` that introduced
+the work. Populate it at closure time:
+
+- Close AFTER the merge lands. Resolve the merge SHA from the PR
+  (`gh pr view <pr> --json mergeCommit --jq .mergeCommit.oid`) or
+  from `git log origin/<canonical_branch>`; for rebase-merges it is
+  the last rebased commit of the series.
+- VERIFY it locally before appending: `git cat-file -e <merge_sha>`
+  and `git merge-base --is-ancestor <merge_sha>
+  origin/<canonical_branch>` must both exit 0 — the same rules the
+  `work_item_merge_evidence` static check
+  (`just check-work-item-merge-evidence`) enforces afterwards.
+- Record `pr_number` (integer) when the merge came from a PR; `null`
+  otherwise.
+- Administrative resolutions (`wontfix`, `duplicate`,
+  `no-longer-applicable`) MUST keep `audit: None` — an
+  administratively closed record must not carry merge-evidence.
 
 ```python
-from livespec_impl_git_jsonl.store import append_work_item
+from livespec_impl_git_jsonl.store import append_work_item, work_item_record_identity
 from livespec_impl_git_jsonl.types import AuditRecord, WorkItem
 from datetime import datetime, timezone
 from pathlib import Path
@@ -107,8 +129,10 @@ audit = (
         verification_timestamp=datetime.now(tz=timezone.utc).isoformat(),
         commits=tuple(verified_commit_shas),
         files_changed=tuple(verified_files),
+        merge_sha=verified_merge_sha,  # reachable from origin/<canonical_branch>
+        pr_number=pr_number_or_none,
     )
-    if resolution == "completed" and target.origin == "gap-tied"
+    if resolution in ("completed", "spec-revised", "resolved-out-of-band")
     else None
 )
 
@@ -128,6 +152,7 @@ closing_record = WorkItem(
     reason=user_supplied_reason,
     audit=audit,
     superseded_by=None,
+    supersedes=work_item_record_identity(item=target),
 )
 append_work_item(path=Path("work-items.jsonl"), item=closing_record)
 ```
@@ -137,16 +162,20 @@ Print "closed `<id>` (`<resolution>`)" to the user.
 ## Important properties
 
 - **Same `id`, new record** — closure does NOT mutate the open record.
-  It appends a new record with the same `id`; the materialized view
-  (latest-record-wins) shows the closed state.
-- **Audit fields REQUIRED for gap-tied completed closure** —
-  `verification_timestamp`, `commits`, `files_changed`. Doctor catches
-  missing audits.
-- **Admin closures take a `reason`** — `wontfix`, `duplicate`,
-  `spec-revised`, `no-longer-applicable`, `resolved-out-of-band` all
-  require a user-supplied `reason` field.
-- **`completed` closure on `freeform` items takes a simple `reason`** — no
-  audit object needed.
+  It appends a new record with the same `id` whose `supersedes` key
+  names the prior head's `work_item_record_identity`, so the
+  materialized view (supersession-chain head) shows the closed state
+  with no divergent heads.
+- **Audit merge-evidence REQUIRED for merge-implying closures** —
+  `verification_timestamp`, `commits`, `files_changed`, `merge_sha`
+  (+ optional `pr_number`) whenever `resolution` is `completed`,
+  `spec-revised`, or `resolved-out-of-band`, regardless of origin.
+  The `work_item_merge_evidence` static check fails closures whose
+  `merge_sha` is missing or not reachable from
+  `origin/<canonical_branch>`.
+- **Admin closures take a `reason` and NO audit** — `wontfix`,
+  `duplicate`, `no-longer-applicable` require a user-supplied
+  `reason` and MUST keep `audit: None`.
 
 ## What this skill does NOT do
 

@@ -85,7 +85,13 @@ Print the assigned id back to the user.
 - **`gap_id: null`** — REQUIRED. The schema check fires on any
   non-null value combined with `origin: freeform`.
 - **Closure path** — closed via `implement`'s freeform fix path (a
-  user-supplied `--reason` with no re-detection step).
+  user-supplied `--reason` with no re-detection step). At closure
+  time `implement` MUST populate the audit merge-evidence
+  (`merge_sha` reachable from `origin/<canonical_branch>`, plus
+  `pr_number` when the merge came from a PR) for `completed` /
+  `spec-revised` / `resolved-out-of-band` resolutions — see
+  `implement` Step 6; the `work_item_merge_evidence` static check
+  enforces it. Filing-time records always carry `audit: null`.
 
 ## What this skill does NOT do
 

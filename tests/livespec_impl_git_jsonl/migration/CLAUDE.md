@@ -15,6 +15,21 @@ Tests for the one-shot migration utilities under
   "work_item_id": ...}`, `blocked_by` dropped, already-typed records
   passed through unchanged, and records with no legacy data NOT
   re-emitted.
+- `test_merge_evidence_backfill.py` — covers the merge-evidence
+  backfill black-box through `main()` against real `tmp_path` git
+  repos (host-config-isolated): phase-1 in-place repair of legacy
+  audit objects lacking (or carrying an empty) `merge_sha` via
+  `audit.commits` evidence (introducing merge commit, or the commit
+  itself when no merge commit exists, with unusable candidates
+  skipped) and via the `git log --grep=<id>` fallback; phase-2
+  superseding transition appends for audit-null closed heads
+  (asserting `supersedes` identity parity with
+  `store.work_item_record_identity` and a single reduced head);
+  orphan findings blocking ALL writes (both phases); the
+  `--grandfather` sentinel path composing with the
+  `work_item_merge_evidence` check; `--dry-run`; the
+  nothing-to-backfill pass-through; the unreadable-input error
+  paths; and the `--canonical-branch` flag.
 
 Conventions:
 

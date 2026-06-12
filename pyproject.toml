@@ -154,11 +154,16 @@ ban-relative-imports = "all"
 # invocation contract. S603/S607/S404 are over-strict for this
 # documented pattern; S105 covers TRAILER-token constants.
 "dev-tooling/checks/*.py" = ["S603", "S607", "S404", "S105"]
-# The merge-evidence static check shells out to LOCAL git only
-# (cat-file, merge-base, symbolic-ref) with fixed argv lists per
-# SPECIFICATION/contracts.md "work_item_merge_evidence static check"
-# — the same documented pattern as dev-tooling/checks/ above.
+# The merge-evidence static check and its backfill migration shell
+# out to LOCAL git only (cat-file, merge-base, symbolic-ref, log,
+# rev-list) with fixed argv lists per SPECIFICATION/contracts.md
+# "work_item_merge_evidence static check" / "Backfill for existing
+# closed work-items" — the same documented pattern as
+# dev-tooling/checks/ above.
 ".claude-plugin/scripts/livespec_impl_git_jsonl/checks/work_item_merge_evidence.py" = [
+    "S603", "S607", "S404",
+]
+".claude-plugin/scripts/livespec_impl_git_jsonl/migration/merge_evidence_backfill.py" = [
     "S603", "S607", "S404",
 ]
 

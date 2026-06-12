@@ -15,6 +15,24 @@ shebang wrapper.
   `depends_on` entries to the typed `{"kind": "local",
   "work_item_id": "<id>"}` form, and drops the absorbed `blocked_by`
   field. Records already in the typed shape pass through unchanged.
+- `merge_evidence_backfill.py` — one-shot per-repo merge-evidence
+  backfill per SPECIFICATION/contracts.md §"Backfill for existing
+  closed work-items". Strategy (a), the disciplined default,
+  populates `audit.merge_sha` from local git evidence (the
+  `audit.commits` SHAs, falling back to a `git log --grep=<id>`
+  walk; the introducing merge commit via `git rev-list --merges
+  --ancestry-path`, or the commit itself when the work landed
+  without a merge commit). Strategy (b), the `--grandfather` flag,
+  populates the `<pre-schema-bootstrap>` sentinel instead. Legacy
+  audit objects lacking `merge_sha` are unreadable by the canonical
+  query surface (that is WHY this migration exists), so phase 1
+  repairs those record lines in place (raw read, the sanctioned
+  exception below); phase 2 then consumes the canonical surface to
+  append a superseding merge-evidence transition record per
+  audit-null closed head. Orphans (no evidence reachable from
+  `origin/<canonical_branch>`) are surfaced as findings and BLOCK
+  all writes (all-or-nothing). Exports `main(*, argv=None) -> int`,
+  `backfill_file`, and `BackfillReport`.
 
 Migration-specific constraints:
 
@@ -30,4 +48,10 @@ Migration-specific constraints:
   `livespec_impl_git_jsonl.errors`, `sys.stdout`/`sys.stderr` writes
   only in `main()`, no `print()`.
 - Writes go ONLY through `store.append_work_item` (append-only); do
-  NOT open the JSONL for rewrite/truncate.
+  NOT open the JSONL for rewrite/truncate. EXCEPTION: a schema
+  migration whose INPUT is unreadable by the canonical surface
+  (e.g. `merge_evidence_backfill.py` phase 1 — legacy audit objects
+  without `merge_sha` fail the read path's schema validation) may
+  read raw lines and rewrite ONLY the offending lines in place;
+  untouched lines keep their original bytes so record identities
+  are preserved.

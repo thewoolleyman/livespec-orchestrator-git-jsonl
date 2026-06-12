@@ -16,6 +16,21 @@ store disciplines" → "Store-integrity checks (orchestrator-private)".
   and `__pycache__/` excluded) and fails when anything other than the
   canonical store module opens a declared backing store path directly,
   bypassing the reducer/query surface.
+- `work_item_merge_evidence.py` — per SPECIFICATION/contracts.md
+  §"Work-items JSONL record schema" → "`work_item_merge_evidence`
+  static check": walks the materialized work-items view and fails any
+  closed work-item with a merge-implying resolution (`completed`,
+  `spec-revised`, `resolved-out-of-band`) whose audit `merge_sha` is
+  missing or not reachable from `origin/<canonical_branch>` (local
+  `git cat-file -e` + `git merge-base --is-ancestor`; network-free),
+  any administratively closed work-item carrying merge-evidence, and
+  any closed work-item without a resolution. Epics are exempt but
+  every local `depends_on` child must be closed. The backfill
+  grandfather sentinel (`GRANDFATHER_MERGE_SHA_SENTINEL`) is exempt
+  from the reachability test. Also exports
+  `resolve_canonical_branch` (`.livespec.jsonc` plugin-block key →
+  `origin/HEAD` symbolic-ref → `master`), shared with the
+  merge-evidence backfill migration.
 
 Rules an agent editing this tree must follow:
 

@@ -14,6 +14,17 @@ Tests for the orchestrator-private store-integrity checks under
   canonical store-module exemption and the `_vendor/` exclusion, and
   runs the check against this repo's real shipped tree as the
   conformance pin.
+- `test_work_item_merge_evidence.py` — builds real `tmp_path` git
+  repos (host-config-isolated) with `refs/remotes/origin/<branch>`
+  refs and store fixtures via the append API; exercises the pass
+  modes (absent/empty store, reachable `merge_sha`, grandfather
+  sentinel, administrative closure without audit, epic with closed
+  children), the fail modes (missing audit, unknown and unreachable
+  `merge_sha`, administrative closure carrying audit, closed item
+  without resolution, epic with a non-closed local child), and the
+  `resolve_canonical_branch` precedence chain (`.livespec.jsonc` key
+  → `origin/HEAD` symbolic-ref → `master` fallback, including every
+  unusable-config shape).
 
 Coverage rules:
 

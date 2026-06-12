@@ -186,6 +186,12 @@ check:
         # private under the re-steered contract).
         check-no-divergent-heads
         check-no-raw-store-read
+        # Plugin-private merge-evidence static check, per
+        # SPECIFICATION/contracts.md "Work-items JSONL record schema"
+        # -> "work_item_merge_evidence static check" (li-tenpup):
+        # closed work-items with merge-implying resolutions must carry
+        # an audit merge_sha reachable from origin/<canonical_branch>.
+        check-work-item-merge-evidence
     )
     failed=()
     ran=0
@@ -278,6 +284,20 @@ check-no-divergent-heads:
 # self-identification + order-independent-reduction obligations.
 check-no-raw-store-read:
     uv run python3 .claude-plugin/scripts/bin/check_no_raw_store_read.py
+
+# Plugin-private merge-evidence static check (li-tenpup;
+# SPECIFICATION/contracts.md "Work-items JSONL record schema" ->
+# "work_item_merge_evidence static check"). Walks the materialized
+# work-items view: closed work-items with merge-implying resolutions
+# (completed, spec-revised, resolved-out-of-band) must carry an audit
+# merge_sha that exists locally and is reachable from
+# origin/<canonical_branch> (local git cat-file/merge-base only —
+# network-free); administratively closed items must NOT carry
+# merge-evidence; closed epics instead require every local depends_on
+# child closed. The backfill grandfather sentinel is exempt from the
+# reachability test. An absent store file is a pass (noted, skipped).
+check-work-item-merge-evidence:
+    uv run python3 .claude-plugin/scripts/bin/check_work_item_merge_evidence.py
 
 # ---------------------------------------------------------------
 # Canonical structural checks (shared from livespec-dev-tooling).

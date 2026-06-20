@@ -2,10 +2,10 @@
 
 Per SPECIFICATION/contracts.md §"Append-only store disciplines" →
 "Store-integrity checks (orchestrator-private)": the check materializes
-BOTH declared backing stores (work-items + memos) via the canonical
-reducer and fires fail when any entity id resolves to more than one
-un-superseded head, naming the offending entity id and the conflicting
-record identities so the operator can append a reconciling record.
+the declared backing store (work-items) via the canonical reducer and
+fires fail when any entity id resolves to more than one un-superseded
+head, naming the offending entity id and the conflicting record
+identities so the operator can append a reconciling record.
 """
 
 from pathlib import Path
@@ -13,12 +13,10 @@ from pathlib import Path
 import pytest
 from livespec_impl_git_jsonl.checks.no_divergent_heads import main
 from livespec_impl_git_jsonl.store import (
-    append_memo,
     append_work_item,
-    memo_record_identity,
     work_item_record_identity,
 )
-from livespec_impl_git_jsonl.types import Memo, WorkItem
+from livespec_impl_git_jsonl.types import WorkItem
 
 
 def _work_item(
@@ -48,27 +46,7 @@ def _work_item(
     )
 
 
-def _memo(
-    *,
-    id_: str = "mm-aaa111",
-    text: str = "some observation",
-    captured_at: str = "2026-06-11T00:00:00Z",
-    supersedes: str | None = None,
-) -> Memo:
-    return Memo(
-        id=id_,
-        text=text,
-        state="untriaged",
-        disposition=None,
-        captured_at=captured_at,
-        work_item_id=None,
-        knowledge_file=None,
-        propose_change_topic=None,
-        supersedes=supersedes,
-    )
-
-
-def test_main_passes_when_both_stores_absent(
+def test_main_passes_when_store_absent(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
     capsys: pytest.CaptureFixture[str],
@@ -77,32 +55,30 @@ def test_main_passes_when_both_stores_absent(
     rc = main(argv=[])
     captured = capsys.readouterr()
     assert rc == 0
-    assert captured.out.count("absent — skipped") == 2
+    assert captured.out.count("absent — skipped") == 1
     assert "OK" in captured.out
 
 
-def test_main_passes_on_empty_stores(
+def test_main_passes_on_empty_store(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
     capsys: pytest.CaptureFixture[str],
 ) -> None:
     monkeypatch.chdir(tmp_path)
     _ = (tmp_path / "work-items.jsonl").write_text("", encoding="utf-8")
-    _ = (tmp_path / "memos.jsonl").write_text("", encoding="utf-8")
     rc = main(argv=[])
     captured = capsys.readouterr()
     assert rc == 0
     assert "OK" in captured.out
 
 
-def test_main_passes_on_clean_stores(
+def test_main_passes_on_clean_store(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
     capsys: pytest.CaptureFixture[str],
 ) -> None:
     monkeypatch.chdir(tmp_path)
     append_work_item(path=tmp_path / "work-items.jsonl", item=_work_item())
-    append_memo(path=tmp_path / "memos.jsonl", memo=_memo())
     rc = main(argv=[])
     captured = capsys.readouterr()
     assert rc == 0
@@ -151,27 +127,6 @@ def test_main_fails_on_divergent_work_item_heads(
     assert "FAIL" in captured.out
 
 
-def test_main_fails_on_divergent_memo_heads(
-    tmp_path: Path,
-    monkeypatch: pytest.MonkeyPatch,
-    capsys: pytest.CaptureFixture[str],
-) -> None:
-    monkeypatch.chdir(tmp_path)
-    path = tmp_path / "memos.jsonl"
-    first = _memo(text="head one")
-    second = _memo(text="head two", captured_at="2026-06-11T01:00:00Z")
-    append_memo(path=path, memo=first)
-    append_memo(path=path, memo=second)
-    rc = main(argv=[])
-    captured = capsys.readouterr()
-    assert rc == 1
-    assert "mm-aaa111" in captured.out
-    assert "2 un-superseded heads" in captured.out
-    assert memo_record_identity(memo=first) in captured.out
-    assert memo_record_identity(memo=second) in captured.out
-    assert "FAIL" in captured.out
-
-
 def test_main_fails_on_malformed_work_items_store(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
@@ -186,13 +141,13 @@ def test_main_fails_on_malformed_work_items_store(
     assert "FAIL" in captured.out
 
 
-def test_main_fails_on_schema_violating_memos_store(
+def test_main_fails_on_schema_violating_work_items_store(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
     capsys: pytest.CaptureFixture[str],
 ) -> None:
     monkeypatch.chdir(tmp_path)
-    _ = (tmp_path / "memos.jsonl").write_text('{"id": "mm-aaa111"}\n', encoding="utf-8")
+    _ = (tmp_path / "work-items.jsonl").write_text('{"id": "li-aaa111"}\n', encoding="utf-8")
     rc = main(argv=[])
     captured = capsys.readouterr()
     assert rc == 1
@@ -200,25 +155,21 @@ def test_main_fails_on_schema_violating_memos_store(
     assert "FAIL" in captured.out
 
 
-def test_main_with_explicit_store_paths(
+def test_main_with_explicit_store_path(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
     capsys: pytest.CaptureFixture[str],
 ) -> None:
     monkeypatch.chdir(tmp_path)
     work_items_path = tmp_path / "custom" / "wi.jsonl"
-    memos_path = tmp_path / "custom" / "mm.jsonl"
     first = _work_item(title="head one")
     second = _work_item(title="head two", captured_at="2026-06-11T01:00:00Z")
     append_work_item(path=work_items_path, item=first)
     append_work_item(path=work_items_path, item=second)
-    append_memo(path=memos_path, memo=_memo())
     rc = main(
         argv=[
             "--work-items-path",
             str(work_items_path),
-            "--memos-path",
-            str(memos_path),
         ]
     )
     captured = capsys.readouterr()

@@ -8,7 +8,7 @@
     {
       "name": "livespec-impl-git-jsonl",
       "source": "./.claude-plugin",
-      "description": "JSONL-backed implementation plugin for livespec. Exposes /livespec-impl-git-jsonl:capture-impl-gaps, capture-spec-drift, capture-work-item, capture-memo, implement, process-memos, list-memos, list-work-items, and next."
+      "description": "JSONL-backed implementation plugin for livespec. Exposes /livespec-impl-git-jsonl:capture-impl-gaps, capture-spec-drift, capture-work-item, implement, list-work-items, and next."
     }
   ]
 }

@@ -1,9 +1,8 @@
-"""Dataclasses for work-items, memos, and Spec Reader outputs.
+"""Dataclasses for work-items and Spec Reader outputs.
 
-The work-item and memo schemas are codified by SPECIFICATION/contracts.md
-§"Work-items JSONL record schema" / §"Memos JSONL record schema". Every
-field below has an entry there; field types here are the Python-level
-realization.
+The work-item schema is codified by SPECIFICATION/contracts.md
+§"Work-items JSONL record schema". Every field below has an entry
+there; field types here are the Python-level realization.
 
 SpecSnapshot and SpecDiff are the Spec Reader's return types per
 SPECIFICATION/contracts.md §"Spec Reader internal API".
@@ -16,10 +15,7 @@ from typing import Any, Literal
 __all__: list[str] = [
     "AuditRecord",
     "DependsOnRaw",
-    "Disposition",
     "FileDiff",
-    "Memo",
-    "MemoState",
     "Origin",
     "Resolution",
     "SpecDiff",
@@ -42,14 +38,6 @@ Resolution = Literal[
     "spec-revised",
     "no-longer-applicable",
     "resolved-out-of-band",
-]
-
-MemoState = Literal["untriaged", "dispositioned"]
-Disposition = Literal[
-    "spec-bound",
-    "impl-bound",
-    "persistent-knowledge",
-    "discard",
 ]
 
 
@@ -119,29 +107,6 @@ class WorkItem:
 
 
 @dataclass(frozen=True, kw_only=True)
-class Memo:
-    """A single JSONL memo record (one line of the memos file).
-
-    `supersedes` carries the same append-only supersession-pointer
-    semantics as the work-items schema's key (per
-    SPECIFICATION/contracts.md "Memos JSONL record schema" ->
-    supersedes): required-on-write, optional-on-read, `None` for an
-    original record, the stable per-record identity
-    (`store.memo_record_identity`) of the amended record otherwise.
-    """
-
-    id: str
-    text: str
-    state: MemoState
-    disposition: Disposition | None
-    captured_at: str
-    work_item_id: str | None
-    knowledge_file: str | None
-    propose_change_topic: str | None
-    supersedes: str | None = None
-
-
-@dataclass(frozen=True, kw_only=True)
 class SpecSnapshot:
     """A read-only view of a Specification at a particular version.
 
@@ -184,13 +149,11 @@ class FileDiff:
 
 @dataclass(frozen=True, kw_only=True)
 class StoreConfig:
-    """Configured paths for the JSONL store, read from .livespec.jsonc.
+    """Configured path for the JSONL store, read from .livespec.jsonc.
 
     Per SPECIFICATION/contracts.md §"`compat` block", the
-    livespec-impl-git-jsonl configuration block declares work_items_path
-    and memos_path; defaults are work-items.jsonl and memos.jsonl at the
-    consumer project root.
+    livespec-impl-git-jsonl configuration block declares work_items_path;
+    the default is work-items.jsonl at the consumer project root.
     """
 
     work_items_path: Path
-    memos_path: Path

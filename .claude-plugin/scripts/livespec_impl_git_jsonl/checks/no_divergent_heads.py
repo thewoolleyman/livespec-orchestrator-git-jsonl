@@ -2,16 +2,15 @@
 
 Per SPECIFICATION/contracts.md §"Append-only store disciplines" →
 "Store-integrity checks (orchestrator-private)" (v008), this check
-materializes BOTH declared backing stores (work-items + memos) via the
-canonical reducer (`reduce_work_item_heads` / `reduce_memo_heads` — the
-ONE reduction implementation every query wrapper and check consumes;
-the one-canonical-reducer obligation) and fires fail when any entity id
-resolves to more than one un-superseded head, naming the offending
-entity id and the conflicting record identities so the operator can
-append a reconciling record.
+materializes the declared backing store (work-items) via the canonical
+reducer (`reduce_work_item_heads` — the ONE reduction implementation
+every query wrapper and check consumes; the one-canonical-reducer
+obligation) and fires fail when any entity id resolves to more than one
+un-superseded head, naming the offending entity id and the conflicting
+record identities so the operator can append a reconciling record.
 
 Wired into this repo's `just check` aggregate (NOT livespec's doctor —
-the stores are orchestrator-private under the re-steered contract) as
+the store is orchestrator-private under the re-steered contract) as
 `check-no-divergent-heads`, invoked through the
 `.claude-plugin/scripts/bin/check_no_divergent_heads.py` wrapper.
 
@@ -31,14 +30,11 @@ from livespec_impl_git_jsonl.errors import (
     StoreFileMissingError,
 )
 from livespec_impl_git_jsonl.store import (
-    memo_record_identity,
-    read_memos,
     read_work_items,
-    reduce_memo_heads,
     reduce_work_item_heads,
     work_item_record_identity,
 )
-from livespec_impl_git_jsonl.types import Memo, StoreConfig, WorkItem
+from livespec_impl_git_jsonl.types import StoreConfig, WorkItem
 
 __all__: list[str] = ["main"]
 
@@ -49,12 +45,10 @@ _CHECK_NAME = "check-no-divergent-heads"
 def _parse_config(*, argv: list[str] | None) -> StoreConfig:
     parser = argparse.ArgumentParser(prog=_CHECK_NAME)
     _ = parser.add_argument("--work-items-path", dest="work_items_path", default=None)
-    _ = parser.add_argument("--memos-path", dest="memos_path", default=None)
     args = parser.parse_args(argv)
     return resolve_store_config(
         cwd=Path.cwd(),
         work_items_arg=args.work_items_path,
-        memos_arg=args.memos_path,
     )
 
 
@@ -82,27 +76,8 @@ def main(*, argv: list[str] | None = None) -> int:
             },
         )
 
-    m_notes: list[str] = []
-    m_failures: list[str] = []
-    m_heads: dict[str, tuple[Memo, ...]] = {}
-    try:
-        m_heads = reduce_memo_heads(records=read_memos(path=config.memos_path))
-    except StoreFileMissingError:
-        m_notes = [_absent_note(kind="memos", path=config.memos_path)]
-    except (MalformedRecordLineError, SchemaViolationError) as exc:
-        m_failures = [_unreadable_failure(kind="memos", path=config.memos_path, detail=str(exc))]
-    else:
-        m_failures = _divergence_failures(
-            kind="memos",
-            path=config.memos_path,
-            labeled_heads={
-                eid: tuple(memo_record_identity(memo=r) for r in group)
-                for eid, group in m_heads.items()
-            },
-        )
-
-    failures = [*wi_failures, *m_failures]
-    for line in (*wi_notes, *m_notes, *failures):
+    failures = wi_failures
+    for line in (*wi_notes, *failures):
         _ = sys.stdout.write(line + "\n")
     if failures:
         _ = sys.stdout.write(f"{_CHECK_NAME}: FAIL — {len(failures)} finding(s)\n")

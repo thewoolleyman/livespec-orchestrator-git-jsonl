@@ -73,7 +73,6 @@ def main(*, argv: list[str] | None = None) -> int:
     config = resolve_store_config(
         cwd=project_root,
         work_items_arg=args.work_items_path,
-        memos_arg=None,
     )
     materialized: list[WorkItem] = []
     with contextlib.suppress(StoreFileMissingError):

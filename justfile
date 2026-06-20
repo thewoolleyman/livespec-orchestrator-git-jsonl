@@ -195,8 +195,8 @@ check:
         # SPECIFICATION/contracts.md "Append-only store disciplines" ->
         # "Store-integrity checks (orchestrator-private)" (v008): wired
         # into THIS repo's `just check` aggregate (NOT livespec's
-        # doctor — the work-items and memos stores are orchestrator-
-        # private under the re-steered contract).
+        # doctor — the work-items store is orchestrator-private under
+        # the re-steered contract).
         check-no-divergent-heads
         check-no-raw-store-read
         # Plugin-private merge-evidence static check, per
@@ -283,10 +283,10 @@ check-coverage:
 # of "latest wins" (the one-canonical-reducer obligation).
 # ---------------------------------------------------------------
 
-# Fails when any entity id in a declared backing store (work-items +
-# memos) resolves to more than one un-superseded head, naming the
-# offending entity id and the conflicting record identities. Absent
-# store files are skipped; malformed/schema-violating stores fail.
+# Fails when any entity id in the declared backing store (work-items)
+# resolves to more than one un-superseded head, naming the offending
+# entity id and the conflicting record identities. An absent store
+# file is skipped; a malformed/schema-violating store fails.
 check-no-divergent-heads:
     uv run python3 .claude-plugin/scripts/bin/check_no_divergent_heads.py
 

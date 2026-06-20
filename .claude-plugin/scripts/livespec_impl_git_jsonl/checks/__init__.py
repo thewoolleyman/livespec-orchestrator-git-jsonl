@@ -5,8 +5,8 @@ is invoked through its `.claude-plugin/scripts/bin/check_<slug>.py`
 wrapper by the matching `just check-<slug>` recipe. Per
 SPECIFICATION/contracts.md §"Append-only store disciplines", these
 checks wire into THIS repo's `just check` aggregate — NOT into
-livespec's doctor (the work-items and memos stores are
-orchestrator-private under the re-steered contract).
+livespec's doctor (the work-items store is orchestrator-private under
+the re-steered contract).
 """
 
 __all__: list[str] = []

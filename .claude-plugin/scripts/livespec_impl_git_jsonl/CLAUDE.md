@@ -6,11 +6,11 @@ JSONL-backed implementation plugin for livespec; the package name is
 
 Top-level modules:
 
-- `types.py` — work-item and memo dataclasses, plus the Spec Reader
+- `types.py` — work-item dataclasses, plus the Spec Reader
   snapshot / diff dataclasses. Consumed by every skill and every
   thin-transport CLI. Dataclasses are `kw_only=True`.
 - `store.py` — append-only JSONL store primitives (append + read +
-  reduce + materialize) for the work-items and memos files. The
+  reduce + materialize) for the work-items file. The
   materialized view is the supersession-chain head per `id`, computed
   order-independently from the in-record `supersedes` pointers with
   the deterministic tie-break (`captured_at`, then the sha256
@@ -23,18 +23,18 @@ Top-level modules:
   mutate the spec tree (§"Spec Reader implementation constraints").
 - `errors.py` — the EXPECTED-error exception surface (missing file,
   malformed line, schema violation, version not found).
-- `_ids.py` — work-item / memo id generation helpers.
+- `_ids.py` — work-item id generation helper.
 
 Module-level rules an agent editing this tree must follow:
 
 - Every module declares `__all__: list[str]` enumerating its public
   surface.
 - The append-only discipline is load-bearing: NO code may truncate,
-  rewrite, or delete records in the work-items or memos JSONL. State
+  rewrite, or delete records in the work-items JSONL. State
   transitions are new appended records, not edits.
-- Records conform exactly to the schemas in
-  `SPECIFICATION/contracts.md` §"Work-items JSONL record schema" /
-  §"Memos JSONL record schema"; extra keys are forbidden.
+- Records conform exactly to the schema in
+  `SPECIFICATION/contracts.md` §"Work-items JSONL record schema";
+  extra keys are forbidden.
 - Domain errors vs bugs: surface EXPECTED errors as the `errors.py`
   exception types and catch them at the supervisor (`commands/<cmd>.
   main()`); raise built-in exceptions for bugs and let them

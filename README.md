@@ -5,7 +5,7 @@ The **JSONL-backed reference realization** of
 implementation-plugin contract, and livespec's **designated dogfood
 target**. As a Claude Code plugin it exposes the
 `/livespec-impl-git-jsonl:*` impl-side skill surface — capturing
-work-items, memos, gaps, and drift, and driving implementation —
+work-items, gaps, and drift, and driving implementation —
 over a substrate of plain JSONL files committed alongside the
 consumer project's own source. No embedded database, no external
 service: every record is readable with `cat` and greppable with
@@ -50,9 +50,9 @@ required-capability surface, the `compat` block format) is FIXED by
 livespec's published contract, which this plugin concretizes rather
 than re-states (per `SPECIFICATION/spec.md` §"Scope boundary").
 
-- **Plain files, no service.** Work-items and memos live in
-  git-tracked JSONL files (default `work-items.jsonl` and
-  `memos.jsonl` at the consumer's project root; overridable via the
+- **Plain files, no service.** Work-items live in a
+  git-tracked JSONL file (default `work-items.jsonl` at the
+  consumer's project root; overridable via the
   `.livespec.jsonc` configuration block). Nothing the user can't read
   with `cat` or grep with `git grep`.
 - **Append-only.** Skills only append new lines — never edit,
@@ -71,9 +71,9 @@ transparency livespec wants from its dogfood target.
 
 ## Skill surface
 
-Ten skills per `SPECIFICATION/contracts.md` §"The ten-skill surface"
-— six heavyweight authored skills and four thin-transport machine
-query surfaces:
+Seven skills per `SPECIFICATION/contracts.md` §"The seven-skill
+surface" — four heavyweight authored skills and three thin-transport
+machine query surfaces:
 
 - `capture-impl-gaps` — detect spec→impl gaps and file gap-tied
   work-items with per-gap consent
@@ -81,14 +81,11 @@ query surfaces:
   to `/livespec:propose-change`
 - `capture-work-item` — freeform direct filing of an impl-side
   work-item
-- `capture-memo` — low-friction deposit of an in-flight observation
 - `implement` — drive Red→Green for a single work-item
-- `process-memos` — per-memo disposition dialogue
 - `detect-impl-gaps` — emit the current gap-id set as JSON
   (thin-transport, read-only)
 - `list-work-items` — list work-items from the JSONL store
   (thin-transport)
-- `list-memos` — list memos from the JSONL store (thin-transport)
 - `next` — rank the most-ripe impl-side action (thin-transport;
   pure function of file state, no LLM in the ranking path)
 

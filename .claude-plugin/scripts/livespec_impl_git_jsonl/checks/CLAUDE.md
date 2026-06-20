@@ -5,12 +5,11 @@ Orchestrator-private store-integrity checks, wired into this repo's
 orchestrator-private) per SPECIFICATION/contracts.md §"Append-only
 store disciplines" → "Store-integrity checks (orchestrator-private)".
 
-- `no_divergent_heads.py` — materializes both declared backing stores
-  via the canonical reducer (`store.reduce_work_item_heads` /
-  `store.reduce_memo_heads`) and fails when any entity id resolves to
-  more than one un-superseded head, naming the offending entity id and
-  the conflicting record identities so the operator can append a
-  reconciling record.
+- `no_divergent_heads.py` — materializes the declared backing store
+  via the canonical reducer (`store.reduce_work_item_heads`) and fails
+  when any entity id resolves to more than one un-superseded head,
+  naming the offending entity id and the conflicting record identities
+  so the operator can append a reconciling record.
 - `no_raw_store_read.py` — AST-scans shipped code (committed `.py`
   under `.claude-plugin/scripts/` and `dev-tooling/`, with `_vendor/`
   and `__pycache__/` excluded) and fails when anything other than the

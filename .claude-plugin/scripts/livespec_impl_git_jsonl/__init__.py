@@ -2,10 +2,10 @@
 
 Public package layout:
 
-- `livespec_impl_git_jsonl.types` — work-item and memo dataclasses, plus the
+- `livespec_impl_git_jsonl.types` — work-item dataclasses, plus the
   Spec Reader snapshot / diff dataclasses.
 - `livespec_impl_git_jsonl.store` — JSONL store primitives (append + read +
-  materialize + filter) for work-items and memos files.
+  materialize + filter) for the work-items file.
 - `livespec_impl_git_jsonl.spec_reader` — Spec Reader adapter implementing
   the four required capabilities defined in
   livespec/SPECIFICATION/contracts.md

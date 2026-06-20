@@ -1,8 +1,7 @@
-"""Stable-format ID generation for work-items and memos.
+"""Stable-format ID generation for work-items.
 
 Per SPECIFICATION/contracts.md §"Work-items JSONL record schema",
 work-item IDs follow the upstream `bd` convention `li-<6-char-base32-suffix>`.
-Memo IDs use the parallel `mm-<6-char-base32-suffix>` shape.
 
 The suffix is six lowercase base32 characters (a-z, 2-7). Randomness
 comes from `secrets.token_bytes` so collision probability is negligible
@@ -15,7 +14,7 @@ race.
 import base64
 import secrets
 
-__all__: list[str] = ["new_memo_id", "new_work_item_id"]
+__all__: list[str] = ["new_work_item_id"]
 
 _SUFFIX_BYTES = 4  # 4 bytes → 32 bits → base32 yields ~7 chars; trimmed to 6.
 _SUFFIX_LENGTH = 6
@@ -24,11 +23,6 @@ _SUFFIX_LENGTH = 6
 def new_work_item_id() -> str:
     """Return a fresh `li-XXXXXX` identifier."""
     return f"li-{_random_suffix()}"
-
-
-def new_memo_id() -> str:
-    """Return a fresh `mm-XXXXXX` identifier."""
-    return f"mm-{_random_suffix()}"
 
 
 def _random_suffix() -> str:

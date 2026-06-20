@@ -16,11 +16,11 @@ Realization: AST-scan every committed shipped `.py` under
 `.claude-plugin/scripts/` and `dev-tooling/` (excluding `_vendor/` and
 `__pycache__/`) for open-shaped calls (`open(...)`, `.open(...)`,
 `.read_text(...)`, `.read_bytes(...)`) whose expression references a
-declared backing store — the `work_items_path` / `memos_path`
-store-config attributes (or parameters named after them) or a string
-literal ending with a declared store basename. The declared basenames
-are derived from the same `resolve_store_config` resolver the query
-wrappers consume, not re-declared here.
+declared backing store — the `work_items_path` store-config attribute
+(or parameters named after it) or a string literal ending with a
+declared store basename. The declared basename is derived from the same
+`resolve_store_config` resolver the query wrappers consume, not
+re-declared here.
 
 Scope is committed shipped code only: the check cannot police ad-hoc
 interactive shell reads — the record self-identification and
@@ -54,7 +54,7 @@ _CANONICAL_QUERY_SURFACE = (
     Path(".claude-plugin") / "scripts" / "livespec_impl_git_jsonl" / "store.py"
 )
 _OPEN_ATTRIBUTE_NAMES = frozenset({"open", "read_text", "read_bytes"})
-_DECLARED_PATH_NAMES = frozenset({"work_items_path", "memos_path"})
+_DECLARED_PATH_NAMES = frozenset({"work_items_path"})
 
 
 def main(*, argv: list[str] | None = None) -> int:
@@ -74,9 +74,9 @@ def main(*, argv: list[str] | None = None) -> int:
 
 
 def _declared_store_basenames(*, root: Path) -> frozenset[str]:
-    """Derive the declared backing-store basenames from the published resolver."""
-    config = resolve_store_config(cwd=root, work_items_arg=None, memos_arg=None)
-    return frozenset({config.work_items_path.name, config.memos_path.name})
+    """Derive the declared backing-store basename from the published resolver."""
+    config = resolve_store_config(cwd=root, work_items_arg=None)
+    return frozenset({config.work_items_path.name})
 
 
 def _find_raw_store_reads(*, root: Path, store_basenames: frozenset[str]) -> list[str]:
@@ -125,9 +125,9 @@ def _references_declared_store(*, call: ast.Call, store_basenames: frozenset[str
     """True when the call expression ties to a declared backing store.
 
     A tie is an attribute access or bare name matching the declared
-    store-config path attributes (`work_items_path` / `memos_path`), or
-    a string literal ending with a declared store basename. Receiver
-    and arguments are both inspected (the whole call subtree).
+    store-config path attribute (`work_items_path`), or a string literal
+    ending with a declared store basename. Receiver and arguments are
+    both inspected (the whole call subtree).
     """
     for node in ast.walk(call):
         if isinstance(node, ast.Attribute) and node.attr in _DECLARED_PATH_NAMES:

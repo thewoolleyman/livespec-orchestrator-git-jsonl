@@ -1,2 +1,0 @@
-# process-memos rewrites the JSONL memos store after per-memo disposition.
-memos.jsonl

@@ -85,7 +85,6 @@ def main(*, argv: list[str] | None = None) -> int:
     config = resolve_store_config(
         cwd=Path.cwd(),
         work_items_arg=args.work_items_path,
-        memos_arg=None,
     )
     repo_dir = config.work_items_path.parent
     canonical_branch: str = (

@@ -1,39 +1,35 @@
-"""JSONL store primitives for work-items and memos.
+"""JSONL store primitives for work-items.
 
 Per SPECIFICATION/contracts.md §"Work-items JSONL record schema" /
-§"Memos JSONL record schema" / §"Materialized view" / §"Append-only
-store disciplines", the store is append-only at the write boundary and
-the materialized view of an entity is its supersession-chain head,
-computed from the in-record `supersedes` pointers independently of the
-physical order of records in the file (git may reorder lines during a
-merge; the legacy "latest record by file order wins" reduction is
-retired).
+§"Materialized view" / §"Append-only store disciplines", the store is
+append-only at the write boundary and the materialized view of an
+entity is its supersession-chain head, computed from the in-record
+`supersedes` pointers independently of the physical order of records in
+the file (git may reorder lines during a merge; the legacy "latest
+record by file order wins" reduction is retired).
 
 Public API:
 
 - `read_work_items(*, path)` — stream WorkItem records from the file
   (raises StoreFileMissingError if absent).
-- `read_memos(*, path)` — stream Memo records (analogous).
-- `append_work_item(*, path, item)` / `append_memo(*, path, memo)` —
-  write a new record line.
-- `work_item_record_identity(*, item)` / `memo_record_identity(*,
-  memo)` — the stable per-record identity: `sha256:<hex-digest>` over
-  the record's canonical serialization (every schema key explicit,
-  sorted keys, compact separators — exactly the line bytes the append
-  path writes, without the trailing newline). Derivable from record
-  content alone; the value a superseding record carries in its
-  `supersedes` key.
-- `reduce_work_item_heads(*, records)` / `reduce_memo_heads(*,
-  records)` — the canonical order-independent reduction: per entity
-  `id`, every record whose identity no sibling record's `supersedes`
-  names, ordered ascending by the deterministic tie-break
-  (`captured_at`, then per-record identity). Identical records (equal
-  identity — e.g. a line duplicated by a `merge=union` merge)
-  collapse to one. More than one head for an `id` is concurrent
-  divergence, surfaced for detection rather than silently resolved.
-- `materialize_work_items(records)` / `materialize_memos(records)` —
-  reduce a stream to the current-head-per-id dict (the tie-break
-  winner among each entity's heads).
+- `append_work_item(*, path, item)` — write a new record line.
+- `work_item_record_identity(*, item)` — the stable per-record
+  identity: `sha256:<hex-digest>` over the record's canonical
+  serialization (every schema key explicit, sorted keys, compact
+  separators — exactly the line bytes the append path writes, without
+  the trailing newline). Derivable from record content alone; the
+  value a superseding record carries in its `supersedes` key.
+- `reduce_work_item_heads(*, records)` — the canonical
+  order-independent reduction: per entity `id`, every record whose
+  identity no sibling record's `supersedes` names, ordered ascending by
+  the deterministic tie-break (`captured_at`, then per-record
+  identity). Identical records (equal identity — e.g. a line
+  duplicated by a `merge=union` merge) collapse to one. More than one
+  head for an `id` is concurrent divergence, surfaced for detection
+  rather than silently resolved.
+- `materialize_work_items(records)` — reduce a stream to the
+  current-head-per-id dict (the tie-break winner among each entity's
+  heads).
 
 The reader functions validate every record against the schema; a
 violation raises SchemaViolationError carrying the offending line
@@ -57,9 +53,6 @@ from livespec_impl_git_jsonl.io.store import (
 )
 from livespec_impl_git_jsonl.types import (
     AuditRecord,
-    Disposition,
-    Memo,
-    MemoState,
     Origin,
     Resolution,
     WorkItem,
@@ -96,32 +89,10 @@ _WORK_ITEM_OPTIONAL_KEYS = frozenset({"spec_commitment_hint", "supersedes"})
 
 _WORK_ITEM_ALLOWED_KEYS = _WORK_ITEM_REQUIRED_KEYS | _WORK_ITEM_OPTIONAL_KEYS
 
-_MEMO_REQUIRED_KEYS = frozenset(
-    {
-        "id",
-        "text",
-        "state",
-        "disposition",
-        "captured_at",
-        "work_item_id",
-        "knowledge_file",
-        "propose_change_topic",
-    }
-)
-
-# OPTIONAL memo keys: same required-on-write / optional-on-read
-# treatment as the work-item optional keys.
-_MEMO_OPTIONAL_KEYS = frozenset({"supersedes"})
-
 __all__: list[str] = [
-    "append_memo",
     "append_work_item",
-    "materialize_memos",
     "materialize_work_items",
-    "memo_record_identity",
-    "read_memos",
     "read_work_items",
-    "reduce_memo_heads",
     "reduce_work_item_heads",
     "work_item_record_identity",
 ]
@@ -149,12 +120,6 @@ def read_work_items(*, path: Path) -> Iterator[WorkItem]:
         yield _parse_work_item(path=path, line_number=line_number, parsed=parsed)
 
 
-def read_memos(*, path: Path) -> Iterator[Memo]:
-    """Stream Memo records from the JSONL file at `path`."""
-    for line_number, parsed in _iter_records(path=path):
-        yield _parse_memo(path=path, line_number=line_number, parsed=parsed)
-
-
 def append_work_item(*, path: Path, item: WorkItem) -> None:
     """Append a single WorkItem as a new line in the JSONL file.
 
@@ -169,19 +134,6 @@ def append_work_item(*, path: Path, item: WorkItem) -> None:
     _append_record(path=path, payload=payload)
 
 
-def append_memo(*, path: Path, memo: Memo) -> None:
-    """Append a single Memo as a new line in the JSONL file.
-
-    Validates the dict-serialized payload against the same schema the
-    read path enforces before writing; raises SchemaViolationError when
-    the payload would not round-trip through `read_memos`. Same write
-    symmetry as `append_work_item`.
-    """
-    payload = _memo_to_dict(memo=memo)
-    _validate_memo_payload(path=path, line_number=0, parsed=payload)
-    _append_record(path=path, payload=payload)
-
-
 def work_item_record_identity(*, item: WorkItem) -> str:
     """Return the stable per-record identity of a work-item record.
 
@@ -192,11 +144,6 @@ def work_item_record_identity(*, item: WorkItem) -> str:
     function of record content — no file positions, no external state.
     """
     return _record_identity(payload=_work_item_to_dict(item=item))
-
-
-def memo_record_identity(*, memo: Memo) -> str:
-    """Return the stable per-record identity of a memo record."""
-    return _record_identity(payload=_memo_to_dict(memo=memo))
 
 
 def reduce_work_item_heads(*, records: Iterator[WorkItem]) -> dict[str, tuple[WorkItem, ...]]:
@@ -214,12 +161,6 @@ def reduce_work_item_heads(*, records: Iterator[WorkItem]) -> dict[str, tuple[Wo
     return _reduce_heads(entries=entries)
 
 
-def reduce_memo_heads(*, records: Iterator[Memo]) -> dict[str, tuple[Memo, ...]]:
-    """Reduce a Memo stream to the un-superseded heads per `id`."""
-    entries = ((memo_record_identity(memo=record), record) for record in records)
-    return _reduce_heads(entries=entries)
-
-
 def materialize_work_items(*, records: Iterator[WorkItem]) -> dict[str, WorkItem]:
     """Reduce a WorkItem stream to the current-head-per-id dict.
 
@@ -232,11 +173,6 @@ def materialize_work_items(*, records: Iterator[WorkItem]) -> dict[str, WorkItem
     return {
         entity_id: heads[-1] for entity_id, heads in reduce_work_item_heads(records=records).items()
     }
-
-
-def materialize_memos(*, records: Iterator[Memo]) -> dict[str, Memo]:
-    """Reduce a Memo stream to the current-head-per-id dict."""
-    return {entity_id: heads[-1] for entity_id, heads in reduce_memo_heads(records=records).items()}
 
 
 def _record_identity(*, payload: dict[str, Any]) -> str:
@@ -431,62 +367,6 @@ def _parse_audit(*, path: Path, line_number: int, parsed: dict[str, Any]) -> Aud
     )
 
 
-def _validate_memo_payload(
-    *,
-    path: Path,
-    line_number: int,
-    parsed: dict[str, Any],
-) -> None:
-    """Verify a memo dict satisfies the schema contract.
-
-    Shared by the read path (parse) and the write path (append).
-    """
-    _check_required_keys(
-        path=path,
-        line_number=line_number,
-        parsed=parsed,
-        required=_MEMO_REQUIRED_KEYS,
-        optional=_MEMO_OPTIONAL_KEYS,
-    )
-    _check_in_enum(
-        path=path,
-        line_number=line_number,
-        field_name="state",
-        value=parsed["state"],
-        allowed=get_args(MemoState),
-    )
-    disposition_value = parsed["disposition"]
-    if disposition_value is not None:
-        _check_in_enum(
-            path=path,
-            line_number=line_number,
-            field_name="disposition",
-            value=disposition_value,
-            allowed=get_args(Disposition),
-        )
-    _check_optional_string_key(
-        path=path,
-        line_number=line_number,
-        parsed=parsed,
-        key="supersedes",
-    )
-
-
-def _parse_memo(*, path: Path, line_number: int, parsed: dict[str, Any]) -> Memo:
-    _validate_memo_payload(path=path, line_number=line_number, parsed=parsed)
-    return Memo(
-        id=parsed["id"],
-        text=parsed["text"],
-        state=parsed["state"],
-        disposition=parsed["disposition"],
-        captured_at=parsed["captured_at"],
-        work_item_id=parsed["work_item_id"],
-        knowledge_file=parsed["knowledge_file"],
-        propose_change_topic=parsed["propose_change_topic"],
-        supersedes=parsed.get("supersedes"),
-    )
-
-
 def _check_required_keys(
     *,
     path: Path,
@@ -571,7 +451,3 @@ def _work_item_to_dict(*, item: WorkItem) -> dict[str, Any]:
             "pr_number": item.audit.pr_number,
         }
     return payload
-
-
-def _memo_to_dict(*, memo: Memo) -> dict[str, Any]:
-    return asdict(memo)

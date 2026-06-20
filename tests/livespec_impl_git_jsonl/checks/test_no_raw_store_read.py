@@ -109,14 +109,14 @@ def test_main_fails_on_declared_path_attribute_open(
         relative=".claude-plugin/scripts/livespec_impl_git_jsonl/attr_offender.py",
         source=(
             "def sneaky_read(*, config: object) -> str:\n"
-            "    return config.memos_path.read_text(encoding='utf-8')\n"
+            "    return config.work_items_path.read_text(encoding='utf-8')\n"
         ),
     )
     rc = main(argv=["--root", str(root)])
     captured = capsys.readouterr()
     assert rc == 1
     assert "attr_offender.py:2" in captured.out
-    assert "memos_path" in captured.out
+    assert "work_items_path" in captured.out
 
 
 def test_main_fails_on_builtin_open_of_declared_path_name(
@@ -152,7 +152,7 @@ def test_main_ignores_vendored_code(
             "\n"
             "\n"
             "def vendored_read(*, root: Path) -> str:\n"
-            '    return (root / "memos.jsonl").read_text(encoding="utf-8")\n'
+            '    return (root / "work-items.jsonl").read_text(encoding="utf-8")\n'
         ),
     )
     rc = main(argv=["--root", str(root)])
@@ -172,7 +172,7 @@ def test_main_ignores_non_open_calls_and_unrelated_literals(
         source=(
             "def helper(*, callbacks: list[object]) -> object:\n"
             '    name = str("work-items.jsonl")\n'
-            '    result = callbacks[0]("memos.jsonl")\n'
+            '    result = callbacks[0]("notes.txt")\n'
             "    numbered = open(__file__, buffering=8)\n"
             "    return (name, result, numbered)\n"
         ),

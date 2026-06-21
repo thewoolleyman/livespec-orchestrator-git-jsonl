@@ -73,7 +73,7 @@ _REQUIRE_EVIDENCE_RESOLUTIONS = frozenset({"completed", "spec-revised", "resolve
 
 _DEFAULT_CANONICAL_BRANCH = "master"
 _CONFIG_FILENAME = ".livespec.jsonc"
-_PLUGIN_BLOCK = "livespec-impl-git-jsonl"
+_PLUGIN_BLOCK = "livespec-orchestrator-git-jsonl"
 _CANONICAL_BRANCH_KEY = "canonical_branch"
 
 

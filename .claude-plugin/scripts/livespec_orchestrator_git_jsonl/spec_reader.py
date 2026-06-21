@@ -1,4 +1,4 @@
-"""Spec Reader adapter for livespec-impl-git-jsonl.
+"""Spec Reader adapter for livespec-orchestrator-git-jsonl.
 
 Implements the four required capabilities defined in
 livespec/SPECIFICATION/contracts.md §"Spec Reader required-capability

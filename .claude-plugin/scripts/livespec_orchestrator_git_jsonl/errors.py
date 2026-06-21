@@ -1,4 +1,4 @@
-"""Exception types for the expected-error surface of livespec-impl-git-jsonl.
+"""Exception types for the expected-error surface of livespec-orchestrator-git-jsonl.
 
 Per SPECIFICATION/constraints.md §"Inherited from livespec" (the
 Result-vs-bugs split), these are the EXPECTED errors the substrate or

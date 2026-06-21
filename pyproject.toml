@@ -1,4 +1,4 @@
-# pyproject.toml — livespec-impl-git-jsonl dev tooling configuration.
+# pyproject.toml — livespec-orchestrator-git-jsonl dev tooling configuration.
 #
 # Generated from livespec/templates/impl-plugin/pyproject.toml.jinja
 # at copier-copy time; re-sync via `copier update --vcs-ref=master` when livespec
@@ -15,7 +15,7 @@
 # contract — the 9-skill surface").
 
 [project]
-name = "livespec-impl-git-jsonl"
+name = "livespec-orchestrator-git-jsonl"
 version = "0.0.0"
 description = "JSONL-backed implementation plugin for livespec"
 requires-python = ">=3.10.16"

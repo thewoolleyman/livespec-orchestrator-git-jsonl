@@ -1,6 +1,6 @@
 ---
 name: capture-impl-gaps
-description: Detect spec→impl gaps by invoking the sibling detect-impl-gaps thin-transport skill, then file gap-tied work-items into the JSONL store with per-gap user consent. Required heavyweight authored skill per livespec/SPECIFICATION/contracts.md §"Heavyweight authored skills (6)". Invoke as `/livespec-impl-git-jsonl:capture-impl-gaps`.
+description: Detect spec→impl gaps by invoking the sibling detect-impl-gaps thin-transport skill, then file gap-tied work-items into the JSONL store with per-gap user consent. Required heavyweight authored skill per livespec/SPECIFICATION/contracts.md §"Heavyweight authored skills (6)". Invoke as `/livespec-orchestrator-git-jsonl:capture-impl-gaps`.
 allowed-tools: Bash, Read, Grep, Glob, Write
 ---
 
@@ -16,7 +16,7 @@ the load-bearing surfaces this skill composes.
 
 - The consumer project has a `<spec-root>/` directory at the path
   declared in `.livespec.jsonc` (default: `SPECIFICATION/`).
-- The `livespec-impl-git-jsonl` Python package is on the import path.
+- The `livespec-orchestrator-git-jsonl` Python package is on the import path.
   The shipped wrappers self-bootstrap this: `bin/_bootstrap.py` adds
   `scripts/` and `scripts/_vendor/` to `sys.path`, so each
   `python3 "${CLAUDE_PLUGIN_ROOT}/scripts/bin/<name>.py"` invocation

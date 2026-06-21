@@ -2,7 +2,7 @@
 
 Currently houses `beads_to_jsonl`, which translates an exported beads
 issues.jsonl (or `bd list --status=all --format=json` output) into the
-livespec-impl-git-jsonl work-items JSONL record schema.
+livespec-orchestrator-git-jsonl work-items JSONL record schema.
 
 Per the multi-repo-split-execution-plan §Phase D, this migration is the
 dogfooding validation gate: livespec's own beads-tracked backlog

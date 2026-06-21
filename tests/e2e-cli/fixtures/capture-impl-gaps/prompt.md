@@ -1,1 +1,1 @@
-/livespec-impl-git-jsonl:capture-impl-gaps Detect spec→impl gaps via the detect-impl-gaps thin transport, then file a gap-tied work-item for each surfaced gap into work-items.jsonl. Consent to filing every surfaced gap.
+/livespec-orchestrator-git-jsonl:capture-impl-gaps Detect spec→impl gaps via the detect-impl-gaps thin transport, then file a gap-tied work-item for each surfaced gap into work-items.jsonl. Consent to filing every surfaced gap.

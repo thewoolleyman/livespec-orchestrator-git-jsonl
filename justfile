@@ -1,4 +1,4 @@
-# justfile — livespec-impl-git-jsonl dev-tooling task runner.
+# justfile — livespec-orchestrator-git-jsonl dev-tooling task runner.
 #
 # Generated from livespec/templates/impl-plugin/justfile.jinja at
 # copier-copy time; re-sync via `copier update --vcs-ref=master` when livespec
@@ -21,7 +21,7 @@
 #   §"Shared code sync — livespec-dev-tooling" (v094 wiring-
 #   completeness invariant) — every canonical slug emitted by
 #   `livespec_dev_tooling.canonical_checks` MUST be wired in this
-#   `check:` aggregate in alphabetical order; livespec-impl-git-jsonl-
+#   `check:` aggregate in alphabetical order; livespec-orchestrator-git-jsonl-
 #   private extras MAY follow after the canonical block. The in-repo
 #   gate `check-aggregate-completeness` enforces this on every run.
 
@@ -80,10 +80,10 @@ bootstrap:
 ensure-plugins:
     claude plugin marketplace add thewoolleyman/livespec
     claude plugin marketplace add thewoolleyman/livespec-driver-claude
-    claude plugin marketplace add thewoolleyman/livespec-impl-git-jsonl
+    claude plugin marketplace add thewoolleyman/livespec-orchestrator-git-jsonl
     claude plugin install livespec@livespec
     claude plugin install livespec@livespec-driver-claude
-    claude plugin install livespec-impl-git-jsonl@livespec-impl-git-jsonl
+    claude plugin install livespec-orchestrator-git-jsonl@livespec-orchestrator-git-jsonl
 
 # ---------------------------------------------------------------
 # Aggregate check — canonical full-set stamped at copier-copy time.
@@ -169,7 +169,7 @@ check:
         check-tool-backed-check-completeness
         check-vendor-manifest
         check-wrapper-shape
-        # ---- livespec-impl-git-jsonl-private block ----
+        # ---- livespec-orchestrator-git-jsonl-private block ----
         # Tool-backed checks (ruff lint, ruff format, pyright types,
         # aggregate coverage) — helper recipes, NOT canonical slugs
         # (not under livespec_dev_tooling/checks/), so check-aggregate-
@@ -236,7 +236,7 @@ check:
     if [[ -z "{{skip}}" ]]; then uv run python -m livespec_dev_tooling.green_token write || true; fi
 
 # ---------------------------------------------------------------
-# Tool-backed checks (livespec-impl-git-jsonl-private).
+# Tool-backed checks (livespec-orchestrator-git-jsonl-private).
 # ---------------------------------------------------------------
 
 check-lint:

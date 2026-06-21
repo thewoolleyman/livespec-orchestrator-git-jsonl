@@ -1,10 +1,10 @@
-# livespec-impl-git-jsonl
+# livespec-orchestrator-git-jsonl
 
 The **JSONL-backed reference realization** of
 [livespec](https://github.com/thewoolleyman/livespec)'s
 implementation-plugin contract, and livespec's **designated dogfood
 target**. As a Claude Code plugin it exposes the
-`/livespec-impl-git-jsonl:*` impl-side skill surface — capturing
+`/livespec-orchestrator-git-jsonl:*` impl-side skill surface — capturing
 work-items, gaps, and drift, and driving implementation —
 over a substrate of plain JSONL files committed alongside the
 consumer project's own source. No embedded database, no external
@@ -33,12 +33,12 @@ This is a Claude Code plugin. It is consumed by a livespec-governed
 project, not run standalone:
 
 ```
-/plugin marketplace add thewoolleyman/livespec-impl-git-jsonl
-/plugin install livespec-impl-git-jsonl@livespec-impl-git-jsonl
+/plugin marketplace add thewoolleyman/livespec-orchestrator-git-jsonl
+/plugin install livespec-orchestrator-git-jsonl@livespec-orchestrator-git-jsonl
 ```
 
 After install, restart Claude Code (or run `/reload-plugins`). The
-skills below become available with the `livespec-impl-git-jsonl:`
+skills below become available with the `livespec-orchestrator-git-jsonl:`
 namespace prefix. A consumer project selects this plugin by naming it
 in its `.livespec.jsonc` `implementation.plugin` block.
 

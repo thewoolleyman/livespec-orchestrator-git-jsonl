@@ -1,4 +1,4 @@
-"""`/livespec-impl-git-jsonl:next` thin-transport ranker.
+"""`/livespec-orchestrator-git-jsonl:next` thin-transport ranker.
 
 CLI surface per `SPECIFICATION/contracts.md` v005 §"next":
 

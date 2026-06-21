@@ -1,6 +1,6 @@
 # tests/e2e-cli/
 
-The CLI end-to-end harness wiring for livespec-impl-git-jsonl, per
+The CLI end-to-end harness wiring for livespec-orchestrator-git-jsonl, per
 `livespec/SPECIFICATION/contracts.md` §"CLI end-to-end harness contract".
 This is the *top-of-pyramid*, user-surface tier whose sole interaction surface
 is the `claude` CLI binary — a sibling to (not a superset of) the wrapper-chain
@@ -20,7 +20,7 @@ carries only the thin per-repo wiring:
   each fixture's expected files. The one mocked boundary is the `claude -p`
   subprocess; discovery, fixture loading, the fail-closed time-bomb coverage
   gate, and the orchestration loop all run for real.
-- `fixtures/<skill>/` — one directory per `/livespec-impl-git-jsonl:*` skill
+- `fixtures/<skill>/` — one directory per `/livespec-orchestrator-git-jsonl:*` skill
   (contract requirement 4), each holding a `prompt.md` (text piped to
   `claude -p`) and an `expected_files.txt` (project-root-relative paths that
   MUST exist after the skill's turn; comment-only / absent means no file

@@ -90,7 +90,7 @@ class StoreConfig:
     """Configured path for the JSONL store, read from .livespec.jsonc.
 
     Per SPECIFICATION/contracts.md §"`compat` block", the
-    livespec-impl-git-jsonl configuration block declares work_items_path;
+    livespec-orchestrator-git-jsonl configuration block declares work_items_path;
     the default is work-items.jsonl at the consumer project root.
     """
 

@@ -1,4 +1,4 @@
-"""`/livespec-impl-git-jsonl:detect-impl-gaps` thin-transport command.
+"""`/livespec-orchestrator-git-jsonl:detect-impl-gaps` thin-transport command.
 
 CLI surface per SPECIFICATION/contracts.md §"detect-impl-gaps":
 

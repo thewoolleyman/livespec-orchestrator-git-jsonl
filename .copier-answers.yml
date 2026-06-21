@@ -11,10 +11,10 @@ _src_path: gh:thewoolleyman/livespec
 author_email: thewoolleyman@gmail.com
 author_name: Chad Woolley
 github_owner: thewoolleyman
-github_repo: livespec-impl-git-jsonl
+github_repo: livespec-orchestrator-git-jsonl
 livespec_release_tag: master
 plugin_description: JSONL-backed implementation plugin for livespec
-plugin_full_name: livespec-impl-git-jsonl
-plugin_namespace: livespec-impl-git-jsonl
+plugin_full_name: livespec-orchestrator-git-jsonl
+plugin_namespace: livespec-orchestrator-git-jsonl
 plugin_short_name: git-jsonl
 python_version: 3.10.16

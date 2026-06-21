@@ -1,6 +1,6 @@
 ---
 name: next
-description: Rank the most-ripe impl-side action from the JSONL work-items store. Required thin-transport surface per livespec/SPECIFICATION/contracts.md §"Thin-transport skills (3) — required machine query surface". Pure function of file state; no LLM in the ranking path. Invoke as `/livespec-impl-git-jsonl:next [--limit <count>] [--offset <count>] [--json]`.
+description: Rank the most-ripe impl-side action from the JSONL work-items store. Required thin-transport surface per livespec/SPECIFICATION/contracts.md §"Thin-transport skills (3) — required machine query surface". Pure function of file state; no LLM in the ranking path. Invoke as `/livespec-orchestrator-git-jsonl:next [--limit <count>] [--offset <count>] [--json]`.
 allowed-tools: Bash
 ---
 
@@ -68,7 +68,7 @@ each candidate per the upstream §"Output schema".
 - User asks "what should I work on next?"
 - livespec's resident Layer 3 loop driver (at
   `livespec/.claude/skills/loop/SKILL.md`) composes
-  `/livespec:next` + `/livespec-impl-git-jsonl:next` outputs into
+  `/livespec:next` + `/livespec-orchestrator-git-jsonl:next` outputs into
   per-iteration recommendations.
 
 Per the v089 upstream recast (livespec/SPECIFICATION/spec.md
@@ -87,4 +87,4 @@ thin-transport pass-through.
 - It does NOT mutate any state. Read-only by contract.
 - It does NOT invoke an LLM. The ranking is deterministic per the
   algorithm documented in
-  livespec-impl-git-jsonl/SPECIFICATION/contracts.md §"next".
+  livespec-orchestrator-git-jsonl/SPECIFICATION/contracts.md §"next".

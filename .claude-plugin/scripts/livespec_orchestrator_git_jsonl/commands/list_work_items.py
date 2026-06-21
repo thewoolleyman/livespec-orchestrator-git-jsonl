@@ -1,4 +1,4 @@
-"""`/livespec-impl-git-jsonl:list-work-items` thin-transport command.
+"""`/livespec-orchestrator-git-jsonl:list-work-items` thin-transport command.
 
 CLI surface per SPECIFICATION/contracts.md §"list-work-items":
 

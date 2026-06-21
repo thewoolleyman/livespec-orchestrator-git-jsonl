@@ -1,1 +1,1 @@
-/livespec-impl-git-jsonl:implement Drive Red→Green for the most-ripe open work-item in work-items.jsonl. For a gap-tied item, verify closure by re-running capture-impl-gaps in dry-run mode, then record the resolution back into work-items.jsonl.
+/livespec-orchestrator-git-jsonl:implement Drive Red→Green for the most-ripe open work-item in work-items.jsonl. For a gap-tied item, verify closure by re-running capture-impl-gaps in dry-run mode, then record the resolution back into work-items.jsonl.

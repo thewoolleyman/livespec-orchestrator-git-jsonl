@@ -1,4 +1,4 @@
-// Project-local livespec configuration for livespec-impl-git-jsonl.
+// Project-local livespec configuration for livespec-orchestrator-git-jsonl.
 // This plugin dogfoods livespec: the SPECIFICATION/ tree at the repo
 // root is the live spec. As of epic li-ws2iv4 (Phase 5 cutover), this
 // repo's OWN impl tracking lives in the per-repo livespec-impl-beads

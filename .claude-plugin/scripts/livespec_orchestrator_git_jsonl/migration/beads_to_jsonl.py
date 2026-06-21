@@ -2,7 +2,7 @@
 
 Reads each line as a beads issue record (matching the schema produced by
 `bd list --status=all --format=json` and the on-disk `.beads/issues.jsonl`
-export view), maps the fields onto livespec-impl-git-jsonl's WorkItem
+export view), maps the fields onto livespec-orchestrator-git-jsonl's WorkItem
 schema (defined in SPECIFICATION/contracts.md §"Work-items JSONL record
 schema"), and appends to the output file.
 

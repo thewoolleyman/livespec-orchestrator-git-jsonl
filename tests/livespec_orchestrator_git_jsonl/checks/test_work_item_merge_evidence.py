@@ -415,7 +415,7 @@ def test_main_with_explicit_store_path(
 
 def test_resolve_canonical_branch_prefers_livespec_jsonc_key(tmp_path: Path) -> None:
     _ = (tmp_path / ".livespec.jsonc").write_text(
-        '// consumer config\n{"livespec-impl-git-jsonl": {"canonical_branch": "trunk"}}\n',
+        '// consumer config\n{"livespec-orchestrator-git-jsonl": {"canonical_branch": "trunk"}}\n',
         encoding="utf-8",
     )
     assert resolve_canonical_branch(repo_dir=tmp_path) == "trunk"
@@ -441,10 +441,10 @@ def test_resolve_canonical_branch_defaults_to_master_without_git(tmp_path: Path)
         "{not valid jsonc",
         "[1, 2, 3]",
         "{}",
-        '{"livespec-impl-git-jsonl": "not-a-block"}',
-        '{"livespec-impl-git-jsonl": {}}',
-        '{"livespec-impl-git-jsonl": {"canonical_branch": ""}}',
-        '{"livespec-impl-git-jsonl": {"canonical_branch": 5}}',
+        '{"livespec-orchestrator-git-jsonl": "not-a-block"}',
+        '{"livespec-orchestrator-git-jsonl": {}}',
+        '{"livespec-orchestrator-git-jsonl": {"canonical_branch": ""}}',
+        '{"livespec-orchestrator-git-jsonl": {"canonical_branch": 5}}',
     ],
 )
 def test_resolve_canonical_branch_falls_back_on_unusable_config(

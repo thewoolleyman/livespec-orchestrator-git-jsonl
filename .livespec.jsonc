@@ -19,10 +19,10 @@
     // load-bearing identity rule. Tenant PASSWORD deliberately ABSENT — supplied only via the
     // BEADS_DOLT_PASSWORD env var at bd-call time, never committed. TCP-only, so no `socket` key.
     "connection": {
-      "tenant": "livespec-impl-git-jsonl",
-      "prefix": "livespec-impl-git-jsonl",
-      "database": "livespec-impl-git-jsonl",
-      "server_user": "livespec-impl-git-jsonl",
+      "tenant": "livespec-orchestrator-git-jsonl",
+      "prefix": "livespec-orchestrator-git-jsonl",
+      "database": "livespec-orchestrator-git-jsonl",
+      "server_user": "livespec-orchestrator-git-jsonl",
       "server_host": "127.0.0.1",
       "server_port": 3307,
       "fake": false

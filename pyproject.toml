@@ -68,7 +68,7 @@ dev = [
 # canonical PURE reducer THIS repo donated + the WorkItemStore
 # conformance Protocol — see store.py / types.py / _ids.py).
 [tool.uv.sources]
-livespec-dev-tooling = { git = "https://github.com/thewoolleyman/livespec-dev-tooling.git", tag = "v0.14.0" }
+livespec-dev-tooling = { git = "https://github.com/thewoolleyman/livespec-dev-tooling.git", tag = "v0.15.0" }
 livespec-runtime = { git = "https://github.com/thewoolleyman/livespec-runtime.git", tag = "v0.4.0" }
 
 # ---------------------------------------------------------------------------
@@ -253,4 +253,14 @@ commands_trees = [
     ".claude-plugin/scripts/livespec_impl_git_jsonl/commands",
     ".claude-plugin/scripts/livespec_impl_git_jsonl/checks",
     ".claude-plugin/scripts/livespec_impl_git_jsonl/migration",
+]
+# Repo-root-relative path prefixes the `tests_no_subprocess_spawn` check
+# (canonical, added in livespec-dev-tooling v0.14.1) exempts from its
+# test-spawned-Python-subprocess scan. The sole entry genuinely needs a real
+# subprocess: it drives the migration module's `__main__`-guard exit-code
+# threading as a CLI binary, which cannot be exercised in-process. The test
+# already builds a fresh child env (PATH + PYTHONPATH only), so it inherits no
+# COVERAGE_PROCESS_START / COV_CORE_* and does not self-instrument.
+subprocess_spawn_allowlist = [
+    "tests/livespec_impl_git_jsonl/migration/test_merge_evidence_backfill.py",
 ]

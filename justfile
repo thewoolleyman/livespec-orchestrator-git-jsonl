@@ -165,6 +165,7 @@ check:
         check-skill-invocation-paths
         check-supervisor-discipline
         check-tests-mirror-pairing
+        check-tests-no-subprocess-spawn
         check-tool-backed-check-completeness
         check-vendor-manifest
         check-wrapper-shape
@@ -577,6 +578,13 @@ check-supervisor-discipline:
 
 check-tests-mirror-pairing:
     uv run python -m livespec_dev_tooling.checks.tests_mirror_pairing
+
+# Forbid test-spawned Python subprocesses (`subprocess.run([sys.executable, ...])`)
+# in tests/ — they self-instrument under `pytest --cov` and race concurrent
+# coverage runs; prefer the in-process `main()` pattern. Canonical check added
+# in livespec-dev-tooling v0.14.1 (4i5). In `just check` aggregate.
+check-tests-no-subprocess-spawn:
+    uv run python -m livespec_dev_tooling.checks.tests_no_subprocess_spawn
 
 # Tool-backed-check completeness meta-check (epic li-pyright-gate,
 # work-item li-pyright-gate-wi3; shared from livespec-dev-tooling

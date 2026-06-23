@@ -78,12 +78,12 @@ bootstrap:
 # exposes the /livespec:* commands — both are required for the
 # spec-side surface.
 ensure-plugins:
-    claude plugin marketplace add thewoolleyman/livespec
-    claude plugin marketplace add thewoolleyman/livespec-driver-claude
-    claude plugin marketplace add thewoolleyman/livespec-orchestrator-git-jsonl
-    claude plugin install livespec@livespec
-    claude plugin install livespec@livespec-driver-claude
-    claude plugin install livespec-orchestrator-git-jsonl@livespec-orchestrator-git-jsonl
+    claude plugin marketplace add --scope project thewoolleyman/livespec
+    claude plugin marketplace add --scope project thewoolleyman/livespec-driver-claude
+    claude plugin marketplace add --scope project thewoolleyman/livespec-orchestrator-git-jsonl
+    claude plugin install -s project livespec@livespec
+    claude plugin install -s project livespec@livespec-driver-claude
+    claude plugin install -s project livespec-orchestrator-git-jsonl@livespec-orchestrator-git-jsonl
 
 # ---------------------------------------------------------------
 # Aggregate check — canonical full-set stamped at copier-copy time.

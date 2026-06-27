@@ -1,7 +1,7 @@
 """Tests for the merge-evidence backfill migration.
 
-Per SPECIFICATION/contracts.md §"Backfill for existing closed
-work-items": Strategy (a) — the disciplined default — scans git for
+Per SPECIFICATION/contracts.md: Strategy (a) — the disciplined
+default — scans git for
 the SHAs in each closed work-item's `audit.commits` (falling back to
 a `git log --grep=<id>` walk when none are recorded), resolves the
 merge commit on `origin/<canonical_branch>` that introduced the work

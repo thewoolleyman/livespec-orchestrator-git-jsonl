@@ -8,8 +8,7 @@ Public package layout:
   materialize + filter) for the work-items file.
 - `livespec_orchestrator_git_jsonl.spec_reader` — Spec Reader adapter implementing
   the four required capabilities defined in
-  livespec/SPECIFICATION/contracts.md
-  §"Spec Reader required-capability surface".
+  livespec/SPECIFICATION/contracts.md.
 - `livespec_orchestrator_git_jsonl.errors` — exception types for the expected-error
   surface (missing file, malformed line, schema violation, version not
   found).

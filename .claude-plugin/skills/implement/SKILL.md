@@ -1,6 +1,6 @@
 ---
 name: implement
-description: Drive Red→Green for a single work-item. For gap-tied items, verify closure by re-running capture-impl-gaps in dry-run mode. Required heavyweight authored skill per livespec/SPECIFICATION/contracts.md §"Heavyweight authored skills (6)". Invoke as `/livespec-orchestrator-git-jsonl:implement [<work-item-id>]`.
+description: Drive Red→Green for a single work-item. For gap-tied items, verify closure by re-running capture-impl-gaps in dry-run mode. Required heavyweight authored skill per livespec/SPECIFICATION/contracts.md. Invoke as `/livespec-orchestrator-git-jsonl:implement [<work-item-id>]`.
 allowed-tools: Bash, Read, Grep, Glob, Edit, Write
 ---
 
@@ -8,8 +8,7 @@ allowed-tools: Bash, Read, Grep, Glob, Edit, Write
 
 The Red→Green driver. Walks a single work-item from open through
 implementation to closed-with-audit. Closure branches on `origin ×
-disposition` per livespec/SPECIFICATION/contracts.md
-§"Heavyweight authored skills (6)" → implement.
+disposition` per livespec/SPECIFICATION/contracts.md.
 
 ## Pre-requisites
 
@@ -97,8 +96,8 @@ Append a new JSONL record with `status: closed`. The exact shape
 branches on the resolution choice.
 
 **Merge evidence is REQUIRED for merge-implying resolutions.** Per
-`SPECIFICATION/contracts.md` §"Work-items JSONL record schema" →
-audit, every closure with `resolution` in `{completed, spec-revised,
+`SPECIFICATION/contracts.md`, every closure with `resolution` in
+`{completed, spec-revised,
 resolved-out-of-band}` MUST carry a non-null `audit` whose
 `merge_sha` is the SHA on `origin/<canonical_branch>` that introduced
 the work. Populate it at closure time:

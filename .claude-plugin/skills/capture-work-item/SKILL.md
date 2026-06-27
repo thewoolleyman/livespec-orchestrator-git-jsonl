@@ -1,6 +1,6 @@
 ---
 name: capture-work-item
-description: Freeform direct filing of an impl-side work item (bugs, refactors, tactical tasks). Required heavyweight authored skill per livespec/SPECIFICATION/contracts.md §"Heavyweight authored skills (6)". Filed records carry `origin: freeform` and `gap_id: null`. Invoke as `/livespec-orchestrator-git-jsonl:capture-work-item`.
+description: Freeform direct filing of an impl-side work item (bugs, refactors, tactical tasks). Required heavyweight authored skill per livespec/SPECIFICATION/contracts.md. Filed records carry `origin: freeform` and `gap_id: null`. Invoke as `/livespec-orchestrator-git-jsonl:capture-work-item`.
 allowed-tools: Bash, Read, Grep, Write
 ---
 
@@ -35,8 +35,7 @@ Optional follow-ups (skip-confirmable):
   Supplied via `--spec-commitment-hint <id_hint>` when the work-item
   is being filed in response to a spec-side
   `spec_commitments.impl_followups[].id_hint` declaration (per livespec
-  `SPECIFICATION/contracts.md` §"Implementation-plugin contract — the
-  10-skill surface" → "Work-item `spec_commitment_hint` field"). When
+  `SPECIFICATION/contracts.md`). When
   supplied, the resulting record's `spec_commitment_hint` MUST equal
   the verbatim `id_hint`; when omitted, the field defaults to `null`
   (the freeform case). This is the surface livespec's

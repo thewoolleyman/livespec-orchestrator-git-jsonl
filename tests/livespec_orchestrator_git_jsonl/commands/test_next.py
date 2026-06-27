@@ -1,6 +1,6 @@
 """Tests for the next thin-transport ranker.
 
-Per `SPECIFICATION/contracts.md` v005 §"next" → "Output schema": the
+Per `SPECIFICATION/contracts.md`: the
 wrapper emits a `{candidates[], pagination}` envelope with optional
 `--limit` (default 5, positive int) and `--offset` (default 0,
 non-negative int) flags. Empty `candidates[]` is the no-work signal —

@@ -1,7 +1,6 @@
 """`check-no-divergent-heads` store-integrity check.
 
-Per SPECIFICATION/contracts.md §"Append-only store disciplines" →
-"Store-integrity checks (orchestrator-private)" (v008), this check
+Per SPECIFICATION/contracts.md (v008), this check
 materializes the declared backing store (work-items) via the canonical
 reducer (`reduce_work_item_heads` — the ONE reduction implementation
 every query wrapper and check consumes; the one-canonical-reducer

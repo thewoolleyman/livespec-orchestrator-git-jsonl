@@ -1,8 +1,6 @@
 """One-shot migration: bare-string + blocked_by → typed depends_on entries.
 
-Per `livespec/SPECIFICATION/contracts.md` v072 §"Cross-repo dependency
-awareness" → "Typed `DependsOnEntry` union for the work-item
-`depends_on` field" + work-item li-f5wmjr §"(3) Data migration":
+Per `livespec/SPECIFICATION/contracts.md` + work-item li-f5wmjr:
 
 For every WorkItem record in a work-items.jsonl store:
 

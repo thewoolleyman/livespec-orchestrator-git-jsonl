@@ -1,7 +1,6 @@
 """Tests for the bare-string + blocked_by → typed depends_on migration.
 
-Per `livespec/SPECIFICATION/contracts.md` v072 §"Cross-repo dependency
-awareness" + work-item li-f5wmjr §"(3) Data migration".
+Per `livespec/SPECIFICATION/contracts.md` + work-item li-f5wmjr.
 """
 
 from __future__ import annotations

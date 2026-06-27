@@ -1,8 +1,7 @@
 """`check-no-raw-store-read` store-integrity check.
 
-Per SPECIFICATION/contracts.md §"Append-only store disciplines" →
-"Store-integrity checks (orchestrator-private)" + "Read path only via
-the query surface" (v008), this check fires fail when shipped code
+Per SPECIFICATION/contracts.md (v008), this check fires fail when
+shipped code
 opens a declared backing store path directly, bypassing the
 reducer/query surface. Any consumer of store state MUST obtain it
 through the published query CLIs/skills or through the single canonical

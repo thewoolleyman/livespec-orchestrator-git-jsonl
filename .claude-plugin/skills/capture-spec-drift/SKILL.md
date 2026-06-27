@@ -1,6 +1,6 @@
 ---
 name: capture-spec-drift
-description: Detect impl→spec drift heuristically (LLM-driven) and hand off each finding to /livespec:propose-change with user consent. Required heavyweight authored skill per livespec/SPECIFICATION/contracts.md §"Heavyweight authored skills (6)". Invoke as `/livespec-orchestrator-git-jsonl:capture-spec-drift`.
+description: Detect impl→spec drift heuristically (LLM-driven) and hand off each finding to /livespec:propose-change with user consent. Required heavyweight authored skill per livespec/SPECIFICATION/contracts.md. Invoke as `/livespec-orchestrator-git-jsonl:capture-spec-drift`.
 allowed-tools: Bash, Read, Grep, Glob, Write
 ---
 
@@ -14,7 +14,7 @@ between the canonical Specification (via the Spec Reader) and the
 working impl tree, surfaces each candidate finding to the user, and
 hands the confirmed findings off to `/livespec:propose-change`
 via the cross-boundary handoff (red-edge handoff 1 per
-livespec/SPECIFICATION/contracts.md §"Cross-boundary handoffs").
+livespec/SPECIFICATION/contracts.md).
 
 ## Pre-requisites
 

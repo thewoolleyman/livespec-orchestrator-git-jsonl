@@ -1,8 +1,7 @@
 """Tests for the `check-no-raw-store-read` store-integrity check.
 
-Per SPECIFICATION/contracts.md §"Append-only store disciplines" →
-"Store-integrity checks (orchestrator-private)" and "Read path only via
-the query surface": the check fires fail when shipped code opens a
+Per SPECIFICATION/contracts.md: the check fires fail when shipped
+code opens a
 declared backing store path directly, bypassing the reducer/query
 surface. Scope is committed code under the shipped trees — the rule
 cannot police ad-hoc interactive shell reads (the self-identification

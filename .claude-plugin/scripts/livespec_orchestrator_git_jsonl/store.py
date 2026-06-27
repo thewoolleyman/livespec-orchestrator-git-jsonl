@@ -1,7 +1,6 @@
 """JSONL store primitives for work-items.
 
-Per SPECIFICATION/contracts.md §"Work-items JSONL record schema" /
-§"Materialized view" / §"Append-only store disciplines", the store is
+Per SPECIFICATION/contracts.md, the store is
 append-only at the write boundary and the materialized view of an
 entity is its supersession-chain head, computed from the in-record
 `supersedes` pointers independently of the physical order of records in

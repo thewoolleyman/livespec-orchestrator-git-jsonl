@@ -1,6 +1,6 @@
 ---
 name: next
-description: Rank the most-ripe impl-side action from the JSONL work-items store. Required thin-transport surface per livespec/SPECIFICATION/contracts.md §"Thin-transport skills (3) — required machine query surface". Pure function of file state; no LLM in the ranking path. Invoke as `/livespec-orchestrator-git-jsonl:next [--limit <count>] [--offset <count>] [--json]`.
+description: Rank the most-ripe impl-side action from the JSONL work-items store. Required thin-transport surface per livespec/SPECIFICATION/contracts.md. Pure function of file state; no LLM in the ranking path. Invoke as `/livespec-orchestrator-git-jsonl:next [--limit <count>] [--offset <count>] [--json]`.
 allowed-tools: Bash
 ---
 
@@ -30,9 +30,7 @@ Supported flags:
 
 ## Output schema
 
-Per livespec/SPECIFICATION/contracts.md §"Implementation-plugin
-contract — the 10-skill surface" → next and v005 §"next" → "Output
-schema":
+Per livespec/SPECIFICATION/contracts.md:
 
 ```json
 {
@@ -61,7 +59,7 @@ the wrapper emits `candidates: []` with `has_more: false`.
 
 The `priority` and `origin` fields are impl-git-jsonl-specific
 extensions; the cross-plugin contract permits additional fields on
-each candidate per the upstream §"Output schema".
+each candidate per the upstream output schema.
 
 ## When to use
 
@@ -71,9 +69,8 @@ each candidate per the upstream §"Output schema".
   `/livespec:next` + `/livespec-orchestrator-git-jsonl:next` outputs into
   per-iteration recommendations.
 
-Per the v089 upstream recast (livespec/SPECIFICATION/spec.md
-§"Three-layer orchestration architecture" → "Layer 3 — Cross-repo
-orchestration (livespec-resident)"), this skill does NOT carry a
+Per the v089 upstream recast (livespec/SPECIFICATION/spec.md),
+this skill does NOT carry a
 Layer 3 discoverability nudge — that contract applies only to
 /livespec:next, which is colocated with the resident Layer 3
 driver in livespec. impl-plugin repos do NOT carry their own
@@ -87,4 +84,4 @@ thin-transport pass-through.
 - It does NOT mutate any state. Read-only by contract.
 - It does NOT invoke an LLM. The ranking is deterministic per the
   algorithm documented in
-  livespec-orchestrator-git-jsonl/SPECIFICATION/contracts.md §"next".
+  livespec-orchestrator-git-jsonl/SPECIFICATION/contracts.md.

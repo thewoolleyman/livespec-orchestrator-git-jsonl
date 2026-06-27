@@ -1,7 +1,6 @@
 """Tests for the `check-no-divergent-heads` store-integrity check.
 
-Per SPECIFICATION/contracts.md §"Append-only store disciplines" →
-"Store-integrity checks (orchestrator-private)": the check materializes
+Per SPECIFICATION/contracts.md: the check materializes
 the declared backing store (work-items) via the canonical reducer and
 fires fail when any entity id resolves to more than one un-superseded
 head, naming the offending entity id and the conflicting record

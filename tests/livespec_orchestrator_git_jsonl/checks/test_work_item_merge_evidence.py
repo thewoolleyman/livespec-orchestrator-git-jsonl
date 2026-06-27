@@ -1,7 +1,6 @@
 """Tests for the `check-work-item-merge-evidence` static check.
 
-Per SPECIFICATION/contracts.md §"Work-items JSONL record schema" →
-"`work_item_merge_evidence` static check": every closed work-item with
+Per SPECIFICATION/contracts.md: every closed work-item with
 a merge-implying resolution (`completed`, `spec-revised`,
 `resolved-out-of-band`) must carry a non-null audit whose `merge_sha`
 exists locally and is reachable from `origin/<canonical_branch>`;
@@ -9,8 +8,8 @@ administratively closed work-items (`wontfix`, `duplicate`,
 `no-longer-applicable`) must NOT carry merge-evidence; closed items
 without a resolution are malformed; epics are exempt but instead
 require every local `depends_on` child to be closed. The grandfather
-sentinel (`<pre-schema-bootstrap>`, per §"Backfill for existing closed
-work-items") is exempt from the reachability test.
+sentinel (`<pre-schema-bootstrap>`, per the SPECIFICATION/contracts.md
+backfill section) is exempt from the reachability test.
 """
 
 import os

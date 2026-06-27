@@ -1,7 +1,6 @@
 """`check-work-item-merge-evidence` merge-evidence static check.
 
-Per SPECIFICATION/contracts.md §"Work-items JSONL record schema" →
-"`work_item_merge_evidence` static check", this check walks the
+Per SPECIFICATION/contracts.md, this check walks the
 materialized work-items view (via the canonical query surface) and
 applies the merge-evidence rules to every closed work-item:
 
@@ -20,8 +19,8 @@ applies the merge-evidence rules to every closed work-item:
 - Work-items with `type == "epic"` are EXEMPT from the merge-evidence
   requirement; INSTEAD every local `depends_on` child must resolve to
   a closed work-item.
-- The grandfather sentinel (`<pre-schema-bootstrap>`, per §"Backfill
-  for existing closed work-items" strategy (b)) is exempt from the
+- The grandfather sentinel (`<pre-schema-bootstrap>`, per the
+  SPECIFICATION/contracts.md backfill strategy (b)) is exempt from the
   reachability test.
 
 All git operations are local (`cat-file`, `merge-base`,
@@ -29,8 +28,7 @@ All git operations are local (`cat-file`, `merge-base`,
 work-items file's parent directory (the consumer project root). The
 canonical branch resolves `--canonical-branch` flag →
 `.livespec.jsonc` plugin-block `canonical_branch` key → `origin/HEAD`
-symbolic-ref → `master`, per SPECIFICATION/contracts.md §"`compat`
-block".
+symbolic-ref → `master`, per SPECIFICATION/contracts.md.
 
 The check is plugin-private (it depends on the JSONL schema this
 plugin defines) and is wired into this repo's `just check` aggregate
@@ -62,8 +60,8 @@ __all__: list[str] = ["GRANDFATHER_MERGE_SHA_SENTINEL", "main", "resolve_canonic
 
 _CHECK_NAME = "check-work-item-merge-evidence"
 
-# Strategy (b) of SPECIFICATION/contracts.md §"Backfill for existing
-# closed work-items": the merge-evidence backfill migration populates
+# Strategy (b) of SPECIFICATION/contracts.md: the merge-evidence
+# backfill migration populates
 # this sentinel on grandfathered closures; the check exempts it from
 # the reachability test. The merge_evidence_backfill migration module
 # imports this constant so the two stay a single definition.

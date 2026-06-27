@@ -2,7 +2,7 @@
 
 The full .livespec.jsonc reader is OUT-OF-SCOPE for v001; consumer projects
 that need a non-default store path pass it as a CLI flag. The default
-matches SPECIFICATION/contracts.md §"`compat` block": work-items.jsonl at
+matches SPECIFICATION/contracts.md: work-items.jsonl at
 the consumer project root (i.e., the current working directory).
 """
 

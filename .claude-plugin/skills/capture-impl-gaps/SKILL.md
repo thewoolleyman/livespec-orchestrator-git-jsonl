@@ -1,6 +1,6 @@
 ---
 name: capture-impl-gaps
-description: Detect spec→impl gaps by invoking the sibling detect-impl-gaps thin-transport skill, then file gap-tied work-items into the JSONL store with per-gap user consent. Required heavyweight authored skill per livespec/SPECIFICATION/contracts.md §"Heavyweight authored skills (6)". Invoke as `/livespec-orchestrator-git-jsonl:capture-impl-gaps`.
+description: Detect spec→impl gaps by invoking the sibling detect-impl-gaps thin-transport skill, then file gap-tied work-items into the JSONL store with per-gap user consent. Required heavyweight authored skill per livespec/SPECIFICATION/contracts.md. Invoke as `/livespec-orchestrator-git-jsonl:capture-impl-gaps`.
 allowed-tools: Bash, Read, Grep, Glob, Write
 ---
 
@@ -8,7 +8,7 @@ allowed-tools: Bash, Read, Grep, Glob, Write
 
 Mechanical detection of spec→impl gaps. Heavyweight skill — orchestration
 lives here in the SKILL.md prose per
-SPECIFICATION/constraints.md §"Skill orchestration constraints". The
+SPECIFICATION/constraints.md. The
 plugin's `detect-impl-gaps` thin-transport sibling and `store` module are
 the load-bearing surfaces this skill composes.
 
@@ -30,8 +30,8 @@ the load-bearing surfaces this skill composes.
 ### Step 1 — Enumerate gap candidates via detect-impl-gaps
 
 Invoke the sibling thin-transport skill `detect-impl-gaps` to retrieve
-the authoritative gap-id set. Per SPECIFICATION/contracts.md
-§"capture-impl-gaps", both this skill and the doctor invariants consume
+the authoritative gap-id set. Per SPECIFICATION/contracts.md, both
+this skill and the doctor invariants consume
 the same canonical surface; in-skill duplication of the detection logic
 is forbidden.
 
@@ -154,8 +154,7 @@ When all candidates are processed, print a summary:
 
 - **In-memory ephemeral detection state** — no persistent intermediate
   artifact. The candidate list is discarded at skill exit per
-  livespec/SPECIFICATION/contracts.md §"Heavyweight authored
-  skills (6)" → capture-impl-gaps.
+  livespec/SPECIFICATION/contracts.md.
 - **Per-gap user consent is REQUIRED** — never auto-file without
   explicit confirmation.
 - **Idempotent** — re-running surfaces no duplicates for gaps already

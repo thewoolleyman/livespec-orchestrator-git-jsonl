@@ -1,7 +1,7 @@
 """One-shot merge-evidence backfill for existing closed work-items.
 
-Per SPECIFICATION/contracts.md §"Backfill for existing closed
-work-items": work-items closed before the `merge_sha` schema addition
+Per SPECIFICATION/contracts.md: work-items closed before the
+`merge_sha` schema addition
 cannot be validated against the `work_item_merge_evidence` static
 check (and legacy audit objects lacking `merge_sha` cannot even be
 READ by the canonical query surface) until backfilled. Two strategies:

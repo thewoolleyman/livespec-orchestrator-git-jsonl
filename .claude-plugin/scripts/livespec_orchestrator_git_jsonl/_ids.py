@@ -1,7 +1,7 @@
 """Stable-format ID generation for work-items.
 
-Per SPECIFICATION/contracts.md §"Work-items JSONL record schema",
-work-item IDs follow the upstream `bd` convention `li-<6-char-base32-suffix>`.
+Per SPECIFICATION/contracts.md, work-item IDs follow the upstream
+`bd` convention `li-<6-char-base32-suffix>`.
 
 The six-lowercase-base32-character suffix generator is the SHARED
 `livespec_runtime.work_items.reduce.random_id_suffix` (this repo's

@@ -6,8 +6,8 @@ exit code. The corresponding wrapper at
 `.claude-plugin/scripts/bin/<skill>.py` bootstraps sys.path and invokes
 `main()`.
 
-Per SPECIFICATION/constraints.md §"Skill orchestration constraints",
-thin-transport SKILL.md files MUST NOT accrete orchestration logic — all
+Per SPECIFICATION/constraints.md, thin-transport SKILL.md files MUST
+NOT accrete orchestration logic — all
 behavior lives here in the Python module.
 """
 

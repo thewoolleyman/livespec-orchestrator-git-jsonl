@@ -7,11 +7,10 @@ schema enums/aliases) is the SHARED surface that lives in
 to the W7 shared-surface extraction, so it is RE-EXPORTED here rather than
 re-declared. Every call site importing these names from
 `livespec_orchestrator_git_jsonl.types` keeps working unchanged. The work-item
-schema is codified by SPECIFICATION/contracts.md §"Work-items JSONL record
-schema".
+schema is codified by SPECIFICATION/contracts.md.
 
 SpecSnapshot, SpecDiff, and FileDiff are the Spec Reader's return types
-per SPECIFICATION/contracts.md §"Spec Reader internal API"; they are NOT
+per SPECIFICATION/contracts.md; they are NOT
 reachable from `WorkItem` and stay LOCAL with the Spec Reader. StoreConfig
 is the local JSONL store-path configuration and also stays local.
 """
@@ -52,7 +51,7 @@ class SpecSnapshot:
     `version` is the snapshot's vNNN integer (1-indexed). For the live
     specification (the top-level spec_root tree), `version` is the latest
     history version the snapshot corresponds to per
-    SPECIFICATION/contracts.md §"Spec Reader internal API" capability 3.
+    SPECIFICATION/contracts.md.
     """
 
     version: int
@@ -89,7 +88,7 @@ class FileDiff:
 class StoreConfig:
     """Configured path for the JSONL store, read from .livespec.jsonc.
 
-    Per SPECIFICATION/contracts.md §"`compat` block", the
+    Per SPECIFICATION/contracts.md, the
     livespec-orchestrator-git-jsonl configuration block declares work_items_path;
     the default is work-items.jsonl at the consumer project root.
     """

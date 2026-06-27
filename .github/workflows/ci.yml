@@ -245,9 +245,22 @@ jobs:
       # invocation source of truth). The installed body is STRUCTURAL (refuse
       # when `git rev-parse --git-dir` == `--git-common-dir`, armed on install)
       # and supersedes the legacy livespec.primaryPath mechanism.
-      - name: Install commit-refuse hook (satisfy hook invariant)
+      # Install BOTH facets of the Worktree-discipline concern the
+      # check-primary-checkout-commit-refuse-hook-installed verifier guards:
+      # the commit-refuse hooks AND the worktree-discipline pack
+      # (worktree-lib.sh + branch-protection.sh). The pack scripts are
+      # gitignored (installed, not tracked), so a fresh `actions/checkout`
+      # clone lacks them; installing them here makes the verifier's 3rd arm
+      # VALIDATE the byte-identical pack rather than SKIP it (the verifier
+      # skips when neither pack script is present). Both installers are
+      # from-package (NOT vendored copies) and run AFTER `uv sync` because
+      # they are Python modules from that package; delegated through `just`
+      # (the single invocation source of truth).
+      - name: Install commit-refuse hook + worktree pack (satisfy hook invariant)
         if: matrix.target == 'check-primary-checkout-commit-refuse-hook-installed'
-        run: just install-commit-refuse-hooks
+        run: |
+          just install-commit-refuse-hooks
+          just install-worktree-pack
 
       - name: just ${{ matrix.target }}
         run: just ${{ matrix.target }}

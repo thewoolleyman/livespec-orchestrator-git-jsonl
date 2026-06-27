@@ -1,5 +1,15 @@
 ### Project ignores
 tmp/
+
+# Worktree-discipline pack — installed from the livespec-dev-tooling package
+# (the single canonical source) via `just install-worktree-pack` / bootstrap,
+# NOT tracked here. The from-package installer writes byte-identical copies
+# into dev-tooling/ at bootstrap, mirroring how the commit-refuse hooks are
+# installed into the untracked .git/hooks/ dir. The per-ecosystem
+# dev-tooling/worktree-hydrate.sh stub stays TRACKED (it is not part of the
+# package pack).
+/dev-tooling/worktree-lib.sh
+/dev-tooling/branch-protection.sh
 .claude/settings.local.json
 .claude/scheduled_tasks.lock
 .claude/worktrees/

@@ -475,8 +475,8 @@ wheels = [
 
 [[package]]
 name = "livespec-dev-tooling"
-version = "0.25.1"
-source = { git = "https://github.com/thewoolleyman/livespec-dev-tooling.git?tag=v0.25.1#1dfb7d1ded7c6c0db0ebfe1fb6dde178082e5f7d" }
+version = "0.26.0"
+source = { git = "https://github.com/thewoolleyman/livespec-dev-tooling.git?tag=v0.26.0#3fff0c3cb0ded3d47337b07d1c892dd86a5533a0" }
 
 [[package]]
 name = "livespec-orchestrator-git-jsonl"
@@ -508,7 +508,7 @@ dev = [
     { name = "hypothesis", specifier = "==6.122.3" },
     { name = "hypothesis-jsonschema", specifier = "==0.23.1" },
     { name = "import-linter", specifier = "==2.1" },
-    { name = "livespec-dev-tooling", git = "https://github.com/thewoolleyman/livespec-dev-tooling.git?tag=v0.25.1" },
+    { name = "livespec-dev-tooling", git = "https://github.com/thewoolleyman/livespec-dev-tooling.git?tag=v0.26.0" },
     { name = "livespec-runtime", git = "https://github.com/thewoolleyman/livespec-runtime.git?tag=v0.4.0" },
     { name = "mutmut", specifier = "==3.2.3" },
     { name = "pyright", specifier = "==1.1.391" },

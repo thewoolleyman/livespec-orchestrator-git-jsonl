@@ -144,6 +144,23 @@ check-branch-protection:
 install-commit-refuse-hooks:
     uv run python -m livespec_dev_tooling.install_commit_refuse_hooks
 
+# Install the canonical worktree-discipline PACK (worktree-lib.sh +
+# branch-protection.sh) by REUSING the shared livespec-dev-tooling installer
+# module (the SINGLE source of both bodies; pinned in pyproject.toml). NOT a
+# repo-vendored copy — the prior tracked `dev-tooling/worktree-lib.sh` +
+# `dev-tooling/branch-protection.sh` copies are retired so there is exactly
+# ZERO drift-prone pack copy in this repo. This is the Installer slot for the
+# pack facet of the Worktree-discipline concern, mirroring
+# `install-commit-refuse-hooks` exactly: `bootstrap` delegates to it, and CI
+# runs it before the `check-primary-checkout-commit-refuse-hook-installed`
+# verifier so the verifier VALIDATES the installed pack (byte-identical to the
+# package source) rather than skipping it. The installer writes both scripts
+# into `dev-tooling/` and sets the executable bit; the scripts are gitignored
+# (installed, not tracked), exactly as the commit-refuse hooks are installed
+# into the untracked `.git/hooks/` dir. Idempotent.
+install-worktree-pack:
+    uv run python -m livespec_dev_tooling.install_worktree_pack
+
 bootstrap:
     #!/usr/bin/env bash
     # Shebang recipe: the whole body runs in ONE bash process, so the indented
@@ -162,12 +179,22 @@ bootstrap:
     # delegates to mise-managed lefthook so commit-msg argv[1] reaches the
     # red-green-replay stage regardless of the user's shell config.
     just install-commit-refuse-hooks
-    # Ensure the worktree-discipline shell scripts stay executable.
-    # copier preserves the executable bit on a fresh `copier copy`, but a
-    # `copier update` 3-way merge can re-checkout these files without it,
-    # and the worktree-* recipes invoke them directly (./…) — a
-    # non-executable helper would silently no-op. This chmod is idempotent.
-    chmod +x dev-tooling/worktree-lib.sh dev-tooling/worktree-hydrate.sh dev-tooling/branch-protection.sh
+    # Install the worktree-discipline PACK (worktree-lib.sh +
+    # branch-protection.sh) from the shared livespec-dev-tooling package —
+    # the single canonical source — into `dev-tooling/`. The installer
+    # writes both scripts executable; they are gitignored (installed, not
+    # tracked), so a fresh clone materializes them here on first bootstrap
+    # exactly as the commit-refuse hooks are installed above.
+    just install-worktree-pack
+    # Ensure the remaining per-ecosystem worktree helper stays executable.
+    # worktree-hydrate.sh is the one TRACKED dev-tooling shell script (the
+    # ecosystem-specific hydration stub); the pack scripts above are written
+    # +chmod'd by `install-worktree-pack`. copier preserves the executable
+    # bit on a fresh `copier copy`, but a `copier update` 3-way merge can
+    # re-checkout this file without it, and the worktree-hydrate recipe
+    # invokes it directly (./…) — a non-executable helper would silently
+    # no-op. This chmod is idempotent.
+    chmod +x dev-tooling/worktree-hydrate.sh
     # Harden the beads tenant-pointer dir to owner-only on first-touch (bd
     # recommends 0700; only the owning user's bd reads it — the Dolt server
     # connects over TCP and never reads this dir). Guarded: repos with no beads

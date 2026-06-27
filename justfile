@@ -89,10 +89,17 @@ import? 'dev-tooling/worktree.just'
 # primary checkout, but it is LOCALLY BYPASSABLE (`--no-verify`, or simply never
 # installed). Branch protection is
 # the server-enforced backstop: the default branch advances only via PR/merge;
-# direct + force pushes are rejected by GitHub itself. Both recipes delegate to
-# the portable, ecosystem-neutral dev-tooling/branch-protection.sh (the single
-# source of truth) — `just` is the mandated runner and the recipes carry no
-# logic of their own, exactly like the worktree-* recipes above.
+# direct + force pushes are rejected by GitHub itself.
+#
+# The two `protect-default-branch` (INSTALLER) and `check-branch-protection`
+# (VERIFIER / "tripwire") recipes are SINGLE-SOURCED from the livespec-dev-tooling
+# package's canonical `branch-protection.just` fragment, installed into
+# `dev-tooling/branch-protection.just` by `just install-worktree-pack` (run from
+# `bootstrap` and CI) and IMPORTED here — so this repo no longer copies the recipe
+# text into its own justfile. Both recipes are ecosystem-neutral one-line
+# pass-throughs onto the portable, ecosystem-neutral dev-tooling/branch-protection.sh
+# (the single source of truth) — `just` is the mandated runner and the recipes
+# carry no logic of their own, exactly like the worktree-* recipes above.
 #
 # `protect-default-branch` (the INSTALLER) establishes baseline protection on a
 # fresh repo (requires an admin-scoped gh token); it is idempotent and
@@ -104,17 +111,19 @@ import? 'dev-tooling/worktree.just'
 # LIVESPEC_BRANCH_PROTECTION_CHECK severity lever (fail [default] | warn | skip).
 # The authoritative bite belongs to the Fleet-time conformance/orchestrator
 # tier, where an admin token exists.
+#
+# OPTIONAL import (`import?`, NOT plain `import`): `dev-tooling/branch-protection.just`
+# is gitignored + installed (written by `install-worktree-pack`, never
+# tracked-committed), so it is ABSENT in a fresh clone until `just bootstrap`
+# runs. A plain `import` of a missing file makes `just` fail to parse the
+# ENTIRE justfile — which would brick `just bootstrap` on a fresh clone. The
+# optional `import?` silently no-ops while the file is absent (the
+# protect-default-branch / check-branch-protection recipes simply aren't
+# available until `install-worktree-pack` materializes the fragment) and
+# resolves once installed.
 # ---------------------------------------------------------------
 
-# Establish baseline GitHub branch protection on the default branch (requires an
-# admin-scoped gh token). Idempotent + non-weakening; FORCE=1 resets to baseline.
-protect-default-branch:
-    ./dev-tooling/branch-protection.sh apply
-
-# Verify the default branch is protected (the server-side tripwire). Fail-closed
-# but capability-aware; tune via LIVESPEC_BRANCH_PROTECTION_CHECK=fail|warn|skip.
-check-branch-protection:
-    ./dev-tooling/branch-protection.sh check
+import? 'dev-tooling/branch-protection.just'
 
 # ---------------------------------------------------------------
 # First-time setup.

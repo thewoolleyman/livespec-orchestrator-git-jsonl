@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.4.0](https://github.com/thewoolleyman/livespec-orchestrator-git-jsonl/compare/v0.3.0...v0.4.0) (2026-07-03)
+
+
+### Features
+
+* self-heal credentials at the bin bootstrap chokepoint ([2044c3b](https://github.com/thewoolleyman/livespec-orchestrator-git-jsonl/commit/2044c3bb3d526968139edd03a58e422c443e4926))
+
+
+### Bug Fixes
+
+* carry acceptance_criteria + notes in the git-jsonl work-item schema ([9d50738](https://github.com/thewoolleyman/livespec-orchestrator-git-jsonl/commit/9d50738df9375e45e8202440de27158d8634be8c))
+* remove BEADS_DOLT_PASSWORD self-heal from git-jsonl bin bootstrap ([5f9c255](https://github.com/thewoolleyman/livespec-orchestrator-git-jsonl/commit/5f9c255ae97562c25e864700c4fb99eaca3ca3bb))
+
 ## [0.3.0](https://github.com/thewoolleyman/livespec-orchestrator-git-jsonl/compare/v0.2.0...v0.3.0) (2026-06-29)
 
 

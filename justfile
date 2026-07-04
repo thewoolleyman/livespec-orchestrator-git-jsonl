@@ -197,10 +197,10 @@ bootstrap:
 ensure-plugins:
     claude plugin marketplace add --scope project thewoolleyman/livespec@release
     claude plugin marketplace add --scope project thewoolleyman/livespec-driver-claude@release
-    claude plugin marketplace add --scope project thewoolleyman/livespec-orchestrator-git-jsonl@release
+    claude plugin marketplace add --scope project thewoolleyman/livespec-orchestrator-beads-fabro@release
     claude plugin install -s project livespec@livespec
     claude plugin install -s project livespec@livespec-driver-claude
-    claude plugin install -s project livespec-orchestrator-git-jsonl@livespec-orchestrator-git-jsonl
+    claude plugin install -s project livespec-orchestrator-beads-fabro@livespec-orchestrator-beads-fabro
 
 # Idempotent host-wide Codex plugin provisioning. Codex does not support
 # project-scoped plugin enablement, so these registrations intentionally land in
@@ -216,13 +216,13 @@ ensure-codex-plugins:
     fi
     codex plugin marketplace add thewoolleyman/livespec --ref release
     codex plugin marketplace add thewoolleyman/livespec-driver-codex --ref release
-    codex plugin marketplace add thewoolleyman/livespec-orchestrator-git-jsonl --ref release
+    codex plugin marketplace add thewoolleyman/livespec-orchestrator-beads-fabro --ref release
     codex plugin marketplace upgrade livespec
     codex plugin marketplace upgrade livespec-driver-codex
-    codex plugin marketplace upgrade livespec-orchestrator-git-jsonl
+    codex plugin marketplace upgrade livespec-orchestrator-beads-fabro
     codex plugin add livespec@livespec
     codex plugin add livespec@livespec-driver-codex
-    codex plugin add livespec-orchestrator-git-jsonl@livespec-orchestrator-git-jsonl
+    codex plugin add livespec-orchestrator-beads-fabro@livespec-orchestrator-beads-fabro
 
 # ---------------------------------------------------------------
 # Aggregate check — canonical full-set stamped at copier-copy time.

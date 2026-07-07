@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.0](https://github.com/thewoolleyman/livespec-orchestrator-git-jsonl/compare/v0.4.0...v0.5.0) (2026-07-07)
+
+
+### Features
+
+* add needs-attention binding coverage ([58fb942](https://github.com/thewoolleyman/livespec-orchestrator-git-jsonl/commit/58fb942f1a867aa56211195b15755989b2090762))
+
 ## [0.4.0](https://github.com/thewoolleyman/livespec-orchestrator-git-jsonl/compare/v0.3.0...v0.4.0) (2026-07-03)
 
 

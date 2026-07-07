@@ -172,6 +172,9 @@ ban-relative-imports = "all"
 ".claude-plugin/scripts/livespec_orchestrator_git_jsonl/migration/merge_evidence_backfill.py" = [
     "S603", "S607", "S404",
 ]
+".claude-plugin/scripts/_vendor/livespec_runtime/hygiene_scan.py" = [
+    "S603", "S607", "S404",
+]
 
 # ---------------------------------------------------------------------------
 # Pyright — strict + seven strict-plus diagnostics. Per
@@ -184,6 +187,7 @@ include = [".claude-plugin/scripts", "dev-tooling"]
 exclude = ["**/_vendor/**", "**/__pycache__/**"]
 pythonVersion = "3.10.16"
 typeCheckingMode = "strict"
+extraPaths = [".claude-plugin/scripts/_vendor"]
 
 reportUnusedCallResult = "error"
 reportImplicitOverride = "error"

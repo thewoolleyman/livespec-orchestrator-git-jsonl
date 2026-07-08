@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.1](https://github.com/thewoolleyman/livespec-orchestrator-git-jsonl/compare/v0.5.0...v0.5.1) (2026-07-08)
+
+
+### Bug Fixes
+
+* **needs-attention:** inline spec-next candidates ([d25e525](https://github.com/thewoolleyman/livespec-orchestrator-git-jsonl/commit/d25e525d03d187e74219c539b38d25de1c787575))
+
 ## [0.5.0](https://github.com/thewoolleyman/livespec-orchestrator-git-jsonl/compare/v0.4.0...v0.5.0) (2026-07-07)
 
 

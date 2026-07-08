@@ -135,6 +135,34 @@ CROSS-CUTTING
 22. NO RUNTIME FORK (D14). Verify `livespec_runtime` is consumed, never
     branched/flagged to serve both git-jsonl and beads-fabro.
 
+Required watcher loop:
+
+- Start a watcher loop as one of your first actions, before waiting on the
+  driver or any child agent. Manual one-off polling is not sufficient for this
+  role; the loop is how the reviewer keeps reviewing while the driver works,
+  waits on CI, or idles at maintainer input.
+- The loop must capture the watched pane, check for new PR/worktree activity,
+  and re-read live ledger state for the active `make-git-jsonl-real` epic or
+  child when relevant. Keep it running until the maintainer explicitly stops the
+  review, the watched session is explicitly stood down, or the plan thread
+  closes with independently verified evidence.
+- Use short output windows so the reviewer session stays usable. A concrete
+  starting point:
+
+```sh
+while true; do
+  printf '\n--- make-git-jsonl-real-review %s ---\n' "$(date -Is)"
+  tmux capture-pane -t <PANE_TARGET> -p -S -80 | tail -140
+  git -C /data/projects/livespec-orchestrator-git-jsonl worktree list \
+    --porcelain | sed -n '1,120p'
+  gh pr list --repo thewoolleyman/livespec-orchestrator-git-jsonl \
+    --state open --limit 10 --json number,title,headRefName,updatedAt,url
+  /data/projects/1password-env-wrapper/with-livespec-env.sh \
+    bd -C /data/projects/livespec show <epic-id> | sed -n '1,80p'
+  sleep 120
+done
+```
+
 Message-delivery discipline:
 
 - Poll the watched pane every 15–30s while active; every ~5 min while idle

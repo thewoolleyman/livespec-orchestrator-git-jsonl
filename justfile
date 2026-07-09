@@ -307,6 +307,7 @@ check:
         check-no-raise-outside-io
         check-no-todo-registry
         check-no-write-direct
+        check-partition-completeness
         check-pbt-coverage-pure-modules
         check-per-file-coverage
         check-plugin-resolution
@@ -997,3 +998,6 @@ migrate-beads beads_jsonl out_jsonl:
     uv run python3 .claude-plugin/scripts/bin/migrate_beads.py \
         --beads-jsonl {{beads_jsonl}} \
         --work-items-out {{out_jsonl}}
+
+check-partition-completeness:
+    uv run python -m livespec_dev_tooling.checks.partition_completeness

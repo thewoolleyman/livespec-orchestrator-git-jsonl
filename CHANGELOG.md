@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.4](https://github.com/thewoolleyman/livespec-orchestrator-git-jsonl/compare/v0.5.3...v0.5.4) (2026-07-10)
+
+
+### Bug Fixes
+
+* split file lloc offenders ([dc3a0a7](https://github.com/thewoolleyman/livespec-orchestrator-git-jsonl/commit/dc3a0a77cf378870f75bdf361a75a54238915b22))
+
 ## [0.5.3](https://github.com/thewoolleyman/livespec-orchestrator-git-jsonl/compare/v0.5.2...v0.5.3) (2026-07-10)
 
 

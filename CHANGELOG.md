@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.3](https://github.com/thewoolleyman/livespec-orchestrator-git-jsonl/compare/v0.5.2...v0.5.3) (2026-07-10)
+
+
+### Bug Fixes
+
+* restore honest writes; stop no_write_direct .buffer.write dodge ([5e44bf1](https://github.com/thewoolleyman/livespec-orchestrator-git-jsonl/commit/5e44bf18dba60a45982f6da344ebeecda70cfb6b))
+
 ## [0.5.2](https://github.com/thewoolleyman/livespec-orchestrator-git-jsonl/compare/v0.5.1...v0.5.2) (2026-07-10)
 
 

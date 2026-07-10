@@ -416,7 +416,3 @@ def _git_ok(*, repo_dir: Path, args: list[str]) -> bool:
         check=False,
     )
     return completed.returncode == 0
-
-
-if __name__ == "__main__":
-    raise SystemExit(main())

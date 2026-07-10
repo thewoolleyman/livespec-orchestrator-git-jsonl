@@ -457,29 +457,18 @@ def test_honors_canonical_branch_flag(
     assert audit.merge_sha == work_sha
 
 
-def test_module_is_invocable_as_a_script(tmp_path: Path) -> None:
-    """The __main__ guard threads main()'s exit code to the shell."""
-    module_path = (
+def test_wrapper_is_invocable_as_a_script(tmp_path: Path) -> None:
+    """The bin wrapper threads main()'s exit code to the shell."""
+    wrapper_path = (
         Path(__file__).resolve().parents[3]
         / ".claude-plugin"
         / "scripts"
-        / "livespec_orchestrator_git_jsonl"
-        / "migration"
+        / "bin"
         / "merge_evidence_backfill.py"
     )
-    # The plugin package lives under `.claude-plugin/scripts`; the shared
-    # `livespec_runtime` it imports is vendored under `_vendor`. A direct
-    # module invocation bypasses the shebang wrappers' `_bootstrap`, so both
-    # roots must be on PYTHONPATH (the same two entries pytest's `pythonpath`
-    # config supplies during collection).
-    scripts_dir = module_path.parents[2]
-    env = {
-        "PATH": os.environ["PATH"],
-        "PYTHONPATH": os.pathsep.join([str(scripts_dir), str(scripts_dir / "_vendor")]),
-    }
     completed = subprocess.run(
-        [sys.executable, str(module_path), "--path", str(tmp_path / "absent.jsonl")],
-        env=env,
+        [sys.executable, str(wrapper_path), "--path", str(tmp_path / "absent.jsonl")],
+        env={"PATH": os.environ["PATH"]},
         capture_output=True,
         text=True,
         check=False,

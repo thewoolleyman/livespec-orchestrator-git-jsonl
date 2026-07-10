@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.2](https://github.com/thewoolleyman/livespec-orchestrator-git-jsonl/compare/v0.5.1...v0.5.2) (2026-07-10)
+
+
+### Bug Fixes
+
+* add migration entry wrappers ([e09232f](https://github.com/thewoolleyman/livespec-orchestrator-git-jsonl/commit/e09232f8488576cc641d1e7734693bb534a55e27))
+
 ## [0.5.1](https://github.com/thewoolleyman/livespec-orchestrator-git-jsonl/compare/v0.5.0...v0.5.1) (2026-07-08)
 
 

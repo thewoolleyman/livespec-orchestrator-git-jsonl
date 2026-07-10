@@ -13,8 +13,8 @@ __all__: list[str] = ["bootstrap"]
 
 def bootstrap() -> None:
     if sys.version_info < (3, 10):
-        _write_stderr(
-            message="livespec-orchestrator-git-jsonl requires Python 3.10+; install via uv.\n"
+        _ = sys.stderr.write(
+            "livespec-orchestrator-git-jsonl requires Python 3.10+; install via uv.\n"
         )
         raise SystemExit(127)
     bundle_scripts = Path(__file__).resolve().parent.parent
@@ -23,7 +23,3 @@ def bootstrap() -> None:
         path_str = str(path)
         if path_str not in sys.path:
             sys.path.insert(0, path_str)
-
-
-def _write_stderr(*, message: str) -> None:
-    _ = sys.stderr.buffer.write(message.encode("utf-8"))

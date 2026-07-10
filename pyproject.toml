@@ -258,6 +258,18 @@ commands_trees = [
     ".claude-plugin/scripts/livespec_orchestrator_git_jsonl/checks",
     ".claude-plugin/scripts/livespec_orchestrator_git_jsonl/migration",
 ]
+# Supervisor surfaces the `no_write_direct` check file-scope-exempts: each owns
+# a documented stdout/stderr contract that MUST bypass the structlog-only rule.
+# `bin/_bootstrap.py` writes the pre-import Python-version-check message to
+# stderr before the vendored structlog is importable (mirrors livespec core's
+# `supervisor_entry_files` entry). `.claude/hooks/beads_access_guard.py` emits
+# its PreToolUse block-decision JSON to stdout as the Claude Code hook protocol
+# output — that IS its contract, not a diagnostic, so it stays a direct stdout
+# write rather than a structlog log line.
+supervisor_entry_files = [
+    ".claude-plugin/scripts/bin/_bootstrap.py",
+    ".claude/hooks/beads_access_guard.py",
+]
 # Repo-root-relative path prefixes the `tests_no_subprocess_spawn` check
 # (canonical, added in livespec-dev-tooling v0.14.1) exempts from its
 # test-spawned-Python-subprocess scan. The sole entry genuinely needs a real

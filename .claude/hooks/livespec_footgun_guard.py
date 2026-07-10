@@ -200,7 +200,7 @@ def _deny(*, reason: str, command: str) -> None:
             ),
         }
     }
-    _ = sys.stdout.buffer.write(json.dumps(payload).encode("utf-8"))
+    print(json.dumps(payload))
     sys.exit(0)
 
 

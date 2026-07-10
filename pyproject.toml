@@ -172,6 +172,9 @@ ban-relative-imports = "all"
 ".claude-plugin/scripts/livespec_orchestrator_git_jsonl/migration/merge_evidence_backfill.py" = [
     "S603", "S607", "S404",
 ]
+".claude-plugin/scripts/livespec_orchestrator_git_jsonl/migration/merge_evidence_git.py" = [
+    "S603", "S607", "S404",
+]
 ".claude-plugin/scripts/_vendor/livespec_runtime/hygiene_scan.py" = [
     "S603", "S607", "S404",
 ]

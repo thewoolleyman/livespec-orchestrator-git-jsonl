@@ -152,7 +152,3 @@ def main(*, argv: list[str] | None = None) -> int:
     verb = "would migrate" if dry_run else "migrated"
     _ = sys.stdout.write(f"{verb} {migrated} record(s) in {target_path}\n")
     return 0
-
-
-if __name__ == "__main__":
-    raise SystemExit(main())

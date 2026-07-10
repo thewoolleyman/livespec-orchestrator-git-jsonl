@@ -64,7 +64,7 @@ def main() -> int:
     command = _command_of(payload=payload)
     if not command or not should_block(command=command):
         return 0
-    sys.stdout.write(
+    _ = sys.stdout.buffer.write(
         json.dumps(
             {
                 "decision": "block",
@@ -75,7 +75,7 @@ def main() -> int:
                     "permissionDecisionReason": _REASON,
                 },
             }
-        )
+        ).encode("utf-8")
     )
     return 0
 

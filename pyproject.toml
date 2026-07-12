@@ -254,6 +254,16 @@ exclude_also = [
 ]
 
 [tool.livespec_dev_tooling]
+# Phase-2 file_lloc FLIP (fleet-check-coverage epic livespec-i5ebqd, track
+# livespec-t4e0). With this key true, `file_lloc` hard-gates this repo's WHOLE
+# git-derived first-party-.py universe (>250 LLOC => error/exit 1) instead of
+# WARN-only. Safe to arm: the Phase-1 burndown brought every file under the
+# ceiling (verified: `check-file-lloc` exits 0 with the gate armed, zero files
+# >250); a 201-250 file still WARNs (soft band), a >250 file fails. Severity
+# increase, never a bypass (per livespec .ai/ci-gate-discipline.md and the
+# fleet-check-coverage golden rules). Requires livespec-dev-tooling >= v0.39.0
+# (the flip lever; this repo is pinned at v0.39.0 above).
+file_lloc_hard_gate = true
 source_trees = [".claude-plugin/scripts/livespec_orchestrator_git_jsonl"]
 io_trees = [".claude-plugin/scripts/livespec_orchestrator_git_jsonl/io"]
 commands_trees = [

@@ -29,7 +29,7 @@
   },
   "livespec-orchestrator-beads-fabro": {
     "format": "beads",
-    "compat": { "livespec": ">=0.1.0,<1.0.0", "pinned": "v0.8.0" },
+    "compat": { "livespec": ">=0.1.0,<1.0.0", "pinned": "v0.9.0" },
     // Per-repo beads tenant CONNECTION block. tenant==database==server_user is the
     // load-bearing tenant identity (one Dolt name serves all three). The issue-ID
     // `prefix` is bd's short server-stored create-prefix (`bd-gj`), DECOUPLED from

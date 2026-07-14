@@ -220,6 +220,7 @@ jobs:
       matrix:
         target:
           - check-aggregate-completeness
+          - check-local-memory-drift-audit
           # check-no-direct-destructive-cli greps the agent-facing trees
           # for direct destructive-default CLI invocations
           # (livespec/SPECIFICATION/non-functional-requirements.md

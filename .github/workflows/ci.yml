@@ -245,6 +245,7 @@ jobs:
           # the range carries no product .py and trivially passes; on
           # master pushes the range is empty.
           - check-red-green-replay
+          - check-self-hosted-routing
           - check-tool-backed-check-completeness
           # fleet-ci-aggregate-coverage (epic livespec-cf4bcu) slice 5:
           # canonical aggregate slugs that inspect NON-.py surfaces

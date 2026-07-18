@@ -23,6 +23,9 @@ from livespec_orchestrator_git_jsonl.commands.attention_impl import (
 from livespec_orchestrator_git_jsonl.commands.attention_impl import (
     impl_next as _impl_next,
 )
+from livespec_orchestrator_git_jsonl.commands.attention_impl import (
+    not_factory_safe_items as _not_factory_safe_items,
+)
 from livespec_orchestrator_git_jsonl.commands.spec_next_bridge import (
     CoreRootBases,
     SpecNextSeam,
@@ -138,6 +141,12 @@ def build_attention(
                 index=index,
                 manifest=manifest,
             ),
+        )
+        + _not_factory_safe_items(
+            repo=repo_name,
+            project_root=project_root,
+            work_items_path=work_items_path,
+            items=materialized,
         )
         + hygiene_scan
     )

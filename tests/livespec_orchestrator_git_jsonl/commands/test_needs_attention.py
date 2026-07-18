@@ -76,6 +76,7 @@ def _item(
     status: str,
     rank: str = "a2",
     blocked_reason: str | None = None,
+    factory_safety: str | None = None,
 ) -> WorkItem:
     return WorkItem(
         id=id_,
@@ -94,6 +95,7 @@ def _item(
         audit=None,
         superseded_by=None,
         blocked_reason=blocked_reason,  # type: ignore[arg-type]
+        factory_safety=factory_safety,  # type: ignore[arg-type]
     )
 
 
@@ -139,6 +141,35 @@ def test_build_attention_drops_spec_item_when_spec_next_none(
     attention = build_attention(project_root=tmp_path, repo_name="repo", include_hygiene=False)
 
     assert [item.kind for item in attention if item.kind == "spec"] == []
+
+
+def test_build_attention_surfaces_not_factory_safe_items(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    _stub_spec_next(monkeypatch, output=None)
+    path = tmp_path / "work-items.jsonl"
+    append_work_item(
+        path=path,
+        item=_item(
+            id_="gj-host",
+            status="ready",
+            factory_safety="needs-host-secrets",
+        ),
+    )
+
+    attention = build_attention(
+        project_root=tmp_path,
+        repo_name="repo",
+        work_items_path=str(path),
+        include_hygiene=False,
+    )
+
+    host_only = [item for item in attention if item.kind == "host-only"]
+    assert len(host_only) == 1
+    assert host_only[0].id == "host-only:factory-safety:gj-host"
+    assert host_only[0].source_ref.work_item == "gj-host"
+    assert host_only[0].handoff.kind == "shell"
+    assert "list-work-items" in host_only[0].handoff.command
 
 
 def test_render_json_wraps_flat_attention_array(

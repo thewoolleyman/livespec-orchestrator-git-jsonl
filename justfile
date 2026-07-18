@@ -394,15 +394,19 @@ check:
             failed+=("$t")
         fi
     done
-    # Worktree Discipline Pack — server-side branch-protection tripwire. Run as
-    # a direct step rather than a canonical-slug target because it reads
-    # external GitHub state, not the source tree. Capability-aware: it SKIPs
-    # with a named notice when it cannot read protection (no gh / no admin
-    # token / non-GitHub origin), so it never makes `just check` flaky; it is
-    # fail-closed where it CAN read (honouring LIVESPEC_BRANCH_PROTECTION_CHECK).
-    printf '\n::: branch-protection (server-side worktree-discipline tripwire)\n'
-    if ! ./dev-tooling/branch-protection.sh check; then
-        failed+=("branch-protection")
+    # Worktree Discipline Pack — server-side branch-protection tripwire. Run
+    # after materializing the gitignored canonical pack so a fresh checkout
+    # exercises the shared installer path instead of relying on aged untracked
+    # dev-tooling leftovers. The nested `just check-branch-protection` process
+    # reparses the justfile after the importable fragment exists.
+    printf '\n::: just install-worktree-pack (branch-protection prerequisite)\n'
+    if ! just install-worktree-pack; then
+        failed+=("install-worktree-pack")
+    else
+        printf '\n::: just check-branch-protection (server-side worktree-discipline tripwire)\n'
+        if ! just check-branch-protection; then
+            failed+=("check-branch-protection")
+        fi
     fi
     if [[ ${#failed[@]} -gt 0 ]]; then
         printf '\nFailed targets (%d):\n' "${#failed[@]}"

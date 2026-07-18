@@ -450,7 +450,7 @@ check-coverage:
         uv run coverage report --fail-under=100
     else
         echo ":: check-coverage: no .coverage data file (CI standalone job); running the suite"
-        uv run pytest -n auto --cov --cov-branch --cov-config=pyproject.toml --cov-report=term-missing
+        uv run pytest -n 4 --cov --cov-branch --cov-config=pyproject.toml --cov-report=term-missing
     fi
 
 # ---------------------------------------------------------------
@@ -760,7 +760,7 @@ check-per-file-coverage:
     # bypasses pyproject.toml's `[tool.coverage.run]` (including
     # the `omit = [...]` carve-outs). Pass the config path
     # explicitly so the vendored-tree exclusion takes effect.
-    uv run pytest -n auto --cov --cov-branch --cov-config=pyproject.toml --cov-report=term-missing
+    uv run pytest -n 4 --cov --cov-branch --cov-config=pyproject.toml --cov-report=term-missing
     uv run python -m livespec_dev_tooling.checks.per_file_coverage
 
 # Shared baseline plugin-resolution Verifier (Conformance-Pattern,

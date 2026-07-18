@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.5](https://github.com/thewoolleyman/livespec-orchestrator-git-jsonl/compare/v0.5.4...v0.5.5) (2026-07-18)
+
+
+### Bug Fixes
+
+* persist factory safety in git-jsonl store ([ae16646](https://github.com/thewoolleyman/livespec-orchestrator-git-jsonl/commit/ae16646cec7e4fc0ab1c1f0ac521c2e9733fbf7b))
+
 ## [0.5.4](https://github.com/thewoolleyman/livespec-orchestrator-git-jsonl/compare/v0.5.3...v0.5.4) (2026-07-10)
 
 

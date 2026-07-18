@@ -44,6 +44,7 @@ def parse_work_item(*, path: Path, line_number: int, parsed: dict[str, Any]) -> 
         supersedes=parsed.get("supersedes"),
         acceptance_criteria=parsed.get("acceptance_criteria"),
         notes=parsed.get("notes"),
+        factory_safety=parsed.get("factory_safety"),
     )
 
 
@@ -63,13 +64,13 @@ def _parse_audit(*, path: Path, line_number: int, parsed: dict[str, Any]) -> Aud
 def work_item_to_dict(*, item: WorkItem) -> dict[str, Any]:
     payload = asdict(item)
     payload["depends_on"] = list(item.depends_on)
-    # The abstract WorkItem (livespec-runtime v0.8.0) carries three policy
-    # fields this JSONL realization does NOT persist — admission_policy /
-    # acceptance_policy / blocked_reason govern the orchestrator
-    # Dispatcher/admission this plugin does not run (the nineteen-key record
-    # schema carries none of these three policy fields).
-    # Drop them so a serialized record matches the closed-key schema and
-    # round-trips through the read-path validator.
+    # The abstract WorkItem carries three policy fields this JSONL realization
+    # does NOT persist — admission_policy / acceptance_policy /
+    # blocked_reason govern the orchestrator Dispatcher/admission this plugin
+    # does not run. factory_safety is different: a git-jsonl-backed
+    # dispatcher must preserve that classification to enforce factory mode.
+    # Drop only the non-persisted policy fields so serialized records match
+    # the closed-key schema and round-trip through the read-path validator.
     for policy_key in ("admission_policy", "acceptance_policy", "blocked_reason"):
         _ = payload.pop(policy_key, None)
     if item.audit is not None:

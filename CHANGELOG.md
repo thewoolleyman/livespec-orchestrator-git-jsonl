@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.6.0](https://github.com/thewoolleyman/livespec-orchestrator-git-jsonl/compare/v0.5.6...v0.6.0) (2026-07-18)
+
+
+### Features
+
+* surface factory safety attention ([77694e0](https://github.com/thewoolleyman/livespec-orchestrator-git-jsonl/commit/77694e0a9bc0c73d3dea64e624e08a34f4190778))
+
 ## [0.5.6](https://github.com/thewoolleyman/livespec-orchestrator-git-jsonl/compare/v0.5.5...v0.5.6) (2026-07-18)
 
 

@@ -173,6 +173,13 @@ jobs:
         if: needs.setup.outputs.py_changed == 'true'
         uses: actions/checkout@v4
 
+      # Hosted routing checks out the workspace as uid 1001 while steps run git as
+      # ROOT in the baked container → "dubious ownership" (exit 128). Write
+      # safe.directory to the global gitconfig so even resolve_repo_root reads it.
+      - name: Trust workspace for git (hosted container root-vs-checkout uid)
+        if: needs.setup.outputs.py_changed == 'true'
+        run: git config --global --add safe.directory '*'
+
       # Tools are baked into the image; `mise install` is a near-no-op that just
       # confirms the pinned versions. A fresh container does not TRUST the repo
       # .mise.toml, so `mise trust` is required for the shims to resolve.
@@ -224,6 +231,11 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      # Trust the workspace for git under hosted routing (uid-1001 checkout vs
+      # root-in-container). See check-python for the full rationale.
+      - name: Trust workspace for git (hosted container root-vs-checkout uid)
+        run: git config --global --add safe.directory '*'
 
       - name: mise trust + install (baked tools — install is a near-no-op)
         run: |
@@ -347,6 +359,11 @@ jobs:
           # the other metadata entries.
           fetch-depth: 0
 
+      # Trust the workspace for git under hosted routing (uid-1001 checkout vs
+      # root-in-container). See check-python for the full rationale.
+      - name: Trust workspace for git (hosted container root-vs-checkout uid)
+        run: git config --global --add safe.directory '*'
+
       - name: mise trust + install (baked tools — install is a near-no-op)
         run: |
           mise trust
@@ -438,6 +455,12 @@ jobs:
         if: needs.setup.outputs.py_changed == 'true'
         uses: actions/checkout@v4
 
+      # Trust the workspace for git under hosted routing (uid-1001 checkout vs
+      # root-in-container). See check-python for the full rationale.
+      - name: Trust workspace for git (hosted container root-vs-checkout uid)
+        if: needs.setup.outputs.py_changed == 'true'
+        run: git config --global --add safe.directory '*'
+
       # Tools are baked into the image; `mise install` is a near-no-op that just
       # confirms the pinned versions. A fresh container does not TRUST the repo
       # .mise.toml, so `mise trust` is required for the shims to resolve.
@@ -472,6 +495,11 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      # Trust the workspace for git under hosted routing (uid-1001 checkout vs
+      # root-in-container). See check-python for the full rationale.
+      - name: Trust workspace for git (hosted container root-vs-checkout uid)
+        run: git config --global --add safe.directory '*'
 
       - name: mise trust + install (baked tools — install is a near-no-op)
         run: |

@@ -69,7 +69,7 @@ dev = [
 # conformance Protocol — see store.py / types.py / _ids.py).
 [tool.uv.sources]
 livespec-dev-tooling = { git = "https://github.com/thewoolleyman/livespec-dev-tooling.git", tag = "v0.48.2" }
-livespec-runtime = { git = "https://github.com/thewoolleyman/livespec-runtime.git", tag = "v0.9.2" }
+livespec-runtime = { git = "https://github.com/thewoolleyman/livespec-runtime.git", tag = "v0.10.0" }
 
 # ---------------------------------------------------------------------------
 # Ruff — sole linter, formatter, import-sorter, complexity checker.
@@ -177,6 +177,12 @@ ban-relative-imports = "all"
 ]
 ".claude-plugin/scripts/_vendor/livespec_runtime/hygiene_scan.py" = [
     "S603", "S607", "S404",
+]
+".claude-plugin/scripts/_vendor/livespec_runtime/hygiene_scan_context.py" = [
+    "S603",
+]
+".claude-plugin/scripts/_vendor/livespec_runtime/cross_repo/providers/github.py" = [
+    "S603", "S607",
 ]
 
 # ---------------------------------------------------------------------------

@@ -6,6 +6,7 @@ from typing import Any, get_args
 from livespec_orchestrator_git_jsonl.errors import SchemaViolationError
 from livespec_orchestrator_git_jsonl.store_audit_schema import validate_audit_payload
 from livespec_orchestrator_git_jsonl.types import (
+    FactorySafety,
     Origin,
     Resolution,
     WorkItem,
@@ -53,7 +54,14 @@ _WORK_ITEM_REQUIRED_KEYS = frozenset(
 # was removed in v013 (`rank` is the sole ordering authority); it is NOT a
 # tolerated key — a record carrying it is a schema violation.
 _WORK_ITEM_OPTIONAL_KEYS = frozenset(
-    {"rank", "spec_commitment_hint", "supersedes", "acceptance_criteria", "notes"}
+    {
+        "rank",
+        "spec_commitment_hint",
+        "supersedes",
+        "acceptance_criteria",
+        "notes",
+        "factory_safety",
+    }
 )
 
 _WORK_ITEM_ALLOWED_KEYS = _WORK_ITEM_REQUIRED_KEYS | _WORK_ITEM_OPTIONAL_KEYS
@@ -147,6 +155,15 @@ def validate_work_item_payload(
         parsed=parsed,
         key="notes",
     )
+    factory_safety_value = parsed.get("factory_safety")
+    if factory_safety_value is not None:
+        _check_in_enum(
+            path=path,
+            line_number=line_number,
+            field_name="factory_safety",
+            value=factory_safety_value,
+            allowed=get_args(FactorySafety),
+        )
 
 
 def _check_required_keys(

@@ -21,6 +21,7 @@ from pathlib import Path
 from livespec_runtime.work_items.types import (
     AuditRecord,
     DependsOnRaw,
+    FactorySafety,
     Origin,
     Resolution,
     WorkItem,
@@ -31,6 +32,7 @@ from livespec_runtime.work_items.types import (
 __all__: list[str] = [
     "AuditRecord",
     "DependsOnRaw",
+    "FactorySafety",
     "FileDiff",
     "Origin",
     "Resolution",

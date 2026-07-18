@@ -18,6 +18,9 @@ from livespec_runtime.needs_attention import (
 from livespec_orchestrator_git_jsonl.commands._config import resolve_store_config
 from livespec_orchestrator_git_jsonl.commands._cross_repo import load_manifest
 from livespec_orchestrator_git_jsonl.commands.attention_impl import (
+    host_only_items as _host_only_items,
+)
+from livespec_orchestrator_git_jsonl.commands.attention_impl import (
     human_valves as _human_valves,
 )
 from livespec_orchestrator_git_jsonl.commands.attention_impl import (
@@ -122,7 +125,13 @@ def build_attention(
         scan_hygiene(repo_path=project_root, repo_name=repo_name) if include_hygiene else []
     )
     return (
-        compose_needs_attention(
+        _host_only_items(
+            repo_name=repo_name,
+            project_root=project_root,
+            work_items_path=work_items_path,
+            items=materialized,
+        )
+        + compose_needs_attention(
             repo=repo_name,
             spec_next=_spec_next(project_root=project_root),
             impl_next=_impl_next(

@@ -3,6 +3,7 @@
 import shlex
 from pathlib import Path
 
+from livespec_runtime.attention_item import AttentionItem, Handoff, SourceRef
 from livespec_runtime.cross_repo.types import CrossRepoManifest
 from livespec_runtime.needs_attention import ImplNextOutput, WorkItemHumanValveLane
 from livespec_runtime.work_items.lifecycle import lane_of
@@ -10,7 +11,7 @@ from livespec_runtime.work_items.lifecycle import lane_of
 from livespec_orchestrator_git_jsonl.commands.next import rank_candidates
 from livespec_orchestrator_git_jsonl.types import WorkItem
 
-__all__: list[str] = ["human_valves", "impl_next"]
+__all__: list[str] = ["host_only_items", "human_valves", "impl_next"]
 
 _PLUGIN_NAME = "livespec-orchestrator-git-jsonl"
 
@@ -33,6 +34,33 @@ def impl_next(
         command=_next_command(project_root=project_root, work_items_path=work_items_path),
         urgency="medium",
     )
+
+
+def host_only_items(
+    *,
+    repo_name: str,
+    project_root: Path,
+    work_items_path: str | None,
+    items: list[WorkItem],
+) -> list[AttentionItem]:
+    return [
+        AttentionItem(
+            id=f"host-only:{item.factory_safety}:{item.id}",
+            kind="host-only",
+            urgency="high",
+            summary=f"Host-only work-item {item.id}: {item.title}",
+            source_ref=SourceRef(repo=repo_name, work_item=item.id),
+            handoff=Handoff(
+                kind="shell",
+                command=_list_work_items_command(
+                    project_root=project_root,
+                    work_items_path=work_items_path,
+                ),
+            ),
+        )
+        for item in items
+        if item.factory_safety is not None
+    ]
 
 
 def human_valves(

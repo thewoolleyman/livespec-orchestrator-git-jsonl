@@ -76,6 +76,7 @@ def _item(
     status: str,
     rank: str = "a2",
     blocked_reason: str | None = None,
+    factory_safety: str | None = None,
 ) -> WorkItem:
     return WorkItem(
         id=id_,
@@ -94,6 +95,7 @@ def _item(
         audit=None,
         superseded_by=None,
         blocked_reason=blocked_reason,  # type: ignore[arg-type]
+        factory_safety=factory_safety,  # type: ignore[arg-type]
     )
 
 
@@ -129,6 +131,39 @@ def test_build_attention_composes_available_git_jsonl_primitives(
     assert attention[0].handoff.action_id == "approve:gj-approval"
     assert "list-work-items" in attention[0].handoff.command
     assert "next" in attention[3].handoff.command
+
+
+def test_build_attention_surfaces_factory_safety_as_host_only_item(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    _stub_spec_next(monkeypatch, output=None)
+    path = tmp_path / "work-items.jsonl"
+    append_work_item(
+        path=path,
+        item=_item(
+            id_="gj-host",
+            status="ready",
+            rank="a1",
+            factory_safety="needs-host-secrets",
+        ),
+    )
+
+    attention = build_attention(
+        project_root=tmp_path,
+        repo_name="repo",
+        work_items_path=str(path),
+        include_hygiene=False,
+    )
+
+    assert len(attention) == 2
+    host_only = attention[0]
+    assert host_only.id == "host-only:needs-host-secrets:gj-host"
+    assert host_only.kind == "host-only"
+    assert host_only.source_ref.work_item == "gj-host"
+    assert host_only.handoff.kind == "shell"
+    assert "list-work-items" in host_only.handoff.command
+    assert "--work-items-path" in host_only.handoff.command
+    assert attention[1].id == "impl:gj-host"
 
 
 def test_build_attention_drops_spec_item_when_spec_next_none(

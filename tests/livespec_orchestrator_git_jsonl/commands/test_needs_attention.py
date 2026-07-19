@@ -172,6 +172,37 @@ def test_build_attention_surfaces_not_factory_safe_items(
     assert "list-work-items" in host_only[0].handoff.command
 
 
+def test_build_attention_omits_not_factory_safe_item_from_impl_lane(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """A not-factory-safe item is host-routed, never recommended for dispatch.
+
+    Parity with the beads-fabro sibling, whose `impl_next` filters
+    `factory_safety is None` at the same call site. Without this the same
+    work-item is surfaced BOTH as `host-only` ("do not dispatch") and as
+    `impl` ("drive this next") in one output. git-jsonl runs no dispatcher,
+    so no admission gate backstops a wrong recommendation.
+    """
+    _stub_spec_next(monkeypatch, output=None)
+    path = tmp_path / "work-items.jsonl"
+    # gj-host outranks gj-safe, so it would win the impl lane if not filtered.
+    append_work_item(
+        path=path,
+        item=_item(id_="gj-host", status="ready", factory_safety="needs-host-secrets"),
+    )
+    append_work_item(path=path, item=_item(id_="gj-safe", status="ready", rank="a5"))
+
+    attention = build_attention(
+        project_root=tmp_path,
+        repo_name="repo",
+        work_items_path=str(path),
+        include_hygiene=False,
+    )
+
+    impl = [item for item in attention if item.kind == "impl"]
+    assert [item.source_ref.work_item for item in impl] == ["gj-safe"]
+
+
 def test_render_json_wraps_flat_attention_array(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:

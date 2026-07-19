@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.6.1](https://github.com/thewoolleyman/livespec-orchestrator-git-jsonl/compare/v0.6.0...v0.6.1) (2026-07-19)
+
+
+### Bug Fixes
+
+* exclude not-factory-safe items from the git-jsonl impl lane ([d4c4999](https://github.com/thewoolleyman/livespec-orchestrator-git-jsonl/commit/d4c4999654b0908a9e3ffcc1a6f58442dad84d81))
+
 ## [0.6.0](https://github.com/thewoolleyman/livespec-orchestrator-git-jsonl/compare/v0.5.6...v0.6.0) (2026-07-18)
 
 

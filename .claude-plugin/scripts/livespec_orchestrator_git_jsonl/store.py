@@ -29,7 +29,8 @@ silently.
 Public API:
 
 - `read_work_items(*, path)` — stream WorkItem records from the file
-  (raises StoreFileMissingError if absent).
+  (a missing file rides the IOFailure track as StoreFileMissingError;
+  this function does not raise).
 - `append_work_item(*, path, item)` — write a new record line.
 - `work_item_record_identity(*, item)` — re-exported canonical
   per-record identity (`sha256:<hex-digest>` over the canonical

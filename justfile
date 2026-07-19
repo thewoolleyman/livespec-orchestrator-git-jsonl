@@ -31,6 +31,15 @@
 # after a full green aggregate pass for the pre-push short-circuit.
 skip := ""
 
+# pytest-xdist worker count, lane-aware (plan/fabro-ci-image-factoring cont.5).
+# GitHub-hosted CI (LIVESPEC_CI_LANE=hosted, set from CI_RUNNER_LABELS in
+# ci.yml) uses all cores (-n auto — GH runners are small + dedicated). The
+# self-hosted/local lane throttles to LIVESPEC_TEST_PARALLELISM, defaulting to
+# 25% of cores (min 1) so a shared host is never oversubscribed. Tune per host
+# by exporting LIVESPEC_TEST_PARALLELISM (a dedicated box can set it to `auto`
+# or a high N); local dev may export it to speed a laptop run.
+test_nprocs := if env_var_or_default("LIVESPEC_CI_LANE", "local") == "hosted" { "auto" } else { env_var_or_default("LIVESPEC_TEST_PARALLELISM", `c=$(nproc 2>/dev/null || echo 4); n=$(( c / 4 )); [ "$n" -ge 1 ] || n=1; echo "$n"`) }
+
 # Default to listing targets when no recipe is invoked.
 default:
     @just --list
@@ -456,7 +465,7 @@ check-coverage:
         uv run coverage report --fail-under=100
     else
         echo ":: check-coverage: no .coverage data file (CI standalone job); running the suite"
-        uv run pytest -n 4 --cov --cov-branch --cov-config=pyproject.toml --cov-report=term-missing
+        uv run pytest -n {{test_nprocs}} --cov --cov-branch --cov-config=pyproject.toml --cov-report=term-missing
     fi
 
 # ---------------------------------------------------------------
@@ -766,7 +775,7 @@ check-per-file-coverage:
     # bypasses pyproject.toml's `[tool.coverage.run]` (including
     # the `omit = [...]` carve-outs). Pass the config path
     # explicitly so the vendored-tree exclusion takes effect.
-    uv run pytest -n 4 --cov --cov-branch --cov-config=pyproject.toml --cov-report=term-missing
+    uv run pytest -n {{test_nprocs}} --cov --cov-branch --cov-config=pyproject.toml --cov-report=term-missing
     uv run python -m livespec_dev_tooling.checks.per_file_coverage
 
 # Shared baseline plugin-resolution Verifier (Conformance-Pattern,

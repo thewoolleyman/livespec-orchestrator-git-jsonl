@@ -24,9 +24,11 @@ from livespec_orchestrator_git_jsonl.commands.needs_attention import (
     render_json,
     render_markdown,
 )
+from livespec_orchestrator_git_jsonl.errors import SchemaViolationError
 from livespec_orchestrator_git_jsonl.store import append_work_item
 from livespec_orchestrator_git_jsonl.types import WorkItem
 from livespec_runtime.needs_attention import SpecNextOutput
+from returns.io import IOFailure
 
 
 def _stub_spec_output() -> SpecNextOutput:
@@ -470,3 +472,20 @@ def test_resolve_spec_next_command_substitutes_default_template(tmp_path: Path) 
     command = _resolve_spec_next_command(project_root=project, bases=_empty_bases(tmp_path))
 
     assert command == ["python3", f"{sibling}/scripts/bin/next.py"]
+
+
+def test_main_raises_non_missing_store_failure(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    error = SchemaViolationError(
+        path=tmp_path / "work-items.jsonl",
+        line_number=1,
+        detail="bad store",
+    )
+    monkeypatch.setattr(
+        "livespec_orchestrator_git_jsonl.commands.needs_attention.read_work_items",
+        lambda **_kwargs: IOFailure(error),
+    )
+
+    with pytest.raises(SchemaViolationError):
+        main(argv=["--project-root", str(tmp_path)])

@@ -22,10 +22,11 @@ import argparse
 import sys
 from pathlib import Path
 
+from returns.io import IOSuccess
+from returns.unsafe import unsafe_perform_io
+
 from livespec_orchestrator_git_jsonl.commands._config import resolve_store_config
 from livespec_orchestrator_git_jsonl.errors import (
-    MalformedRecordLineError,
-    SchemaViolationError,
     StoreFileMissingError,
 )
 from livespec_orchestrator_git_jsonl.store import (
@@ -57,15 +58,10 @@ def main(*, argv: list[str] | None = None) -> int:
     wi_notes: list[str] = []
     wi_failures: list[str] = []
     wi_heads: dict[str, tuple[WorkItem, ...]] = {}
-    try:
-        wi_heads = reduce_work_item_heads(records=read_work_items(path=config.work_items_path))
-    except StoreFileMissingError:
-        wi_notes = [_absent_note(kind="work-items", path=config.work_items_path)]
-    except (MalformedRecordLineError, SchemaViolationError) as exc:
-        wi_failures = [
-            _unreadable_failure(kind="work-items", path=config.work_items_path, detail=str(exc))
-        ]
-    else:
+    records_result = read_work_items(path=config.work_items_path)
+    if isinstance(records_result, IOSuccess):
+        records = unsafe_perform_io(records_result.unwrap())
+        wi_heads = reduce_work_item_heads(records=iter(records))
         wi_failures = _divergence_failures(
             kind="work-items",
             path=config.work_items_path,
@@ -74,6 +70,16 @@ def main(*, argv: list[str] | None = None) -> int:
                 for eid, group in wi_heads.items()
             },
         )
+    else:
+        failure = unsafe_perform_io(records_result.failure())
+        if isinstance(failure, StoreFileMissingError):
+            wi_notes = [_absent_note(kind="work-items", path=config.work_items_path)]
+        else:
+            wi_failures = [
+                _unreadable_failure(
+                    kind="work-items", path=config.work_items_path, detail=str(failure)
+                )
+            ]
 
     failures = wi_failures
     for line in (*wi_notes, *failures):

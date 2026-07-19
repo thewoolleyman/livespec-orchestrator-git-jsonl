@@ -45,10 +45,11 @@ import sys
 from pathlib import Path
 from typing import Any, Final, cast
 
+from returns.io import IOSuccess
+from returns.unsafe import unsafe_perform_io
+
 from livespec_orchestrator_git_jsonl.commands._config import resolve_store_config
 from livespec_orchestrator_git_jsonl.errors import (
-    MalformedRecordLineError,
-    SchemaViolationError,
     StoreFileMissingError,
 )
 from livespec_orchestrator_git_jsonl.io._jsonc import loads_optional
@@ -91,31 +92,11 @@ def main(*, argv: list[str] | None = None) -> int:
         else resolve_canonical_branch(repo_dir=repo_dir)
     )
 
-    notes: list[str] = []
-    failures: list[str] = []
-    index: dict[str, WorkItem] = {}
-    try:
-        index = materialize_work_items(records=read_work_items(path=config.work_items_path))
-    except StoreFileMissingError:
-        notes = [f"{_CHECK_NAME}: work-items store '{config.work_items_path}' absent — skipped"]
-    except (MalformedRecordLineError, SchemaViolationError) as exc:
-        failures = [
-            f"{_CHECK_NAME}: work-items store '{config.work_items_path}' unreadable — {exc}"
-        ]
-    else:
-        for item_id in sorted(index):
-            item = index[item_id]
-            if item.status != "done":
-                continue
-            message = _item_violation(
-                repo_dir=repo_dir,
-                item=item,
-                index=index,
-                canonical_branch=canonical_branch,
-            )
-            if message is not None:
-                prefix = f"{_CHECK_NAME}: work-items store '{config.work_items_path}'"
-                failures.append(f"{prefix}: work-item '{item_id}': {message}")
+    notes, failures = _load_findings(
+        work_items_path=config.work_items_path,
+        repo_dir=repo_dir,
+        canonical_branch=canonical_branch,
+    )
 
     for line in (*notes, *failures):
         _ = sys.stdout.write(line + "\n")
@@ -126,6 +107,49 @@ def main(*, argv: list[str] | None = None) -> int:
         f"{_CHECK_NAME}: OK — every closed work-item carries conformant merge-evidence\n"
     )
     return 0
+
+
+def _load_findings(
+    *, work_items_path: Path, repo_dir: Path, canonical_branch: str
+) -> tuple[list[str], list[str]]:
+    records_result = read_work_items(path=work_items_path)
+    if isinstance(records_result, IOSuccess):
+        records = unsafe_perform_io(records_result.unwrap())
+        index = materialize_work_items(records=iter(records))
+        return [], _evidence_failures(
+            work_items_path=work_items_path,
+            repo_dir=repo_dir,
+            canonical_branch=canonical_branch,
+            index=index,
+        )
+    failure = unsafe_perform_io(records_result.failure())
+    if isinstance(failure, StoreFileMissingError):
+        return [f"{_CHECK_NAME}: work-items store '{work_items_path}' absent — skipped"], []
+    return [], [f"{_CHECK_NAME}: work-items store '{work_items_path}' unreadable — {failure}"]
+
+
+def _evidence_failures(
+    *,
+    work_items_path: Path,
+    repo_dir: Path,
+    canonical_branch: str,
+    index: dict[str, WorkItem],
+) -> list[str]:
+    failures: list[str] = []
+    for item_id in sorted(index):
+        item = index[item_id]
+        if item.status != "done":
+            continue
+        message = _item_violation(
+            repo_dir=repo_dir,
+            item=item,
+            index=index,
+            canonical_branch=canonical_branch,
+        )
+        if message is not None:
+            prefix = f"{_CHECK_NAME}: work-items store '{work_items_path}'"
+            failures.append(f"{prefix}: work-item '{item_id}': {message}")
+    return failures
 
 
 def resolve_canonical_branch(*, repo_dir: Path) -> str:

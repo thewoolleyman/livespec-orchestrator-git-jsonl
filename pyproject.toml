@@ -80,6 +80,7 @@ livespec-runtime = { git = "https://github.com/thewoolleyman/livespec-runtime.gi
 
 [tool.ruff]
 line-length = 100
+force-exclude = true
 extend-exclude = [".claude/hooks/**", "**/_vendor/**", "**/__pycache__/**", "mutants/**"]
 
 [tool.ruff.lint]
@@ -113,6 +114,7 @@ select = [
     "ISC",   # flake8-implicit-str-concat
     "T20",   # flake8-print — bans print/pprint
     "S",     # flake8-bandit — security anti-patterns
+    "BLE",   # flake8-blind-except — expected failures ride Result rails
 ]
 ignore = [
     "ISC001",  # implicit-str-concat on one line; conflicts with the formatter
@@ -136,6 +138,8 @@ ban-relative-imports = "all"
 "shelve" = { msg = "arbitrary-code-execution surface on load(); use JSON / JSONC" }
 
 [tool.ruff.lint.per-file-ignores]
+# Third-party vendored dependency: keep upstream bytes untouched.
+".claude-plugin/scripts/_vendor/returns/**.py" = ["ALL"]
 # Shebang-wrapper contract: shebang → docstring → `from _bootstrap import
 # bootstrap` → `bootstrap()` → `from <pkg>.<...> import main` →
 # `raise SystemExit(main())`. The post-bootstrap() import structurally

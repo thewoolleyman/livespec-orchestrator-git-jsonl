@@ -5,6 +5,7 @@ from pathlib import Path
 from livespec_orchestrator_git_jsonl.store_codec import work_item_to_dict
 from livespec_orchestrator_git_jsonl.store_schema import parse_work_item
 from livespec_orchestrator_git_jsonl.types import WorkItem
+from returns.result import Success
 
 
 def _item() -> WorkItem:
@@ -33,7 +34,8 @@ def test_store_schema_parse_work_item_wrapper(tmp_path: Path) -> None:
 
     parsed = parse_work_item(path=tmp_path / "work-items.jsonl", line_number=1, parsed=payload)
 
-    assert parsed == item
+    assert isinstance(parsed, Success)
+    assert parsed.unwrap() == item
 
 
 def test_store_schema_work_item_to_dict_wrapper() -> None:

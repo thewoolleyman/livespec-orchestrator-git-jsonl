@@ -21,6 +21,12 @@
       "upstream_url": "https://github.com/thewoolleyman/livespec-runtime",
       "upstream_ref": "v0.11.0",
       "vendored_at": "2026-07-18T21:02:21Z"
+    },
+    {
+      "name": "returns",
+      "upstream_url": "https://github.com/dry-python/returns",
+      "upstream_ref": "0.26.0",
+      "vendored_at": "2026-07-19T04:40:00Z"
     }
   ]
 }

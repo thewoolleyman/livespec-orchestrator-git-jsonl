@@ -5,8 +5,10 @@ from pathlib import Path
 
 import pytest
 from livespec_orchestrator_git_jsonl.commands.list_work_items import main
+from livespec_orchestrator_git_jsonl.errors import SchemaViolationError
 from livespec_orchestrator_git_jsonl.store import append_work_item
 from livespec_orchestrator_git_jsonl.types import AuditRecord, WorkItem
+from returns.io import IOFailure
 
 
 def _item(
@@ -373,3 +375,20 @@ def test_main_with_spec_commitment_hint_filter_combines_with_gap_id(
     assert rc == 0
     assert "li-a" in captured.out
     assert "li-b" not in captured.out
+
+
+def test_main_raises_non_missing_store_failure(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    error = SchemaViolationError(
+        path=tmp_path / "work-items.jsonl",
+        line_number=1,
+        detail="bad store",
+    )
+    monkeypatch.setattr(
+        "livespec_orchestrator_git_jsonl.commands.list_work_items.read_work_items",
+        lambda **_kwargs: IOFailure(error),
+    )
+
+    with pytest.raises(SchemaViolationError):
+        main(argv=["--project-root", str(tmp_path)])

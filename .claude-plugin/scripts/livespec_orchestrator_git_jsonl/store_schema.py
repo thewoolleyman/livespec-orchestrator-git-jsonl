@@ -3,6 +3,8 @@
 from pathlib import Path
 from typing import Any, get_args
 
+from returns.result import Failure, Result, Success
+
 from livespec_orchestrator_git_jsonl.errors import SchemaViolationError
 from livespec_orchestrator_git_jsonl.store_audit_schema import validate_audit_payload
 from livespec_orchestrator_git_jsonl.types import (
@@ -72,98 +74,122 @@ def validate_work_item_payload(
     path: Path,
     line_number: int,
     parsed: dict[str, Any],
-) -> None:
-    """Verify a work-item dict satisfies the schema contract.
+) -> Result[None, SchemaViolationError]:
+    """Verify a work-item dict satisfies the schema contract on the Result railway."""
+    error = _work_item_schema_error(path=path, line_number=line_number, parsed=parsed)
+    if error is not None:
+        return Failure(error)
+    return Success(None)
 
-    Shared by the read path (parse) and the write path (append).
-    Raises SchemaViolationError on any deviation; returns None on
-    success. The `line_number=0` sentinel is used by the append path
-    to indicate the validation happened pre-write, not against a
-    specific line on disk.
-    """
-    _check_required_keys(
+
+def _work_item_schema_error(
+    *, path: Path, line_number: int, parsed: dict[str, Any]
+) -> SchemaViolationError | None:
+    required_or_enum = _required_or_enum_error(
+        path=path,
+        line_number=line_number,
+        parsed=parsed,
+    )
+    if required_or_enum is not None:
+        return required_or_enum
+    audit = _audit_error(path=path, line_number=line_number, parsed=parsed)
+    if audit is not None:
+        return audit
+    optional = _optional_fields_error(path=path, line_number=line_number, parsed=parsed)
+    if optional is not None:
+        return optional
+    return _factory_safety_error(path=path, line_number=line_number, parsed=parsed)
+
+
+def _required_or_enum_error(
+    *, path: Path, line_number: int, parsed: dict[str, Any]
+) -> SchemaViolationError | None:
+    required_error = _check_required_keys(
         path=path,
         line_number=line_number,
         parsed=parsed,
         required=_WORK_ITEM_REQUIRED_KEYS,
         optional=_WORK_ITEM_OPTIONAL_KEYS,
     )
-    _check_in_enum(
+    if required_error is not None:
+        return required_error
+    return _first_enum_error(
         path=path,
         line_number=line_number,
-        field_name="type",
-        value=parsed["type"],
-        allowed=get_args(WorkItemType),
+        fields=(
+            ("type", parsed["type"], get_args(WorkItemType)),
+            ("status", parsed["status"], get_args(WorkItemStatus)),
+            ("origin", parsed["origin"], get_args(Origin)),
+            ("resolution", parsed["resolution"], get_args(Resolution)),
+        ),
     )
-    _check_in_enum(
-        path=path,
-        line_number=line_number,
-        field_name="status",
-        value=parsed["status"],
-        allowed=get_args(WorkItemStatus),
-    )
-    _check_in_enum(
-        path=path,
-        line_number=line_number,
-        field_name="origin",
-        value=parsed["origin"],
-        allowed=get_args(Origin),
-    )
-    resolution_value = parsed["resolution"]
-    if resolution_value is not None:
-        _check_in_enum(
+
+
+def _first_enum_error(
+    *,
+    path: Path,
+    line_number: int,
+    fields: tuple[tuple[str, object, tuple[str, ...]], ...],
+) -> SchemaViolationError | None:
+    for field_name, value, allowed in fields:
+        if field_name == "resolution" and value is None:
+            continue
+        enum_error = _check_in_enum(
             path=path,
             line_number=line_number,
-            field_name="resolution",
-            value=resolution_value,
-            allowed=get_args(Resolution),
+            field_name=field_name,
+            value=value,
+            allowed=allowed,
         )
+        if enum_error is not None:
+            return enum_error
+    return None
+
+
+def _audit_error(
+    *, path: Path, line_number: int, parsed: dict[str, Any]
+) -> SchemaViolationError | None:
     audit_value = parsed["audit"]
-    if audit_value is not None:
-        validate_audit_payload(
+    if audit_value is None:
+        return None
+    audit_result = validate_audit_payload(
+        path=path,
+        line_number=line_number,
+        parsed=audit_value,
+    )
+    if isinstance(audit_result, Failure):
+        return audit_result.failure()
+    return None
+
+
+def _optional_fields_error(
+    *, path: Path, line_number: int, parsed: dict[str, Any]
+) -> SchemaViolationError | None:
+    for key in ("rank", "spec_commitment_hint", "supersedes", "acceptance_criteria", "notes"):
+        string_error = _check_optional_string_key(
             path=path,
             line_number=line_number,
-            parsed=audit_value,
+            parsed=parsed,
+            key=key,
         )
-    _check_optional_string_key(
-        path=path,
-        line_number=line_number,
-        parsed=parsed,
-        key="rank",
-    )
-    _check_optional_string_key(
-        path=path,
-        line_number=line_number,
-        parsed=parsed,
-        key="spec_commitment_hint",
-    )
-    _check_optional_string_key(
-        path=path,
-        line_number=line_number,
-        parsed=parsed,
-        key="supersedes",
-    )
-    _check_optional_string_key(
-        path=path,
-        line_number=line_number,
-        parsed=parsed,
-        key="acceptance_criteria",
-    )
-    _check_optional_string_key(
-        path=path,
-        line_number=line_number,
-        parsed=parsed,
-        key="notes",
-    )
+        if string_error is not None:
+            return string_error
+    return None
+
+
+def _factory_safety_error(
+    *, path: Path, line_number: int, parsed: dict[str, Any]
+) -> SchemaViolationError | None:
     factory_safety_value = parsed.get("factory_safety")
-    if factory_safety_value is not None:
-        _check_in_enum(
-            path=path,
-            line_number=line_number,
-            field_name="factory_safety",
-            value=factory_safety_value,
-            allowed=get_args(FactorySafety),
-        )
+    if factory_safety_value is None:
+        return None
+    return _check_in_enum(
+        path=path,
+        line_number=line_number,
+        field_name="factory_safety",
+        value=factory_safety_value,
+        allowed=get_args(FactorySafety),
+    )
 
 
 def _check_required_keys(
@@ -173,34 +199,25 @@ def _check_required_keys(
     parsed: dict[str, Any],
     required: frozenset[str],
     optional: frozenset[str] = frozenset(),
-) -> None:
-    """Verify `parsed` carries exactly the union of required + optional keys.
-
-    Required keys MUST be present (missing → SchemaViolationError).
-    Optional keys MAY be present (their absence is silent; consumers
-    default the field on read). Any key outside `required | optional`
-    is an unexpected extra and fires SchemaViolationError.
-
-    The optional set lets new schema fields land without rejecting
-    legacy records that pre-date the field — see PC #4 sub-proposal
-    3 (`spec_commitment_hint`).
-    """
+) -> SchemaViolationError | None:
+    """Return a SchemaViolationError when required/extraneous keys fail validation."""
     parsed_keys = frozenset(parsed.keys())
     allowed = required | optional
     missing = required - parsed_keys
     extra = parsed_keys - allowed
     if missing:
-        raise SchemaViolationError(
+        return SchemaViolationError(
             path=path,
             line_number=line_number,
             detail=f"missing required keys: {sorted(missing)}",
         )
     if extra:
-        raise SchemaViolationError(
+        return SchemaViolationError(
             path=path,
             line_number=line_number,
             detail=f"unexpected extra keys: {sorted(extra)}",
         )
+    return None
 
 
 def _check_optional_string_key(
@@ -209,17 +226,18 @@ def _check_optional_string_key(
     line_number: int,
     parsed: dict[str, Any],
     key: str,
-) -> None:
-    """Verify an optional-on-read key, when present, is string or null."""
+) -> SchemaViolationError | None:
+    """Return a SchemaViolationError when an optional string key has the wrong shape."""
     if key not in parsed:
-        return
+        return None
     value = parsed[key]
     if value is not None and not isinstance(value, str):
-        raise SchemaViolationError(
+        return SchemaViolationError(
             path=path,
             line_number=line_number,
             detail=(f"field {key!r} must be string or null, got {type(value).__name__}"),
         )
+    return None
 
 
 def _check_in_enum(
@@ -229,16 +247,19 @@ def _check_in_enum(
     field_name: str,
     value: object,
     allowed: tuple[str, ...],
-) -> None:
+) -> SchemaViolationError | None:
     if value not in allowed:
-        raise SchemaViolationError(
+        return SchemaViolationError(
             path=path,
             line_number=line_number,
             detail=(f"field {field_name!r} value {value!r} not in allowed set {list(allowed)}"),
         )
+    return None
 
 
-def parse_work_item(*, path: Path, line_number: int, parsed: dict[str, Any]) -> WorkItem:
+def parse_work_item(
+    *, path: Path, line_number: int, parsed: dict[str, Any]
+) -> Result[WorkItem, SchemaViolationError]:
     from livespec_orchestrator_git_jsonl.store_codec import parse_work_item as parse
 
     return parse(path=path, line_number=line_number, parsed=parsed)

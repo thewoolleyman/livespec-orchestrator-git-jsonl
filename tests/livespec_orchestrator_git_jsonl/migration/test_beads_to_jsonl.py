@@ -9,6 +9,14 @@ from livespec_orchestrator_git_jsonl.migration.beads_to_jsonl import (
     translate_record,
 )
 from livespec_orchestrator_git_jsonl.store import read_work_items
+from livespec_orchestrator_git_jsonl.types import WorkItem
+from returns.io import IOResult, IOSuccess
+from returns.unsafe import unsafe_perform_io
+
+
+def _read_success(result: IOResult[list[WorkItem], Exception]) -> list[WorkItem]:
+    assert isinstance(result, IOSuccess)
+    return unsafe_perform_io(result.unwrap())
 
 
 def _beads_dict(
@@ -164,7 +172,7 @@ def test_main_writes_records_and_skips_blank_lines(
     captured = capsys.readouterr()
     assert rc == 0
     assert "migrated 2 beads issues" in captured.out
-    written = list(read_work_items(path=out_path))
+    written = _read_success(read_work_items(path=out_path))
     assert [w.id for w in written] == ["li-a", "li-b"]
 
 

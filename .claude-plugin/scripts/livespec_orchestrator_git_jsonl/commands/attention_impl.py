@@ -23,7 +23,10 @@ def impl_next(
     items: list[WorkItem],
     manifest: CrossRepoManifest,
 ) -> ImplNextOutput | None:
-    ranked = rank_candidates(items=items, manifest=manifest)
+    ranked = rank_candidates(
+        items=[item for item in items if item.factory_safety is None],
+        manifest=manifest,
+    )
     if not ranked:
         return None
     candidate = ranked[0]

@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.7.0](https://github.com/thewoolleyman/livespec-orchestrator-git-jsonl/compare/v0.6.1...v0.7.0) (2026-07-19)
+
+
+### Features
+
+* adopt returns railway for jsonl io ([a79ff15](https://github.com/thewoolleyman/livespec-orchestrator-git-jsonl/commit/a79ff15ceac1b7fe684bc1e222e87559baf644fb))
+
 ## [0.6.1](https://github.com/thewoolleyman/livespec-orchestrator-git-jsonl/compare/v0.6.0...v0.6.1) (2026-07-19)
 
 

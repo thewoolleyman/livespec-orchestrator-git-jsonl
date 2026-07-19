@@ -1,11 +1,13 @@
 """Tests for the JSONL store primitives."""
 
 import hashlib
+import inspect
 import json
+from collections.abc import Iterator
 from dataclasses import asdict
 from itertools import permutations
 from pathlib import Path
-from typing import Any
+from typing import Any, get_type_hints
 
 import pytest
 from livespec_orchestrator_git_jsonl.errors import (
@@ -15,6 +17,7 @@ from livespec_orchestrator_git_jsonl.errors import (
 )
 from livespec_orchestrator_git_jsonl.io.store import append_record
 from livespec_orchestrator_git_jsonl.store import (
+    WORK_ITEM_STORE_PROTOCOL_DIVERGENCE_DEPENDS_ON,
     JsonlWorkItemStore,
     append_work_item,
     materialize_work_items,
@@ -1175,22 +1178,31 @@ def test_reduce_work_item_heads_collapses_identical_lines(tmp_path: Path) -> Non
     assert heads == {"li-dup1": (item,)}
 
 
-# -- JsonlWorkItemStore facade (W7 livespec-5g4i; conforms this repo's
-#    backend to livespec_runtime.work_items.store.WorkItemStore) ---------
+# -- JsonlWorkItemStore facade (W7 livespec-5g4i; tracks its temporary
+#    divergence from livespec_runtime.work_items.store.WorkItemStore) -----
 
 
-def test_jsonl_store_conforms_to_work_item_store_protocol(tmp_path: Path) -> None:
-    """The facade is structurally a WorkItemStore at runtime (and statically).
+def test_jsonl_store_tracks_work_item_store_protocol_divergence() -> None:
+    """The facade's temporary protocol divergence is explicit and tracked.
 
-    The module-level `_: type[WorkItemStore] = JsonlWorkItemStore` binding
-    in store.py is pyright's static attestation; this asserts the same
-    conformance at runtime via the runtime-checkable Protocol's instance
-    check is not relied upon — instead we exercise the two contract
-    operations through the typed Protocol view.
+    The vendored WorkItemStore Protocol still exposes unwrapped
+    Iterator/None methods, while the local facade deliberately remains on
+    the IOResult railway until `livespec-shz8` updates the upstream
+    protocol. This guard fails when either side changes so the marker is
+    removed or reconciled instead of silently forgotten.
     """
-    store: WorkItemStore = JsonlWorkItemStore(path=tmp_path / "work-items.jsonl")
-    assert hasattr(store, "read_work_items")
-    assert hasattr(store, "append_work_item")
+    assert WORK_ITEM_STORE_PROTOCOL_DIVERGENCE_DEPENDS_ON == "livespec-shz8"
+    protocol_read = get_type_hints(WorkItemStore.read_work_items)["return"]
+    protocol_append = get_type_hints(WorkItemStore.append_work_item)["return"]
+    facade_read = get_type_hints(JsonlWorkItemStore.read_work_items)["return"]
+    facade_append = get_type_hints(JsonlWorkItemStore.append_work_item)["return"]
+    assert protocol_read == Iterator[WorkItem]
+    assert protocol_append is type(None)
+    assert facade_read == IOResult[list[WorkItem], Exception]
+    assert facade_append == IOResult[None, Exception]
+    assert inspect.signature(JsonlWorkItemStore.append_work_item).parameters["item"].kind is (
+        inspect.Parameter.KEYWORD_ONLY
+    )
 
 
 def test_jsonl_store_append_then_read_round_trips(tmp_path: Path) -> None:
@@ -1215,8 +1227,8 @@ def test_jsonl_store_reads_records_written_by_free_function(tmp_path: Path) -> N
     assert _read_success(store.read_work_items()) == [item]
 
 
-def test_jsonl_store_read_missing_file_raises(tmp_path: Path) -> None:
-    """The facade surfaces the local backend's StoreFileMissingError."""
+def test_jsonl_store_read_missing_file_returns_failure(tmp_path: Path) -> None:
+    """The facade returns the local backend's StoreFileMissingError on the failure track."""
     path = tmp_path / "missing.jsonl"
     store = JsonlWorkItemStore(path=path)
     with pytest.raises(StoreFileMissingError) as excinfo:
@@ -1227,8 +1239,8 @@ def test_jsonl_store_read_missing_file_raises(tmp_path: Path) -> None:
 def test_jsonl_store_append_runs_local_validators(tmp_path: Path) -> None:
     """The facade append goes through the local JSONL-schema validators.
 
-    A bad-enum payload fired through the facade raises the same
-    SchemaViolationError the free-function append path raises, confirming
+    A bad-enum payload fired through the facade returns the same
+    SchemaViolationError the free-function append path returns, confirming
     the facade does not bypass the validation boundary.
     """
     store = JsonlWorkItemStore(path=tmp_path / "work-items.jsonl")

@@ -7,7 +7,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, cast
 
-from returns.io import IOSuccess
+from returns.io import IOFailure, IOSuccess
 from returns.result import Failure
 from returns.unsafe import unsafe_perform_io
 
@@ -78,7 +78,9 @@ def backfill_file(
     if not dry_run and not phase_two_orphans:
         _ = path.write_text(content, encoding="utf-8")
         for transition in transitions:
-            _ = append_work_item(path=path, item=transition)
+            append_result = append_work_item(path=path, item=transition)
+            if isinstance(append_result, IOFailure):
+                raise unsafe_perform_io(append_result.failure())
     return BackfillReport(repaired=repaired, appended=appended, orphans=phase_two_orphans)
 
 

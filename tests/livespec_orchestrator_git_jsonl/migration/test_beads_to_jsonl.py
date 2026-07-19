@@ -10,7 +10,7 @@ from livespec_orchestrator_git_jsonl.migration.beads_to_jsonl import (
 )
 from livespec_orchestrator_git_jsonl.store import read_work_items
 from livespec_orchestrator_git_jsonl.types import WorkItem
-from returns.io import IOResult, IOSuccess
+from returns.io import IOFailure, IOResult, IOSuccess
 from returns.unsafe import unsafe_perform_io
 
 
@@ -174,6 +174,30 @@ def test_main_writes_records_and_skips_blank_lines(
     assert "migrated 2 beads issues" in captured.out
     written = _read_success(read_work_items(path=out_path))
     assert [w.id for w in written] == ["li-a", "li-b"]
+
+
+def test_main_reports_append_failure_without_success(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    beads_path = tmp_path / "issues.jsonl"
+    out_path = tmp_path / "work-items.jsonl"
+    _ = beads_path.write_text(json.dumps(_beads_dict(id_="li-a")) + "\n", encoding="utf-8")
+
+    def fail_append(*, path: Path, item: WorkItem) -> IOResult[None, Exception]:
+        _ = (path, item)
+        return IOFailure(OSError("disk full"))
+
+    monkeypatch.setattr(
+        "livespec_orchestrator_git_jsonl.migration.beads_to_jsonl.append_work_item",
+        fail_append,
+    )
+    rc = main(argv=["--beads-jsonl", str(beads_path), "--work-items-out", str(out_path)])
+    captured = capsys.readouterr()
+    assert rc == 1
+    assert "disk full" in captured.err
+    assert "migrated 1 beads issues" not in captured.out
 
 
 def test_main_skips_non_object_lines(

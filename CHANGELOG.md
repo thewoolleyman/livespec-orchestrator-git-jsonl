@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.7.1](https://github.com/thewoolleyman/livespec-orchestrator-git-jsonl/compare/v0.7.0...v0.7.1) (2026-07-19)
+
+
+### Bug Fixes
+
+* consume migration append failures ([4a9ec01](https://github.com/thewoolleyman/livespec-orchestrator-git-jsonl/commit/4a9ec01a6f68d5e59c20465962b46076a6d25f6d))
+
 ## [0.7.0](https://github.com/thewoolleyman/livespec-orchestrator-git-jsonl/compare/v0.6.1...v0.7.0) (2026-07-19)
 
 

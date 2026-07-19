@@ -42,6 +42,13 @@ from livespec_orchestrator_git_jsonl.types import (
     WorkItemStatus,
     WorkItemType,
 )
+from returns.io import IOResult, IOSuccess
+from returns.unsafe import unsafe_perform_io
+
+
+def _read_success(result: IOResult[list[WorkItem], Exception]) -> list[WorkItem]:
+    assert isinstance(result, IOSuccess)
+    return unsafe_perform_io(result.unwrap())
 
 
 def _run_git(*, args: list[str], cwd: Path) -> str:
@@ -190,7 +197,7 @@ def test_repairs_audit_missing_merge_sha_using_commit_evidence(
     assert rc == 0
     assert "populated audit.merge_sha" in captured.out
     assert path.read_text(encoding="utf-8").count("\n") == 1
-    index = materialize_work_items(records=read_work_items(path=path))
+    index = materialize_work_items(records=iter(_read_success(read_work_items(path=path))))
     audit = index["li-aaa111"].audit
     assert audit is not None
     assert audit.merge_sha == merge_sha
@@ -210,7 +217,7 @@ def test_repairs_with_commit_itself_when_no_merge_commit_exists(
     rc = main(argv=["--path", str(path)])
     _ = capsys.readouterr()
     assert rc == 0
-    index = materialize_work_items(records=read_work_items(path=path))
+    index = materialize_work_items(records=iter(_read_success(read_work_items(path=path))))
     audit = index["li-aaa111"].audit
     assert audit is not None
     assert audit.merge_sha == work_sha
@@ -229,7 +236,7 @@ def test_repairs_empty_merge_sha_and_skips_unusable_candidates(
     rc = main(argv=["--path", str(path)])
     _ = capsys.readouterr()
     assert rc == 0
-    index = materialize_work_items(records=read_work_items(path=path))
+    index = materialize_work_items(records=iter(_read_success(read_work_items(path=path))))
     audit = index["li-aaa111"].audit
     assert audit is not None
     assert audit.merge_sha == work_sha
@@ -246,7 +253,7 @@ def test_repairs_via_id_grep_when_audit_commits_is_empty(
     rc = main(argv=["--path", str(path)])
     _ = capsys.readouterr()
     assert rc == 0
-    index = materialize_work_items(records=read_work_items(path=path))
+    index = materialize_work_items(records=iter(_read_success(read_work_items(path=path))))
     audit = index["li-aaa111"].audit
     assert audit is not None
     assert audit.merge_sha == work_sha
@@ -267,7 +274,7 @@ def test_appends_transition_for_audit_null_closure(
     captured = capsys.readouterr()
     assert rc == 0
     assert "appended merge-evidence transition record" in captured.out
-    heads = reduce_work_item_heads(records=read_work_items(path=path))
+    heads = reduce_work_item_heads(records=iter(_read_success(read_work_items(path=path))))
     assert len(heads["li-aaa111"]) == 1
     head = heads["li-aaa111"][0]
     assert head.supersedes == work_item_record_identity(item=original)
@@ -330,7 +337,7 @@ def test_grandfather_sentinels_both_phases_without_git(
     rc = main(argv=["--path", str(path), "--grandfather"])
     _ = capsys.readouterr()
     assert rc == 0
-    index = materialize_work_items(records=read_work_items(path=path))
+    index = materialize_work_items(records=iter(_read_success(read_work_items(path=path))))
     for item_id in ("li-aaa111", "li-bbb222"):
         audit = index[item_id].audit
         assert audit is not None
@@ -451,7 +458,7 @@ def test_honors_canonical_branch_flag(
     rc = main(argv=["--path", str(path), "--canonical-branch", "release"])
     _ = capsys.readouterr()
     assert rc == 0
-    index = materialize_work_items(records=read_work_items(path=path))
+    index = materialize_work_items(records=iter(_read_success(read_work_items(path=path))))
     audit = index["li-aaa111"].audit
     assert audit is not None
     assert audit.merge_sha == work_sha

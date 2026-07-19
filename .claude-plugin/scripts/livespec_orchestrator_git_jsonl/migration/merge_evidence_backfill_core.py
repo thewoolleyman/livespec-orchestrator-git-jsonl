@@ -7,6 +7,10 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, cast
 
+from returns.io import IOSuccess
+from returns.result import Failure
+from returns.unsafe import unsafe_perform_io
+
 from livespec_orchestrator_git_jsonl.checks.work_item_merge_evidence import (
     GRANDFATHER_MERGE_SHA_SENTINEL,
 )
@@ -74,7 +78,7 @@ def backfill_file(
     if not dry_run and not phase_two_orphans:
         _ = path.write_text(content, encoding="utf-8")
         for transition in transitions:
-            append_work_item(path=path, item=transition)
+            _ = append_work_item(path=path, item=transition)
     return BackfillReport(repaired=repaired, appended=appended, orphans=phase_two_orphans)
 
 
@@ -111,7 +115,10 @@ def _phase_one_repairs(
     repaired: list[str] = []
     orphans: list[str] = []
     for line_number, line in enumerate(lines, start=1):
-        record = parse_jsonl_line(path=path, line_number=line_number, raw_line=line)
+        parsed_record = parse_jsonl_line(path=path, line_number=line_number, raw_line=line)
+        if isinstance(parsed_record, Failure):
+            raise parsed_record.failure()
+        record = parsed_record.unwrap()
         audit_value = record.get("audit")
         if not isinstance(audit_value, dict):
             out_lines.append(line)
@@ -159,7 +166,11 @@ def _phase_two_transitions(
     with tempfile.TemporaryDirectory() as scratch_dir:
         scratch_path = Path(scratch_dir) / "phase-one-preview.jsonl"
         _ = scratch_path.write_text(content, encoding="utf-8")
-        index = materialize_work_items(records=read_work_items(path=scratch_path))
+        records_result = read_work_items(path=scratch_path)
+        if not isinstance(records_result, IOSuccess):
+            raise unsafe_perform_io(records_result.failure())
+        records = unsafe_perform_io(records_result.unwrap())
+        index = materialize_work_items(records=iter(records))
     now = datetime.now(tz=timezone.utc).isoformat(timespec="seconds")
     transitions: list[WorkItem] = []
     appended: list[str] = []

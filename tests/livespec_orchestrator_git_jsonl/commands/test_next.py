@@ -16,8 +16,10 @@ from livespec_orchestrator_git_jsonl.commands.next import (
     main,
     rank_candidates,
 )
+from livespec_orchestrator_git_jsonl.errors import SchemaViolationError
 from livespec_orchestrator_git_jsonl.store import append_work_item
 from livespec_orchestrator_git_jsonl.types import WorkItem
+from returns.io import IOFailure
 
 
 def _item(
@@ -398,3 +400,20 @@ def test_main_offset_zero_is_valid(
     assert rc == 0
     payload = json.loads(captured.out)
     assert payload["pagination"]["offset"] == 0
+
+
+def test_main_raises_non_missing_store_failure(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    error = SchemaViolationError(
+        path=tmp_path / "work-items.jsonl",
+        line_number=1,
+        detail="bad store",
+    )
+    monkeypatch.setattr(
+        "livespec_orchestrator_git_jsonl.commands.next.read_work_items",
+        lambda **_kwargs: IOFailure(error),
+    )
+
+    with pytest.raises(SchemaViolationError):
+        main(argv=["--project-root", str(tmp_path)])

@@ -31,7 +31,6 @@ Output:
 """
 
 import argparse
-import contextlib
 import json
 import sys
 from collections.abc import Callable
@@ -40,6 +39,8 @@ from pathlib import Path
 from typing import Literal
 
 from livespec_runtime.cross_repo.types import CrossRepoManifest
+from returns.io import IOSuccess
+from returns.unsafe import unsafe_perform_io
 
 from livespec_orchestrator_git_jsonl.commands._config import resolve_store_config
 from livespec_orchestrator_git_jsonl.commands._cross_repo import is_item_ready, load_manifest
@@ -75,11 +76,13 @@ def main(*, argv: list[str] | None = None) -> int:
         cwd=project_root,
         work_items_arg=args.work_items_path,
     )
+    records_result = read_work_items(path=config.work_items_path)
     materialized: list[WorkItem] = []
-    with contextlib.suppress(StoreFileMissingError):
-        materialized = list(
-            materialize_work_items(records=read_work_items(path=config.work_items_path)).values()
-        )
+    if isinstance(records_result, IOSuccess):
+        records = unsafe_perform_io(records_result.unwrap())
+        materialized = list(materialize_work_items(records=iter(records)).values())
+    elif not isinstance(unsafe_perform_io(records_result.failure()), StoreFileMissingError):
+        raise unsafe_perform_io(records_result.failure())
     manifest = load_manifest(project_root=project_root)
     filtered = _filter_work_items(
         materialized=materialized,

@@ -71,7 +71,7 @@ def main(*, argv: list[str] | None = None) -> int:
     for record in _iter_beads_records(path=beads_path):
         rank = key_between(a=prev_rank, b=None)
         work_item = translate_record(parsed=record, rank=rank)
-        append_work_item(path=out_path, item=work_item)
+        _ = append_work_item(path=out_path, item=work_item)
         prev_rank = rank
         count += 1
     _ = sys.stdout.write(f"migrated {count} beads issues → {out_path}\n")

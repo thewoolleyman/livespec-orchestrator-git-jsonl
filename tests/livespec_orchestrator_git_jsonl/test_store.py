@@ -13,6 +13,7 @@ from livespec_orchestrator_git_jsonl.errors import (
     SchemaViolationError,
     StoreFileMissingError,
 )
+from livespec_orchestrator_git_jsonl.io.store import append_record
 from livespec_orchestrator_git_jsonl.store import (
     JsonlWorkItemStore,
     append_work_item,
@@ -24,6 +25,20 @@ from livespec_orchestrator_git_jsonl.store import (
 from livespec_orchestrator_git_jsonl.types import AuditRecord, WorkItem
 from livespec_runtime.work_items.rank import BOTTOM_SENTINEL
 from livespec_runtime.work_items.store import WorkItemStore
+from returns.io import IOFailure, IOResult, IOSuccess
+from returns.unsafe import unsafe_perform_io
+
+
+def _read_success(result: IOResult[list[WorkItem], Exception]) -> list[WorkItem]:
+    if isinstance(result, IOFailure):
+        raise unsafe_perform_io(result.failure())
+    assert isinstance(result, IOSuccess)
+    return unsafe_perform_io(result.unwrap())
+
+
+def _append_failure(result: IOResult[None, Exception]) -> Exception:
+    assert isinstance(result, IOFailure)
+    return unsafe_perform_io(result.failure())
 
 
 def _minimal_work_item(
@@ -56,10 +71,19 @@ def _minimal_work_item(
     )
 
 
+def test_append_record_returns_io_failure_on_os_error(tmp_path: Path) -> None:
+    parent_file = tmp_path / "not-a-dir"
+    parent_file.write_text("x", encoding="utf-8")
+
+    failure = _append_failure(append_record(path=parent_file / "store.jsonl", payload={"x": 1}))
+
+    assert isinstance(failure, OSError)
+
+
 def test_read_work_items_missing_file_raises(tmp_path: Path) -> None:
     path = tmp_path / "missing.jsonl"
     with pytest.raises(StoreFileMissingError) as excinfo:
-        list(read_work_items(path=path))
+        _read_success(read_work_items(path=path))
     assert excinfo.value.path == path
 
 
@@ -67,7 +91,7 @@ def test_read_work_items_happy_path(tmp_path: Path) -> None:
     path = tmp_path / "work-items.jsonl"
     item = _minimal_work_item()
     append_work_item(path=path, item=item)
-    items = list(read_work_items(path=path))
+    items = _read_success(read_work_items(path=path))
     assert items == [item]
 
 
@@ -81,7 +105,7 @@ def test_append_work_item_with_audit_roundtrips(tmp_path: Path) -> None:
     )
     item = _minimal_work_item(id_="li-zzz999", status="done", resolution="completed", audit=audit)
     append_work_item(path=path, item=item)
-    [read_back] = list(read_work_items(path=path))
+    [read_back] = _read_success(read_work_items(path=path))
     assert read_back == item
 
 
@@ -89,7 +113,7 @@ def test_read_work_items_empty_line_raises(tmp_path: Path) -> None:
     path = tmp_path / "work-items.jsonl"
     _ = path.write_text("\n", encoding="utf-8")
     with pytest.raises(MalformedRecordLineError) as excinfo:
-        list(read_work_items(path=path))
+        _read_success(read_work_items(path=path))
     assert "empty line" in excinfo.value.detail
 
 
@@ -97,7 +121,7 @@ def test_read_work_items_non_json_raises(tmp_path: Path) -> None:
     path = tmp_path / "work-items.jsonl"
     _ = path.write_text("not-json\n", encoding="utf-8")
     with pytest.raises(MalformedRecordLineError) as excinfo:
-        list(read_work_items(path=path))
+        _read_success(read_work_items(path=path))
     assert "JSON parse error" in excinfo.value.detail
 
 
@@ -105,7 +129,7 @@ def test_read_work_items_non_object_root_raises(tmp_path: Path) -> None:
     path = tmp_path / "work-items.jsonl"
     _ = path.write_text('["array"]\n', encoding="utf-8")
     with pytest.raises(MalformedRecordLineError) as excinfo:
-        list(read_work_items(path=path))
+        _read_success(read_work_items(path=path))
     assert "JSON object" in excinfo.value.detail
 
 
@@ -113,7 +137,7 @@ def test_read_work_items_missing_required_key_raises(tmp_path: Path) -> None:
     path = tmp_path / "work-items.jsonl"
     _ = path.write_text(json.dumps({"id": "li-bbb"}) + "\n", encoding="utf-8")
     with pytest.raises(SchemaViolationError) as excinfo:
-        list(read_work_items(path=path))
+        _read_success(read_work_items(path=path))
     assert "missing required keys" in excinfo.value.detail
 
 
@@ -126,7 +150,7 @@ def test_read_work_items_extra_key_raises(tmp_path: Path) -> None:
     payload["unexpected"] = "value"
     _ = path.write_text(json.dumps(payload) + "\n", encoding="utf-8")
     with pytest.raises(SchemaViolationError) as excinfo:
-        list(read_work_items(path=path))
+        _read_success(read_work_items(path=path))
     assert "unexpected extra keys" in excinfo.value.detail
 
 
@@ -138,7 +162,7 @@ def test_read_work_items_bad_enum_status_raises(tmp_path: Path) -> None:
     payload["status"] = "not-a-real-status"
     _ = path.write_text(json.dumps(payload) + "\n", encoding="utf-8")
     with pytest.raises(SchemaViolationError) as excinfo:
-        list(read_work_items(path=path))
+        _read_success(read_work_items(path=path))
     assert "status" in excinfo.value.detail
 
 
@@ -150,7 +174,7 @@ def test_read_work_items_bad_enum_type_raises(tmp_path: Path) -> None:
     payload["type"] = "not-a-real-type"
     _ = path.write_text(json.dumps(payload) + "\n", encoding="utf-8")
     with pytest.raises(SchemaViolationError) as excinfo:
-        list(read_work_items(path=path))
+        _read_success(read_work_items(path=path))
     assert "type" in excinfo.value.detail
 
 
@@ -162,7 +186,7 @@ def test_read_work_items_bad_enum_origin_raises(tmp_path: Path) -> None:
     payload["origin"] = "not-a-real-origin"
     _ = path.write_text(json.dumps(payload) + "\n", encoding="utf-8")
     with pytest.raises(SchemaViolationError) as excinfo:
-        list(read_work_items(path=path))
+        _read_success(read_work_items(path=path))
     assert "origin" in excinfo.value.detail
 
 
@@ -174,7 +198,7 @@ def test_read_work_items_bad_enum_resolution_raises(tmp_path: Path) -> None:
     payload["resolution"] = "not-a-real-resolution"
     _ = path.write_text(json.dumps(payload) + "\n", encoding="utf-8")
     with pytest.raises(SchemaViolationError) as excinfo:
-        list(read_work_items(path=path))
+        _read_success(read_work_items(path=path))
     assert "resolution" in excinfo.value.detail
 
 
@@ -198,7 +222,7 @@ def test_read_work_items_audit_missing_keys_raises(tmp_path: Path) -> None:
     }
     _ = path.write_text(json.dumps(payload) + "\n", encoding="utf-8")
     with pytest.raises(SchemaViolationError) as excinfo:
-        list(read_work_items(path=path))
+        _read_success(read_work_items(path=path))
     assert "audit object missing keys" in excinfo.value.detail
 
 
@@ -216,7 +240,7 @@ def test_materialize_work_items_supersession_head_wins(tmp_path: Path) -> None:
     append_work_item(path=path, item=second)
     append_work_item(path=path, item=first)
     append_work_item(path=path, item=other)
-    materialized = materialize_work_items(records=read_work_items(path=path))
+    materialized = materialize_work_items(records=iter(_read_success(read_work_items(path=path))))
     assert materialized["li-a"].status == "done"
     assert materialized["li-b"].status == "ready"
 
@@ -232,9 +256,9 @@ def test_append_creates_parent_directory(tmp_path: Path) -> None:
 def test_append_work_item_rejects_bad_enum_status(tmp_path: Path) -> None:
     path = tmp_path / "work-items.jsonl"
     bad = _minimal_work_item(status="not-a-real-status")
-    with pytest.raises(SchemaViolationError) as excinfo:
-        append_work_item(path=path, item=bad)
-    assert "status" in excinfo.value.detail
+    failure = _append_failure(append_work_item(path=path, item=bad))
+    assert isinstance(failure, SchemaViolationError)
+    assert "status" in failure.detail
 
 
 def test_append_work_item_rejects_bad_enum_type(tmp_path: Path) -> None:
@@ -256,9 +280,9 @@ def test_append_work_item_rejects_bad_enum_type(tmp_path: Path) -> None:
         audit=None,
         superseded_by=None,
     )
-    with pytest.raises(SchemaViolationError) as excinfo:
-        append_work_item(path=path, item=item)
-    assert "type" in excinfo.value.detail
+    failure = _append_failure(append_work_item(path=path, item=item))
+    assert isinstance(failure, SchemaViolationError)
+    assert "type" in failure.detail
 
 
 def test_append_work_item_rejects_bad_enum_origin(tmp_path: Path) -> None:
@@ -280,24 +304,24 @@ def test_append_work_item_rejects_bad_enum_origin(tmp_path: Path) -> None:
         audit=None,
         superseded_by=None,
     )
-    with pytest.raises(SchemaViolationError) as excinfo:
-        append_work_item(path=path, item=item)
-    assert "origin" in excinfo.value.detail
+    failure = _append_failure(append_work_item(path=path, item=item))
+    assert isinstance(failure, SchemaViolationError)
+    assert "origin" in failure.detail
 
 
 def test_append_work_item_rejects_bad_enum_resolution(tmp_path: Path) -> None:
     path = tmp_path / "work-items.jsonl"
     bad = _minimal_work_item(status="done", resolution="not-a-real-resolution")
-    with pytest.raises(SchemaViolationError) as excinfo:
-        append_work_item(path=path, item=bad)
-    assert "resolution" in excinfo.value.detail
+    failure = _append_failure(append_work_item(path=path, item=bad))
+    assert isinstance(failure, SchemaViolationError)
+    assert "resolution" in failure.detail
 
 
 def test_append_work_item_does_not_write_on_validation_failure(tmp_path: Path) -> None:
     path = tmp_path / "work-items.jsonl"
     bad = _minimal_work_item(status="not-a-real-status")
-    with pytest.raises(SchemaViolationError):
-        append_work_item(path=path, item=bad)
+    failure = _append_failure(append_work_item(path=path, item=bad))
+    assert isinstance(failure, SchemaViolationError)
     assert not path.exists()
 
 
@@ -332,7 +356,7 @@ def test_append_work_item_with_spec_commitment_hint_roundtrips(tmp_path: Path) -
         spec_commitment_hint="spec-impl-commitment-tracking",
     )
     append_work_item(path=path, item=item)
-    [read_back] = list(read_work_items(path=path))
+    [read_back] = _read_success(read_work_items(path=path))
     assert read_back == item
     assert read_back.spec_commitment_hint == "spec-impl-commitment-tracking"
 
@@ -373,7 +397,7 @@ def test_read_legacy_work_item_without_field_defaults_to_none(tmp_path: Path) ->
         "superseded_by": None,
     }
     _ = path.write_text(json.dumps(legacy_payload) + "\n", encoding="utf-8")
-    [read_back] = list(read_work_items(path=path))
+    [read_back] = _read_success(read_work_items(path=path))
     assert read_back.spec_commitment_hint is None
 
 
@@ -386,7 +410,7 @@ def test_read_work_item_with_non_string_hint_raises(tmp_path: Path) -> None:
     payload["spec_commitment_hint"] = 42
     _ = path.write_text(json.dumps(payload) + "\n", encoding="utf-8")
     with pytest.raises(SchemaViolationError) as excinfo:
-        list(read_work_items(path=path))
+        _read_success(read_work_items(path=path))
     assert "spec_commitment_hint" in excinfo.value.detail
 
 
@@ -411,9 +435,9 @@ def test_append_work_item_rejects_non_string_hint(tmp_path: Path) -> None:
         superseded_by=None,
         spec_commitment_hint=42,  # type: ignore[arg-type]
     )
-    with pytest.raises(SchemaViolationError) as excinfo:
-        append_work_item(path=path, item=bad)
-    assert "spec_commitment_hint" in excinfo.value.detail
+    failure = _append_failure(append_work_item(path=path, item=bad))
+    assert isinstance(failure, SchemaViolationError)
+    assert "spec_commitment_hint" in failure.detail
 
 
 def test_read_work_item_still_rejects_unexpected_extra_keys(tmp_path: Path) -> None:
@@ -425,7 +449,7 @@ def test_read_work_item_still_rejects_unexpected_extra_keys(tmp_path: Path) -> N
     payload["surprise_key"] = "value"
     _ = path.write_text(json.dumps(payload) + "\n", encoding="utf-8")
     with pytest.raises(SchemaViolationError) as excinfo:
-        list(read_work_items(path=path))
+        _read_success(read_work_items(path=path))
     assert "unexpected extra keys" in excinfo.value.detail
 
 
@@ -457,7 +481,7 @@ def test_read_legacy_work_item_without_rank_defaults_to_bottom_sentinel(tmp_path
         "superseded_by": None,
     }
     _ = path.write_text(json.dumps(legacy_payload) + "\n", encoding="utf-8")
-    [read_back] = list(read_work_items(path=path))
+    [read_back] = _read_success(read_work_items(path=path))
     assert read_back.rank == BOTTOM_SENTINEL
     assert read_back.rank == "~"
 
@@ -467,7 +491,7 @@ def test_read_work_item_with_rank_roundtrips(tmp_path: Path) -> None:
     path = tmp_path / "work-items.jsonl"
     item = _minimal_work_item(rank="a3")
     append_work_item(path=path, item=item)
-    [read_back] = list(read_work_items(path=path))
+    [read_back] = _read_success(read_work_items(path=path))
     assert read_back.rank == "a3"
     assert read_back == item
 
@@ -479,7 +503,7 @@ def test_read_work_item_with_empty_rank_defaults_to_bottom_sentinel(tmp_path: Pa
     payload = json.loads(path.read_text(encoding="utf-8"))
     payload["rank"] = ""
     _ = path.write_text(json.dumps(payload) + "\n", encoding="utf-8")
-    [read_back] = list(read_work_items(path=path))
+    [read_back] = _read_success(read_work_items(path=path))
     assert read_back.rank == BOTTOM_SENTINEL
 
 
@@ -491,7 +515,7 @@ def test_read_work_item_with_priority_key_raises(tmp_path: Path) -> None:
     payload["priority"] = 2
     _ = path.write_text(json.dumps(payload) + "\n", encoding="utf-8")
     with pytest.raises(SchemaViolationError) as excinfo:
-        list(read_work_items(path=path))
+        _read_success(read_work_items(path=path))
     assert "unexpected extra keys" in excinfo.value.detail
     assert "priority" in excinfo.value.detail
 
@@ -504,7 +528,7 @@ def test_read_work_item_with_non_string_rank_raises(tmp_path: Path) -> None:
     payload["rank"] = 7
     _ = path.write_text(json.dumps(payload) + "\n", encoding="utf-8")
     with pytest.raises(SchemaViolationError) as excinfo:
-        list(read_work_items(path=path))
+        _read_success(read_work_items(path=path))
     assert "rank" in excinfo.value.detail
 
 
@@ -586,7 +610,7 @@ def test_append_work_item_with_acceptance_criteria_and_notes_roundtrips(
         notes="groomed 2026-07-02; split from the epic",
     )
     append_work_item(path=path, item=item)
-    [read_back] = list(read_work_items(path=path))
+    [read_back] = _read_success(read_work_items(path=path))
     assert read_back == item
     assert read_back.acceptance_criteria == "the gate is green and the feature works"
     assert read_back.notes == "groomed 2026-07-02; split from the epic"
@@ -614,7 +638,7 @@ def test_append_work_item_with_factory_safety_roundtrips(tmp_path: Path) -> None
         factory_safety="needs-host-secrets",
     )
     append_work_item(path=path, item=item)
-    [read_back] = list(read_work_items(path=path))
+    [read_back] = _read_success(read_work_items(path=path))
     payload = json.loads(path.read_text(encoding="utf-8"))
     assert read_back == item
     assert read_back.factory_safety == "needs-host-secrets"
@@ -657,7 +681,7 @@ def test_read_legacy_work_item_without_acceptance_criteria_and_notes_defaults_no
         "supersedes": None,
     }
     _ = path.write_text(json.dumps(legacy_payload) + "\n", encoding="utf-8")
-    [read_back] = list(read_work_items(path=path))
+    [read_back] = _read_success(read_work_items(path=path))
     assert read_back.acceptance_criteria is None
     assert read_back.notes is None
 
@@ -672,7 +696,7 @@ def test_read_work_item_with_non_string_acceptance_criteria_raises(
     payload["acceptance_criteria"] = 7
     _ = path.write_text(json.dumps(payload) + "\n", encoding="utf-8")
     with pytest.raises(SchemaViolationError) as excinfo:
-        list(read_work_items(path=path))
+        _read_success(read_work_items(path=path))
     assert "acceptance_criteria" in excinfo.value.detail
 
 
@@ -684,7 +708,7 @@ def test_read_work_item_with_non_string_notes_raises(tmp_path: Path) -> None:
     payload["notes"] = ["not", "a", "string"]
     _ = path.write_text(json.dumps(payload) + "\n", encoding="utf-8")
     with pytest.raises(SchemaViolationError) as excinfo:
-        list(read_work_items(path=path))
+        _read_success(read_work_items(path=path))
     assert "notes" in excinfo.value.detail
 
 
@@ -769,7 +793,7 @@ def test_append_work_item_with_merge_evidence_roundtrips(tmp_path: Path) -> None
         audit=audit,
     )
     append_work_item(path=path, item=item)
-    [read_back] = list(read_work_items(path=path))
+    [read_back] = _read_success(read_work_items(path=path))
     assert read_back == item
     assert read_back.audit is not None
     assert read_back.audit.merge_sha == "abc123def"
@@ -807,7 +831,7 @@ def test_read_audit_missing_merge_sha_raises(tmp_path: Path) -> None:
     payload = _closed_payload_with_audit(audit=audit)
     _ = path.write_text(json.dumps(payload) + "\n", encoding="utf-8")
     with pytest.raises(SchemaViolationError) as excinfo:
-        list(read_work_items(path=path))
+        _read_success(read_work_items(path=path))
     assert "merge_sha" in excinfo.value.detail
 
 
@@ -817,7 +841,7 @@ def test_read_audit_empty_merge_sha_raises(tmp_path: Path) -> None:
     payload = _closed_payload_with_audit(audit=_audit_payload_dict(merge_sha=""))
     _ = path.write_text(json.dumps(payload) + "\n", encoding="utf-8")
     with pytest.raises(SchemaViolationError) as excinfo:
-        list(read_work_items(path=path))
+        _read_success(read_work_items(path=path))
     assert "merge_sha" in excinfo.value.detail
 
 
@@ -829,7 +853,7 @@ def test_read_audit_non_int_pr_number_raises(tmp_path: Path) -> None:
     payload = _closed_payload_with_audit(audit=audit)
     _ = path.write_text(json.dumps(payload) + "\n", encoding="utf-8")
     with pytest.raises(SchemaViolationError) as excinfo:
-        list(read_work_items(path=path))
+        _read_success(read_work_items(path=path))
     assert "pr_number" in excinfo.value.detail
 
 
@@ -838,7 +862,7 @@ def test_read_audit_with_null_pr_number_roundtrips(tmp_path: Path) -> None:
     path = tmp_path / "work-items.jsonl"
     payload = _closed_payload_with_audit(audit=_audit_payload_dict(pr_number=None))
     _ = path.write_text(json.dumps(payload) + "\n", encoding="utf-8")
-    [read_back] = list(read_work_items(path=path))
+    [read_back] = _read_success(read_work_items(path=path))
     assert read_back.audit is not None
     assert read_back.audit.merge_sha == "abc123"
     assert read_back.audit.pr_number is None
@@ -856,7 +880,7 @@ def test_read_audit_without_pr_number_key_defaults_to_none(tmp_path: Path) -> No
     del audit["pr_number"]
     payload = _closed_payload_with_audit(audit=audit)
     _ = path.write_text(json.dumps(payload) + "\n", encoding="utf-8")
-    [read_back] = list(read_work_items(path=path))
+    [read_back] = _read_success(read_work_items(path=path))
     assert read_back.audit is not None
     assert read_back.audit.merge_sha == "abc123"
     assert read_back.audit.pr_number is None
@@ -915,7 +939,7 @@ def test_append_work_item_with_supersedes_roundtrips(tmp_path: Path) -> None:
     )
     append_work_item(path=path, item=original)
     append_work_item(path=path, item=amendment)
-    read_back = list(read_work_items(path=path))
+    read_back = _read_success(read_work_items(path=path))
     assert read_back == [original, amendment]
     assert read_back[1].supersedes == work_item_record_identity(item=original)
 
@@ -941,7 +965,7 @@ def test_read_legacy_work_item_without_supersedes_defaults_to_none(tmp_path: Pat
         "spec_commitment_hint": None,
     }
     _ = path.write_text(json.dumps(legacy_payload) + "\n", encoding="utf-8")
-    [read_back] = list(read_work_items(path=path))
+    [read_back] = _read_success(read_work_items(path=path))
     assert read_back.supersedes is None
 
 
@@ -953,7 +977,7 @@ def test_read_work_item_with_non_string_supersedes_raises(tmp_path: Path) -> Non
     payload["supersedes"] = 42
     _ = path.write_text(json.dumps(payload) + "\n", encoding="utf-8")
     with pytest.raises(SchemaViolationError) as excinfo:
-        list(read_work_items(path=path))
+        _read_success(read_work_items(path=path))
     assert "supersedes" in excinfo.value.detail
 
 
@@ -961,9 +985,9 @@ def test_append_work_item_rejects_non_string_supersedes(tmp_path: Path) -> None:
     """The append-side validator rejects a non-string supersedes payload."""
     path = tmp_path / "work-items.jsonl"
     bad = _minimal_work_item(supersedes=42)  # type: ignore[arg-type]
-    with pytest.raises(SchemaViolationError) as excinfo:
-        append_work_item(path=path, item=bad)
-    assert "supersedes" in excinfo.value.detail
+    failure = _append_failure(append_work_item(path=path, item=bad))
+    assert isinstance(failure, SchemaViolationError)
+    assert "supersedes" in failure.detail
 
 
 def test_work_item_record_identity_is_sha256_of_canonical_serialization() -> None:
@@ -1010,7 +1034,7 @@ def test_work_item_record_identity_normalizes_legacy_records(tmp_path: Path) -> 
         "superseded_by": None,
     }
     _ = path.write_text(json.dumps(legacy_payload) + "\n", encoding="utf-8")
-    [read_back] = list(read_work_items(path=path))
+    [read_back] = _read_success(read_work_items(path=path))
     assert read_back.rank == BOTTOM_SENTINEL
     explicit = WorkItem(
         id="li-legacy3",
@@ -1070,7 +1094,9 @@ def test_materialize_work_items_is_order_independent(tmp_path: Path) -> None:
         path = tmp_path / f"work-items-{index}.jsonl"
         for record in ordering:
             append_work_item(path=path, item=record)
-        materialized = materialize_work_items(records=read_work_items(path=path))
+        materialized = materialize_work_items(
+            records=iter(_read_success(read_work_items(path=path)))
+        )
         assert materialized == {"li-chain2": c}
 
 
@@ -1086,7 +1112,9 @@ def test_materialize_work_items_divergence_tie_breaks_on_captured_at(tmp_path: P
         path = tmp_path / f"work-items-{index}.jsonl"
         for record in ordering:
             append_work_item(path=path, item=record)
-        assert materialize_work_items(records=read_work_items(path=path)) == {"li-div1": later}
+        assert materialize_work_items(records=iter(_read_success(read_work_items(path=path)))) == {
+            "li-div1": later
+        }
 
 
 def test_materialize_work_items_divergence_tie_breaks_on_identity(tmp_path: Path) -> None:
@@ -1099,7 +1127,9 @@ def test_materialize_work_items_divergence_tie_breaks_on_identity(tmp_path: Path
         path = tmp_path / f"work-items-{index}.jsonl"
         for record in ordering:
             append_work_item(path=path, item=record)
-        assert materialize_work_items(records=read_work_items(path=path)) == {"li-div2": expected}
+        assert materialize_work_items(records=iter(_read_success(read_work_items(path=path)))) == {
+            "li-div2": expected
+        }
 
 
 def test_reduce_work_item_heads_surfaces_divergence(tmp_path: Path) -> None:
@@ -1126,7 +1156,7 @@ def test_reduce_work_item_heads_surfaces_divergence(tmp_path: Path) -> None:
     single = _minimal_work_item(id_="li-sing1")
     for record in (base, left, right, single):
         append_work_item(path=path, item=record)
-    heads = reduce_work_item_heads(records=read_work_items(path=path))
+    heads = reduce_work_item_heads(records=iter(_read_success(read_work_items(path=path))))
     assert heads == {"li-div3": (left, right), "li-sing1": (single,)}
 
 
@@ -1141,7 +1171,7 @@ def test_reduce_work_item_heads_collapses_identical_lines(tmp_path: Path) -> Non
     append_work_item(path=path, item=item)
     line = path.read_text(encoding="utf-8")
     _ = path.write_text(line + line, encoding="utf-8")
-    heads = reduce_work_item_heads(records=read_work_items(path=path))
+    heads = reduce_work_item_heads(records=iter(_read_success(read_work_items(path=path))))
     assert heads == {"li-dup1": (item,)}
 
 
@@ -1168,7 +1198,7 @@ def test_jsonl_store_append_then_read_round_trips(tmp_path: Path) -> None:
     store = JsonlWorkItemStore(path=tmp_path / "work-items.jsonl")
     item = _minimal_work_item(id_="li-facade1")
     store.append_work_item(item=item)
-    assert list(store.read_work_items()) == [item]
+    assert _read_success(store.read_work_items()) == [item]
 
 
 def test_jsonl_store_reads_records_written_by_free_function(tmp_path: Path) -> None:
@@ -1182,7 +1212,7 @@ def test_jsonl_store_reads_records_written_by_free_function(tmp_path: Path) -> N
     item = _minimal_work_item(id_="li-facade2")
     append_work_item(path=path, item=item)
     store = JsonlWorkItemStore(path=path)
-    assert list(store.read_work_items()) == [item]
+    assert _read_success(store.read_work_items()) == [item]
 
 
 def test_jsonl_store_read_missing_file_raises(tmp_path: Path) -> None:
@@ -1190,7 +1220,7 @@ def test_jsonl_store_read_missing_file_raises(tmp_path: Path) -> None:
     path = tmp_path / "missing.jsonl"
     store = JsonlWorkItemStore(path=path)
     with pytest.raises(StoreFileMissingError) as excinfo:
-        list(store.read_work_items())
+        _read_success(store.read_work_items())
     assert excinfo.value.path == path
 
 
@@ -1203,6 +1233,6 @@ def test_jsonl_store_append_runs_local_validators(tmp_path: Path) -> None:
     """
     store = JsonlWorkItemStore(path=tmp_path / "work-items.jsonl")
     bad = _minimal_work_item(status="not-a-real-status")
-    with pytest.raises(SchemaViolationError) as excinfo:
-        store.append_work_item(item=bad)
-    assert "status" in excinfo.value.detail
+    failure = _append_failure(store.append_work_item(item=bad))
+    assert isinstance(failure, SchemaViolationError)
+    assert "status" in failure.detail

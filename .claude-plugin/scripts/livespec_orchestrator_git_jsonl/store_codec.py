@@ -5,53 +5,56 @@ from pathlib import Path
 from typing import Any
 
 from livespec_runtime.work_items.rank import BOTTOM_SENTINEL
+from returns.result import Failure, Result, Success
 
+from livespec_orchestrator_git_jsonl.errors import SchemaViolationError
 from livespec_orchestrator_git_jsonl.types import AuditRecord, WorkItem
 
 __all__: list[str] = ["parse_work_item", "work_item_to_dict"]
 
 
-def parse_work_item(*, path: Path, line_number: int, parsed: dict[str, Any]) -> WorkItem:
+def parse_work_item(
+    *, path: Path, line_number: int, parsed: dict[str, Any]
+) -> Result[WorkItem, SchemaViolationError]:
     from livespec_orchestrator_git_jsonl.store_schema import validate_work_item_payload
 
-    validate_work_item_payload(path=path, line_number=line_number, parsed=parsed)
+    validation = validate_work_item_payload(path=path, line_number=line_number, parsed=parsed)
+    if isinstance(validation, Failure):
+        return Failure(validation.failure())
     audit_value = parsed["audit"]
-    audit_record = (
-        None
-        if audit_value is None
-        else _parse_audit(path=path, line_number=line_number, parsed=audit_value)
+    audit_record: AuditRecord | None = None
+    if audit_value is not None:
+        audit_record = _parse_audit(parsed=audit_value)
+    return Success(
+        WorkItem(
+            id=parsed["id"],
+            type=parsed["type"],
+            status=parsed["status"],
+            title=parsed["title"],
+            description=parsed["description"],
+            origin=parsed["origin"],
+            gap_id=parsed["gap_id"],
+            # Absent OR null/empty `rank` (a legacy pre-v013 line) reads back as
+            # the shared bottom-sentinel; a present non-empty string is taken
+            # verbatim (its str-ness is enforced by `_validate_work_item_payload`).
+            rank=parsed.get("rank") or BOTTOM_SENTINEL,
+            assignee=parsed["assignee"],
+            depends_on=tuple(parsed["depends_on"]),
+            captured_at=parsed["captured_at"],
+            resolution=parsed["resolution"],
+            reason=parsed["reason"],
+            audit=audit_record,
+            superseded_by=parsed["superseded_by"],
+            spec_commitment_hint=parsed.get("spec_commitment_hint"),
+            supersedes=parsed.get("supersedes"),
+            acceptance_criteria=parsed.get("acceptance_criteria"),
+            notes=parsed.get("notes"),
+            factory_safety=parsed.get("factory_safety"),
+        )
     )
-    return WorkItem(
-        id=parsed["id"],
-        type=parsed["type"],
-        status=parsed["status"],
-        title=parsed["title"],
-        description=parsed["description"],
-        origin=parsed["origin"],
-        gap_id=parsed["gap_id"],
-        # Absent OR null/empty `rank` (a legacy pre-v013 line) reads back as
-        # the shared bottom-sentinel; a present non-empty string is taken
-        # verbatim (its str-ness is enforced by `_validate_work_item_payload`).
-        rank=parsed.get("rank") or BOTTOM_SENTINEL,
-        assignee=parsed["assignee"],
-        depends_on=tuple(parsed["depends_on"]),
-        captured_at=parsed["captured_at"],
-        resolution=parsed["resolution"],
-        reason=parsed["reason"],
-        audit=audit_record,
-        superseded_by=parsed["superseded_by"],
-        spec_commitment_hint=parsed.get("spec_commitment_hint"),
-        supersedes=parsed.get("supersedes"),
-        acceptance_criteria=parsed.get("acceptance_criteria"),
-        notes=parsed.get("notes"),
-        factory_safety=parsed.get("factory_safety"),
-    )
 
 
-def _parse_audit(*, path: Path, line_number: int, parsed: dict[str, Any]) -> AuditRecord:
-    from livespec_orchestrator_git_jsonl.store_audit_schema import validate_audit_payload
-
-    validate_audit_payload(path=path, line_number=line_number, parsed=parsed)
+def _parse_audit(*, parsed: dict[str, Any]) -> AuditRecord:
     return AuditRecord(
         verification_timestamp=parsed["verification_timestamp"],
         commits=tuple(parsed["commits"]),

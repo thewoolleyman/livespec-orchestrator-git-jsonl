@@ -45,7 +45,6 @@ number. A non-JSON line raises MalformedRecordLineError. Both are
 EXPECTED errors per the Result-vs-bugs split.
 """
 
-from collections.abc import Iterator
 from pathlib import Path
 from typing import Any
 
@@ -54,7 +53,9 @@ from livespec_runtime.work_items.reduce import (
     reduce_work_item_heads,
     work_item_record_identity,
 )
-from livespec_runtime.work_items.store import WorkItemStore
+from returns.io import IOFailure, IOResult, IOSuccess
+from returns.result import Failure
+from returns.unsafe import unsafe_perform_io
 
 from livespec_orchestrator_git_jsonl.io.store import (
     append_record as _io_append_record,
@@ -76,13 +77,21 @@ __all__: list[str] = [
 ]
 
 
-def read_work_items(*, path: Path) -> Iterator[WorkItem]:
-    """Stream WorkItem records from the JSONL file at `path`."""
-    for line_number, parsed in _iter_records(path=path):
-        yield parse_work_item(path=path, line_number=line_number, parsed=parsed)
+def read_work_items(*, path: Path) -> IOResult[list[WorkItem], Exception]:
+    """Read WorkItem records from the JSONL file at `path` on the IOResult railway."""
+    records_result = _iter_records(path=path)
+    if isinstance(records_result, IOFailure):
+        return IOFailure(unsafe_perform_io(records_result.failure()))
+    work_items: list[WorkItem] = []
+    for line_number, parsed in unsafe_perform_io(records_result.unwrap()):
+        parsed_item = parse_work_item(path=path, line_number=line_number, parsed=parsed)
+        if isinstance(parsed_item, Failure):
+            return IOFailure(parsed_item.failure())
+        work_items.append(parsed_item.unwrap())
+    return IOSuccess(work_items)
 
 
-def append_work_item(*, path: Path, item: WorkItem) -> None:
+def append_work_item(*, path: Path, item: WorkItem) -> IOResult[None, Exception]:
     """Append a single WorkItem as a new line in the JSONL file.
 
     Validates the dict-serialized payload against the same schema the
@@ -92,8 +101,10 @@ def append_work_item(*, path: Path, item: WorkItem) -> None:
     guaranteed to parse back cleanly.
     """
     payload = work_item_to_dict(item=item)
-    validate_work_item_payload(path=path, line_number=0, parsed=payload)
-    _append_record(path=path, payload=payload)
+    validation = validate_work_item_payload(path=path, line_number=0, parsed=payload)
+    if isinstance(validation, Failure):
+        return IOFailure(validation.failure())
+    return _append_record(path=path, payload=payload)
 
 
 class JsonlWorkItemStore:
@@ -111,28 +122,24 @@ class JsonlWorkItemStore:
     def __init__(self, *, path: Path) -> None:
         self._path = path
 
-    def read_work_items(self) -> Iterator[WorkItem]:
-        """Stream every WorkItem record the backing JSONL file holds."""
+    def read_work_items(self) -> IOResult[list[WorkItem], Exception]:
+        """Read every WorkItem record the backing JSONL file holds."""
         return read_work_items(path=self._path)
 
-    def append_work_item(self, *, item: WorkItem) -> None:
+    def append_work_item(self, *, item: WorkItem) -> IOResult[None, Exception]:
         """Append a single WorkItem record to the backing JSONL file."""
-        append_work_item(path=self._path, item=item)
+        return append_work_item(path=self._path, item=item)
 
-
-# Static conformance assertion: pyright rejects this binding if
-# JsonlWorkItemStore stops satisfying the WorkItemStore Protocol.
-_: type[WorkItemStore] = JsonlWorkItemStore
 
 _REDUCTION_EXPORTS = (materialize_work_items, reduce_work_item_heads, work_item_record_identity)
 
 
-def _iter_records(*, path: Path) -> Iterator[tuple[int, dict[str, Any]]]:
-    yield from _io_iter_records(path=path)
+def _iter_records(*, path: Path) -> IOResult[list[tuple[int, dict[str, Any]]], Exception]:
+    return _io_iter_records(path=path)
 
 
-def _append_record(*, path: Path, payload: dict[str, Any]) -> None:
-    _io_append_record(path=path, payload=payload)
+def _append_record(*, path: Path, payload: dict[str, Any]) -> IOResult[None, Exception]:
+    return _io_append_record(path=path, payload=payload)
 
 
 _validate_work_item_payload = validate_work_item_payload

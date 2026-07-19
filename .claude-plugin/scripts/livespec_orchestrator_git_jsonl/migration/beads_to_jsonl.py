@@ -25,6 +25,8 @@ from pathlib import Path
 from typing import Any
 
 from livespec_runtime.work_items.rank import key_between
+from returns.io import IOFailure
+from returns.unsafe import unsafe_perform_io
 
 from livespec_orchestrator_git_jsonl.store import append_work_item
 from livespec_orchestrator_git_jsonl.types import AuditRecord, WorkItem, WorkItemStatus
@@ -71,7 +73,11 @@ def main(*, argv: list[str] | None = None) -> int:
     for record in _iter_beads_records(path=beads_path):
         rank = key_between(a=prev_rank, b=None)
         work_item = translate_record(parsed=record, rank=rank)
-        _ = append_work_item(path=out_path, item=work_item)
+        append_result = append_work_item(path=out_path, item=work_item)
+        if isinstance(append_result, IOFailure):
+            failure = unsafe_perform_io(append_result.failure())
+            _ = sys.stderr.write(f"ERROR: failed to append {work_item.id}: {failure}\n")
+            return 1
         prev_rank = rank
         count += 1
     _ = sys.stdout.write(f"migrated {count} beads issues → {out_path}\n")

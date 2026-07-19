@@ -18,11 +18,13 @@ JSONL-schema validators (`_validate_work_item_payload` / `_check_*` /
 `_validate_audit_payload`), and the dict<->WorkItem boundary
 (`_parse_work_item` on read, `_work_item_to_dict` on write).
 
-`JsonlWorkItemStore` is the thin facade that conforms this repo's
-backend to the shared `livespec_runtime.work_items.store.WorkItemStore`
-Protocol (a stream of records out, one record in) without rewriting any
-call site; the module-level `_: type[WorkItemStore]` binding makes
-pyright attest that conformance statically.
+`JsonlWorkItemStore` is the thin facade over this repo's backend. It
+currently stays on the `IOResult` railway and therefore intentionally
+diverges from the vendored `livespec_runtime.work_items.store.WorkItemStore`
+Protocol until the upstream protocol moves to `IOResult` under
+`depends_on: livespec-shz8`. `WORK_ITEM_STORE_PROTOCOL_DIVERGENCE_DEPENDS_ON`
+is the tracked marker tests assert so this relationship cannot disappear
+silently.
 
 Public API:
 
@@ -36,13 +38,15 @@ Public API:
   order-independent head reduction.
 - `materialize_work_items(*, records)` — re-exported reduction to the
   current-head-per-id dict.
-- `JsonlWorkItemStore` — the WorkItemStore-conforming facade over the
-  free functions above.
+- `JsonlWorkItemStore` — the `IOResult` railway facade over the free
+  functions above.
+- `WORK_ITEM_STORE_PROTOCOL_DIVERGENCE_DEPENDS_ON` — the upstream work
+  item that tracks reconciliation with the vendored `WorkItemStore`
+  Protocol.
 
-The reader functions validate every record against the schema; a
-violation raises SchemaViolationError carrying the offending line
-number. A non-JSON line raises MalformedRecordLineError. Both are
-EXPECTED errors per the Result-vs-bugs split.
+The reader functions validate every record against the schema; schema
+violations and malformed JSONL lines ride the `IOResult` failure track
+as EXPECTED errors per the Result-vs-bugs split.
 """
 
 from pathlib import Path
@@ -67,7 +71,10 @@ from livespec_orchestrator_git_jsonl.store_codec import parse_work_item, work_it
 from livespec_orchestrator_git_jsonl.store_schema import validate_work_item_payload
 from livespec_orchestrator_git_jsonl.types import WorkItem
 
+WORK_ITEM_STORE_PROTOCOL_DIVERGENCE_DEPENDS_ON = "livespec-shz8"
+
 __all__: list[str] = [
+    "WORK_ITEM_STORE_PROTOCOL_DIVERGENCE_DEPENDS_ON",
     "JsonlWorkItemStore",
     "append_work_item",
     "materialize_work_items",
@@ -95,10 +102,10 @@ def append_work_item(*, path: Path, item: WorkItem) -> IOResult[None, Exception]
     """Append a single WorkItem as a new line in the JSONL file.
 
     Validates the dict-serialized payload against the same schema the
-    read path enforces before writing; raises SchemaViolationError when
-    the payload would not round-trip through `read_work_items`. The
-    write is symmetric with the read so a record landing on disk is
-    guaranteed to parse back cleanly.
+    read path enforces before writing. Schema violations ride the
+    `IOResult` failure track when the payload would not round-trip
+    through `read_work_items`. The write is symmetric with the read so a
+    record landing on disk is guaranteed to parse back cleanly.
     """
     payload = work_item_to_dict(item=item)
     validation = validate_work_item_payload(path=path, line_number=0, parsed=payload)
@@ -108,15 +115,15 @@ def append_work_item(*, path: Path, item: WorkItem) -> IOResult[None, Exception]
 
 
 class JsonlWorkItemStore:
-    """WorkItemStore-conforming facade over this repo's JSONL backend.
+    """Railway facade over this repo's JSONL backend.
 
-    Conforms structurally to
-    `livespec_runtime.work_items.store.WorkItemStore` by exposing the two
-    Protocol operations over the module-level free functions, binding the
-    single JSONL `Path` (git-jsonl's `StoreConfig` wraps exactly one
-    `Path`, `work_items_path`, which is passed here directly). No call site
-    is rewritten: tools that want the Protocol view construct this facade;
-    everything else keeps calling the free functions.
+    The vendored `WorkItemStore` Protocol still exposes unwrapped
+    `Iterator[WorkItem]` / `None` methods. This facade deliberately keeps
+    the local `IOResult` signatures until `livespec-shz8` updates that
+    upstream contract fleet-wide; unwrapping here would raise expected
+    store errors outside `io/`. The module-level
+    `WORK_ITEM_STORE_PROTOCOL_DIVERGENCE_DEPENDS_ON` marker and paired
+    tests make the temporary divergence explicit.
     """
 
     def __init__(self, *, path: Path) -> None:

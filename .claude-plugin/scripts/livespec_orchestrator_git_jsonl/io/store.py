@@ -60,7 +60,9 @@ def parse_jsonl_line(
     return Success(cast(dict[str, Any], parsed))
 
 
-def iter_records(*, path: Path) -> IOResult[list[tuple[int, dict[str, Any]]], Exception]:
+def iter_records(
+    *, path: Path
+) -> IOResult[list[tuple[int, dict[str, Any]]], StoreFileMissingError | MalformedRecordLineError]:
     """Read `(line_number, parsed_dict)` pairs from the JSONL file at `path`."""
     if not path.exists():
         return IOFailure(StoreFileMissingError(path=path))

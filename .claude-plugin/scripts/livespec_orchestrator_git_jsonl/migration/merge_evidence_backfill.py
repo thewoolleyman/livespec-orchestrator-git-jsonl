@@ -104,6 +104,9 @@ def main(*, argv: list[str] | None = None) -> int:
     except (StoreFileMissingError, MalformedRecordLineError, SchemaViolationError) as exc:
         _ = sys.stderr.write(f"ERROR: {target_path} not backfillable — {exc}\n")
         return 1
+    except OSError as exc:
+        _ = sys.stderr.write(f"ERROR: failed to append merge-evidence transition: {exc}\n")
+        return 1
     for line in (*report.repaired, *report.appended, *report.orphans):
         _ = sys.stdout.write(line + "\n")
     verb = "would apply" if dry_run or report.orphans else "applied"

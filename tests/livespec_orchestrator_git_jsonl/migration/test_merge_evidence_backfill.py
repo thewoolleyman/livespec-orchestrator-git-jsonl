@@ -42,7 +42,7 @@ from livespec_orchestrator_git_jsonl.types import (
     WorkItemStatus,
     WorkItemType,
 )
-from returns.io import IOResult, IOSuccess
+from returns.io import IOFailure, IOResult, IOSuccess
 from returns.unsafe import unsafe_perform_io
 
 
@@ -281,6 +281,34 @@ def test_appends_transition_for_audit_null_closure(
     assert head.audit is not None
     assert head.audit.merge_sha == work_sha
     assert head.audit.pr_number is None
+
+
+def test_main_reports_transition_append_failure_without_success(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    _ = _init_repo(root=tmp_path)
+    _ = _commit_on_master(root=tmp_path, filename="work.txt", message="feat: realize li-aaa111")
+    path = tmp_path / "wi.jsonl"
+    append_work_item(path=path, item=_work_item(audit=None))
+    before = path.read_text(encoding="utf-8")
+
+    def fail_append(*, path: Path, item: WorkItem) -> IOResult[None, Exception]:
+        _ = (path, item)
+        return IOFailure(OSError("disk full"))
+
+    monkeypatch.setattr(
+        "livespec_orchestrator_git_jsonl.migration.merge_evidence_backfill_core.append_work_item",
+        fail_append,
+    )
+    rc = main(argv=["--path", str(path)])
+    captured = capsys.readouterr()
+    assert rc == 1
+    assert "failed to append merge-evidence transition" in captured.err
+    assert "disk full" in captured.err
+    assert "appended merge-evidence transition record" not in captured.out
+    assert path.read_text(encoding="utf-8") == before
 
 
 def test_phase_two_orphan_blocks_writes(

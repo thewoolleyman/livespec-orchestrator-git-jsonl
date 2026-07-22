@@ -11,6 +11,7 @@ from livespec_orchestrator_git_jsonl.types import (
     FactorySafety,
     Origin,
     Resolution,
+    ReviewRequirement,
     WorkItem,
     WorkItemStatus,
     WorkItemType,
@@ -62,7 +63,13 @@ _WORK_ITEM_OPTIONAL_KEYS = frozenset(
         "supersedes",
         "acceptance_criteria",
         "notes",
+        # `factory_safety` / `review_requirement` are shared work-item policy
+        # classifications this JSONL store PRESERVES (round-trips) but does not
+        # act on — the git-jsonl plugin runs no Dispatcher, so it neither admits
+        # nor review-gates. They are kept, not dropped, mirroring the
+        # `work_item_to_dict` keep-not-drop treatment; enforcement is separate.
         "factory_safety",
+        "review_requirement",
     }
 )
 
@@ -98,6 +105,11 @@ def _work_item_schema_error(
     optional = _optional_fields_error(path=path, line_number=line_number, parsed=parsed)
     if optional is not None:
         return optional
+    review_requirement = _review_requirement_error(
+        path=path, line_number=line_number, parsed=parsed
+    )
+    if review_requirement is not None:
+        return review_requirement
     return _factory_safety_error(path=path, line_number=line_number, parsed=parsed)
 
 
@@ -189,6 +201,21 @@ def _factory_safety_error(
         field_name="factory_safety",
         value=factory_safety_value,
         allowed=get_args(FactorySafety),
+    )
+
+
+def _review_requirement_error(
+    *, path: Path, line_number: int, parsed: dict[str, Any]
+) -> SchemaViolationError | None:
+    review_requirement_value = parsed.get("review_requirement")
+    if review_requirement_value is None:
+        return None
+    return _check_in_enum(
+        path=path,
+        line_number=line_number,
+        field_name="review_requirement",
+        value=review_requirement_value,
+        allowed=get_args(ReviewRequirement),
     )
 
 

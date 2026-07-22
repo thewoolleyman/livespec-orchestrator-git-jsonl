@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.7.2](https://github.com/thewoolleyman/livespec-orchestrator-git-jsonl/compare/v0.7.1...v0.7.2) (2026-07-22)
+
+
+### Bug Fixes
+
+* accept and preserve review_requirement in git-jsonl JSONL store schema ([5ec6524](https://github.com/thewoolleyman/livespec-orchestrator-git-jsonl/commit/5ec65248c31b0c95d8f988b051256ef8a54ffa8b))
+
 ## [0.7.1](https://github.com/thewoolleyman/livespec-orchestrator-git-jsonl/compare/v0.7.0...v0.7.1) (2026-07-19)
 
 

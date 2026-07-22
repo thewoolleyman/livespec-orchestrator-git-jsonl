@@ -50,6 +50,7 @@ def parse_work_item(
             acceptance_criteria=parsed.get("acceptance_criteria"),
             notes=parsed.get("notes"),
             factory_safety=parsed.get("factory_safety"),
+            review_requirement=parsed.get("review_requirement"),
         )
     )
 
@@ -67,13 +68,15 @@ def _parse_audit(*, parsed: dict[str, Any]) -> AuditRecord:
 def work_item_to_dict(*, item: WorkItem) -> dict[str, Any]:
     payload = asdict(item)
     payload["depends_on"] = list(item.depends_on)
-    # The abstract WorkItem carries three policy fields this JSONL realization
-    # does NOT persist — admission_policy / acceptance_policy /
-    # blocked_reason govern the orchestrator Dispatcher/admission this plugin
-    # does not run. factory_safety is different: a git-jsonl-backed
-    # dispatcher must preserve that classification to enforce factory mode.
-    # Drop only the non-persisted policy fields so serialized records match
-    # the closed-key schema and round-trip through the read-path validator.
+    # The abstract WorkItem carries policy fields this JSONL realization does
+    # NOT persist — admission_policy / acceptance_policy / blocked_reason
+    # govern the orchestrator Dispatcher/admission this plugin does not run.
+    # factory_safety and review_requirement are different: they are shared
+    # policy CLASSIFICATIONS a git-jsonl-backed dispatcher must preserve
+    # (factory-safety mode; review-before-merge) even though this plugin does
+    # not act on them, so they are kept and round-tripped. Drop only the
+    # non-persisted policy fields so serialized records match the closed-key
+    # schema and round-trip through the read-path validator.
     for policy_key in ("admission_policy", "acceptance_policy", "blocked_reason"):
         _ = payload.pop(policy_key, None)
     if item.audit is not None:

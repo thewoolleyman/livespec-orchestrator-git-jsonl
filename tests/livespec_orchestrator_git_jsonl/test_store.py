@@ -543,7 +543,7 @@ def test_append_work_item_serializes_exactly_twenty_keys(tmp_path: Path) -> None
     realization does not persist them); `priority` is gone (replaced by
     `rank`). The serialized line carries the 14 required keys + `rank`
     + `spec_commitment_hint` + `supersedes` + `acceptance_criteria`
-    + `notes` + `factory_safety`.
+    + `notes` + `factory_safety` + `review_requirement`.
     """
     path = tmp_path / "work-items.jsonl"
     append_work_item(path=path, item=_minimal_work_item())
@@ -569,13 +569,15 @@ def test_append_work_item_serializes_exactly_twenty_keys(tmp_path: Path) -> None
         "acceptance_criteria",
         "notes",
         "factory_safety",
+        "review_requirement",
     }
-    assert len(payload) == 20
+    assert len(payload) == 21
     assert "priority" not in payload
     assert "admission_policy" not in payload
     assert "acceptance_policy" not in payload
     assert "blocked_reason" not in payload
     assert payload["factory_safety"] is None
+    assert payload["review_requirement"] is None
 
 
 # -- acceptance_criteria + notes fields (bd-gj-lxr; runtime v0.8.0) ------
@@ -646,6 +648,47 @@ def test_append_work_item_with_factory_safety_roundtrips(tmp_path: Path) -> None
     assert read_back == item
     assert read_back.factory_safety == "needs-host-secrets"
     assert payload["factory_safety"] == "needs-host-secrets"
+
+
+def test_append_work_item_with_review_requirement_roundtrips(tmp_path: Path) -> None:
+    """A work-item carrying review_requirement persists through the JSONL store."""
+    path = tmp_path / "work-items.jsonl"
+    item = WorkItem(
+        id="li-rev01",
+        type="task",
+        status="ready",
+        title="t",
+        description="d",
+        origin="freeform",
+        gap_id=None,
+        rank="a1",
+        assignee=None,
+        depends_on=(),
+        captured_at="2026-05-19T00:00:00Z",
+        resolution=None,
+        reason=None,
+        audit=None,
+        superseded_by=None,
+        review_requirement="human-before-merge",
+    )
+    append_work_item(path=path, item=item)
+    [read_back] = _read_success(read_work_items(path=path))
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    assert read_back == item
+    assert read_back.review_requirement == "human-before-merge"
+    assert payload["review_requirement"] == "human-before-merge"
+
+
+def test_read_work_items_bad_enum_review_requirement_raises(tmp_path: Path) -> None:
+    """A record whose review_requirement is outside the enum fires SchemaViolationError."""
+    path = tmp_path / "work-items.jsonl"
+    append_work_item(path=path, item=_minimal_work_item())
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    payload["review_requirement"] = "not-a-real-requirement"
+    _ = path.write_text(json.dumps(payload) + "\n", encoding="utf-8")
+    with pytest.raises(SchemaViolationError) as excinfo:
+        _read_success(read_work_items(path=path))
+    assert "review_requirement" in excinfo.value.detail
 
 
 def test_append_work_item_without_acceptance_criteria_and_notes_writes_null(

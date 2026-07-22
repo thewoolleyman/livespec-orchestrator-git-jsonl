@@ -1,5 +1,5 @@
 {
   "name": "livespec-orchestrator-git-jsonl",
-  "version": "0.7.1",
+  "version": "0.7.2",
   "description": "JSONL-backed implementation plugin for livespec. Exposes /livespec-orchestrator-git-jsonl:capture-impl-gaps, capture-spec-drift, capture-work-item, implement, list-work-items, needs-attention, next, and detect-impl-gaps."
 }

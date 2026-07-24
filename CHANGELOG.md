@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.7.3](https://github.com/thewoolleyman/livespec-orchestrator-git-jsonl/compare/v0.7.2...v0.7.3) (2026-07-24)
+
+
+### Bug Fixes
+
+* route growing jq inputs to stdin in the CI telemetry export ([427939f](https://github.com/thewoolleyman/livespec-orchestrator-git-jsonl/commit/427939f625448a31dec905ed2874842bc2cc0eb4))
+
 ## [0.7.2](https://github.com/thewoolleyman/livespec-orchestrator-git-jsonl/compare/v0.7.1...v0.7.2) (2026-07-22)
 
 

@@ -281,6 +281,40 @@ commands_trees = [
     ".claude-plugin/scripts/livespec_orchestrator_git_jsonl/checks",
     ".claude-plugin/scripts/livespec_orchestrator_git_jsonl/migration",
 ]
+# Role-key declaration backfill (epic livespec-dev-tooling-e9j, Wave-1 mirror
+# B-gj). Every structural role key is now EXPLICITLY declared, so no consuming
+# check relies on an omitted key silently reverting to the empty baseline. Each
+# key below resolves to the SAME empty/none Config as omission does under
+# livespec-dev-tooling >= v0.54.8 (a `""` scalar parses as declared-none), so
+# this backfill is provably behavior-neutral — it changes declaration, not the
+# resolved layout.
+#
+# `pure_trees`: empty — this repo has no pure parse/validate layer; the
+# mutation / PBT / public-api-result gates that read this role stay gated on
+# livespec-mutreal.1 (the mutation staging-tree is not yet productized).
+pure_trees = []
+# `covered_trees`: empty — coverage is configured via the `[tool.coverage]`
+# tables above (coverage.py include/omit + `fail_under = 100`), not through this
+# legacy covered-tree role (same disposition as the driver siblings).
+covered_trees = []
+# `dataclasses_tree`: declared-none — this repo has no dataclasses/schemas tree,
+# so `newtype_domain_primitives` no-ops (role-absent).
+dataclasses_tree = ""
+# `target_dirs`: empty — this repo has no legacy hard-gate target dirs; the
+# git-derived first-party-.py universe (`resolve_check_universe`) owns the
+# structural checks that would otherwise read this role.
+target_dirs = []
+# `source_tree_prefixes`: empty — the first-party source surface is already
+# declared via `source_trees` above (which carries the `partition_completeness`
+# broad claim). A prefix set here would require a paired `mirror_pairings` (a
+# distinct role key outside this backfill's set) to derive correct test
+# pairings, because this repo's tests live under `tests/<pkg>` rather than
+# mirroring the `.claude-plugin/scripts/<pkg>` source path.
+source_tree_prefixes = []
+# `neutral_hook_body_path`: declared-none — this repo is NOT a Driver and
+# installs no neutral shared hook body, so `no_shadow_ledger_body_identical`
+# no-ops (role-absent).
+neutral_hook_body_path = ""
 # Supervisor surfaces the `no_write_direct` check file-scope-exempts: each owns
 # a documented stdout/stderr contract that MUST bypass the structlog-only rule.
 # `bin/_bootstrap.py` writes the pre-import Python-version-check message to

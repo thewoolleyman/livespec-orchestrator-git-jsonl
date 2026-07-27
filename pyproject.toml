@@ -275,7 +275,20 @@ exclude_also = [
 # (the flip lever; this repo is pinned at v0.39.0 above).
 file_lloc_hard_gate = true
 source_trees = [".claude-plugin/scripts/livespec_orchestrator_git_jsonl"]
-io_trees = [".claude-plugin/scripts/livespec_orchestrator_git_jsonl/io"]
+# `.claude/hooks` joined `io_trees` on 2026-07-27 (`bd-gj-xkr`, child of the
+# fleet epic `livespec-dev-tooling-hev1`). It is a SECOND boundary tree, not an
+# extension of the package's `io/`: hook scripts are fail-open boundary code
+# whose blind catches and direct prints are the contract, not a smell — the same
+# fact the ruff `extend-exclude` below already records. The tree sits outside
+# `source_trees`, so the railway checks do not reach it today; they will once
+# `livespec-dev-tooling-i532` derives their universe from the git index, at
+# which point both hook files here would be reported (ruff-backstop gaps) along
+# with a real blind `except Exception` in `livespec_footgun_guard.py`. One entry
+# covers both files.
+io_trees = [
+    ".claude-plugin/scripts/livespec_orchestrator_git_jsonl/io",
+    ".claude/hooks",
+]
 commands_trees = [
     ".claude-plugin/scripts/livespec_orchestrator_git_jsonl/commands",
     ".claude-plugin/scripts/livespec_orchestrator_git_jsonl/checks",

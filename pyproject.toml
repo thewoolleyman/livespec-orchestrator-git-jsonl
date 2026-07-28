@@ -288,39 +288,57 @@ commands_trees = [
     ".claude-plugin/scripts/livespec_orchestrator_git_jsonl/migration",
 ]
 # Role-key declaration backfill (epic livespec-dev-tooling-e9j, Wave-1 mirror
-# B-gj). Every structural role key is now EXPLICITLY declared, so no consuming
-# check relies on an omitted key silently reverting to the empty baseline. Each
-# key below resolves to the SAME empty/none Config as omission does under
-# livespec-dev-tooling >= v0.54.8 (a `""` scalar parses as declared-none), so
-# this backfill is provably behavior-neutral — it changes declaration, not the
-# resolved layout.
+# B-gj). Every structural role key is EXPLICITLY declared, so no consuming check
+# relies on an omitted key silently reverting to the empty baseline.
 #
-# `pure_trees`: empty — this repo has no pure parse/validate layer; the
-# mutation / PBT / public-api-result gates that read this role stay gated on
-# livespec-mutreal.1 (the mutation staging-tree is not yet productized).
-pure_trees = []
+# The five UNION keys below no longer resolve to the same empty/none Config that
+# omission does — that equivalence was the ORIGINAL DEFECT, not a property worth
+# preserving (livespec-dev-tooling-8o8e.1). Their `[]` / `""` spelling meant two
+# incompatible things at once — "the concept does not apply here" and "it applies
+# and is switched off" — and the consuming gates read either as consent, scanning
+# zero files and exiting 0. Each now declares exactly ONE blessed variant
+# (`not_applicable`, `superseded_by`, `unarmed_until`, `convention_not_adopted`),
+# carrying its reason in the PARSED VALUE rather than in a comment no checker can
+# read. Every reason below is the one this block already stated in prose.
+#
+# `covered_trees` deliberately keeps a bare `[]`: it is an exemption/severity
+# predicate whose consuming checks derive the universe from
+# `resolve_check_universe()`, so empty makes them STRICTER, never blinder.
+#
+# `pure_trees`: UNARMED, not not-applicable. This repo has no core-style
+# parse/validate SUBTREE, but the concept does apply — SPECIFICATION/
+# constraints.md requires "property-based test coverage on pure modules" and
+# `check-pbt-coverage-pure-modules` is wired into `just check`, so with this key
+# empty that check scanned zero files. The mutation / PBT / public-api-result
+# gates that read this role stay gated on livespec-mutreal.1 (the mutation
+# staging-tree is not yet productized), which is exactly what `unarmed_until`
+# spells; that id is the one this comment already named.
+pure_trees = { unarmed_until = "livespec-mutreal.1" }
 # `covered_trees`: empty — coverage is configured via the `[tool.coverage]`
 # tables above (coverage.py include/omit + `fail_under = 100`), not through this
 # legacy covered-tree role (same disposition as the driver siblings).
 covered_trees = []
-# `dataclasses_tree`: declared-none — this repo has no dataclasses/schemas tree,
-# so `newtype_domain_primitives` no-ops (role-absent).
-dataclasses_tree = ""
-# `target_dirs`: empty — this repo has no legacy hard-gate target dirs; the
-# git-derived first-party-.py universe (`resolve_check_universe`) owns the
-# structural checks that would otherwise read this role.
-target_dirs = []
-# `source_tree_prefixes`: empty — the first-party source surface is already
-# declared via `source_trees` above (which carries the `partition_completeness`
-# broad claim). A prefix set here would require a paired `mirror_pairings` (a
-# distinct role key outside this backfill's set) to derive correct test
-# pairings, because this repo's tests live under `tests/<pkg>` rather than
-# mirroring the `.claude-plugin/scripts/<pkg>` source path.
-source_tree_prefixes = []
-# `neutral_hook_body_path`: declared-none — this repo is NOT a Driver and
-# installs no neutral shared hook body, so `no_shadow_ledger_body_identical`
-# no-ops (role-absent).
-neutral_hook_body_path = ""
+# `dataclasses_tree`: NOT APPLICABLE — this repo has no dataclasses/schemas tree,
+# so `newtype_domain_primitives` has nothing to police.
+dataclasses_tree = { not_applicable = "this repo has no dataclasses/schemas tree" }
+# `target_dirs`: SUPERSEDED, not not-applicable. The concept applies and IS
+# satisfied — by a different mechanism. This repo has no legacy hard-gate target
+# dirs because the git-derived first-party-.py universe (`resolve_check_universe`)
+# owns the structural checks that would otherwise read this role.
+target_dirs = { superseded_by = "git-derived first-party-.py universe (resolve_check_universe) owns the structural checks" }
+# `source_tree_prefixes`: SUPERSEDED for the same reason — the first-party source
+# surface is already declared via `source_trees` above, which carries the
+# `partition_completeness` broad claim AND, since the coupling break, is what
+# `derive_source_prefixes` unions into the commit-pairing gate's prefix set. A
+# prefix set here would additionally require a paired `mirror_pairings` to derive
+# correct test pairings, because this repo's tests live under `tests/<pkg>` rather
+# than mirroring the `.claude-plugin/scripts/<pkg>` source path (livespec-dev-
+# tooling-br4xar).
+source_tree_prefixes = { superseded_by = "first-party source surface already declared via source_trees" }
+# `neutral_hook_body_path`: NOT APPLICABLE — this repo is NOT a Driver and
+# installs no neutral shared hook body, so `no_shadow_ledger_body_identical` has
+# nothing to compare.
+neutral_hook_body_path = { not_applicable = "this repo is not a Driver and installs no neutral shared hook body" }
 # Supervisor surfaces the `no_write_direct` check file-scope-exempts: each owns
 # a documented stdout/stderr contract that MUST bypass the structlog-only rule.
 # `bin/_bootstrap.py` writes the pre-import Python-version-check message to

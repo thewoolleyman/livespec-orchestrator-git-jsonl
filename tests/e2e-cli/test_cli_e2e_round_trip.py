@@ -28,6 +28,7 @@ gate fails the run; no skill is exempt (`EXEMPT_SKILLS` is empty).
 from __future__ import annotations
 
 import sys
+from collections.abc import Callable
 from pathlib import Path
 
 import pytest
@@ -38,6 +39,7 @@ _VENDOR_DIR = Path(cli_e2e.__file__).resolve().parent.parent / "_vendor"
 if str(_VENDOR_DIR) not in sys.path:
     sys.path.insert(0, str(_VENDOR_DIR))
 
+from returns.io import IOFailure, IOSuccess  # noqa: E402  — vendor-path-aware import.
 from returns.primitives.exceptions import (  # noqa: E402  — vendor-path-aware import.
     UnwrapFailedError,
 )
@@ -146,6 +148,49 @@ class _MaterializingCliRunner:
         return CliResult(exit_code=0, stdout="", stderr="", session_id=resume_session_id)
 
 
+def _returning(*, shape: object) -> Callable[..., object]:
+    """A `discover_fixtures` stand-in handing back exactly `shape`."""
+
+    def _call(**_kwargs: object) -> object:
+        return shape
+
+    return _call
+
+
+def _discovered_fixtures(*, fixtures_root: Path) -> dict[str, FixturedSkill]:
+    """The harness's fixtures, from EITHER shape of `discover_fixtures`.
+
+    CONSUMER WIRING LANDS BEFORE THE PIN THAT NEEDS IT (livespec
+    `.ai/ci-gate-discipline.md` step 3, and `livespec-dev-tooling-dx8l`). Up to
+    dev-tooling v1.13.15 `discover_fixtures` returns a bare
+    `dict[str, FixturedSkill]`; the `livespec-dev-tooling-8o8e` railway
+    conversion returns a `returns` container over that dict, because today an
+    unreadable `prompt.md` raises straight out of it and an unreadable fixtures
+    root yields `{}` — "no fixtures" — which the fail-closed coverage gate then
+    passes VACUOUSLY. Accepting both shapes is what lets that pin move in
+    EITHER direction, a revert included, without reddening this repo's master.
+
+    ⛔ WHY `.map()` AND NOT `value_or`, because the obvious idiom is wrong one
+    container deep: on a `Result`, `.value_or(None)` yields the bare value, but
+    on an `IOResult` it yields an `IO[...]` — a container that is not a dict and
+    would silently produce an EMPTY prompt map here, materializing no expected
+    files and passing the round-trip for the wrong reason. `.map()` is public
+    API on every `returns` container, runs ONLY on the success track, and needs
+    no import of the railway library into a consumer that must not depend on it.
+
+    A failure track FAILS THIS TEST rather than degrading to `{}`: an
+    unreadable fixtures tree is exactly the state the coverage gate must not
+    pass through.
+    """
+    discovered = cli_e2e.discover_fixtures(fixtures_root=fixtures_root)
+    if isinstance(discovered, dict):
+        return discovered
+    unwrapped: list[dict[str, FixturedSkill]] = []
+    _ = discovered.map(unwrapped.append)
+    assert unwrapped, f"discover_fixtures could not read {fixtures_root}: {discovered!r}"
+    return unwrapped[0]
+
+
 def _expected_by_prompt(*, fixtures: dict[str, FixturedSkill]) -> dict[str, tuple[str, ...]]:
     """Map each fixture's prompt text → its declared expected-file tuple."""
     return {fixture.prompt: fixture.expected_files for fixture in fixtures.values()}
@@ -177,7 +222,7 @@ def test_cli_e2e_round_trip_against_impl_git_jsonl(*, tmp_path: Path) -> None:
     run proves both the coverage gate is satisfied and every step round-trips.
     """
     config = _config()
-    fixtures = cli_e2e.discover_fixtures(fixtures_root=config.fixtures_root)
+    fixtures = _discovered_fixtures(fixtures_root=config.fixtures_root)
     runner = _MaterializingCliRunner(expected_by_prompt=_expected_by_prompt(fixtures=fixtures))
     result = _round_trip_result(
         run_full_round_trip(
@@ -232,3 +277,54 @@ def test_round_trip_result_fails_loudly_on_the_post_conversion_failure() -> None
     """
     with pytest.raises(UnwrapFailedError):
         _ = _round_trip_result(Failure(RuntimeError("two skills failed")))
+
+
+def _fixture(*, skill: str) -> FixturedSkill:
+    return FixturedSkill(skill=skill, prompt=f"drive {skill}", expected_files=())
+
+
+def test_discovered_fixtures_accepts_every_harness_shape(
+    *, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """The dual-shape tolerance, PROVEN against real containers rather than assumed.
+
+    Three shapes, because the pin must be free to move in either direction and
+    the conversion's container type is dev-tooling's choice, not this repo's:
+    the current bare `dict`, and the success track of both `Result` and
+    `IOResult`.
+
+    ⛔ THE `IOSuccess` CASE IS THE LOAD-BEARING ONE. The sibling helper above
+    normalizes with `.unwrap()`, which is correct for the `Result` it consumes —
+    but `IOResult.unwrap()` yields an `IO[dict]`, NOT a dict. Reusing that idiom
+    here would hand `_expected_by_prompt` a container whose `.values()` does not
+    exist; and wiring that instead fell back to `{}` would materialize no
+    expected files and pass the round trip for the wrong reason. `.map()` is
+    uniform across both containers, which is why it is used.
+    """
+    fixtures = {"next": _fixture(skill="next")}
+
+    for shape in (fixtures, Success(fixtures), IOSuccess(fixtures)):
+        monkeypatch.setattr(cli_e2e, "discover_fixtures", _returning(shape=shape))
+
+        assert (
+            _discovered_fixtures(fixtures_root=tmp_path) == fixtures
+        ), f"shape {type(shape).__name__} must normalize to the bare mapping"
+
+
+def test_discovered_fixtures_fails_loudly_on_an_unreadable_tree(
+    *, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """A failure track must FAIL, never degrade to "no fixtures".
+
+    The positive control, and the half that carries the value. Without it,
+    wiring that quietly returned `{}` on the failure track would satisfy every
+    assertion above while feeding an EMPTY fixture set to the fail-closed
+    coverage gate — which then computes `discovered - fixtured - exempt` over
+    nothing and PASSES. That is this epic's exact subject: a gate reporting
+    success because the thing it measures never happened.
+    """
+    for shape in (Failure("unreadable"), IOFailure("unreadable")):
+        monkeypatch.setattr(cli_e2e, "discover_fixtures", _returning(shape=shape))
+
+        with pytest.raises(AssertionError):
+            _ = _discovered_fixtures(fixtures_root=tmp_path)

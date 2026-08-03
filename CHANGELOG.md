@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.9.1](https://github.com/thewoolleyman/livespec-orchestrator-git-jsonl/compare/v0.9.0...v0.9.1) (2026-08-03)
+
+
+### Bug Fixes
+
+* **spec-next:** a parse failure and a well-formed empty answer were the same value ([13e8080](https://github.com/thewoolleyman/livespec-orchestrator-git-jsonl/commit/13e808032f9a4eb4dc76d455bc445a1f974d6e42))
+* **spec-reader:** an absent spec tree reported zero gaps, which reads as full conformance ([ebd92e1](https://github.com/thewoolleyman/livespec-orchestrator-git-jsonl/commit/ebd92e1cd4b5590e6af1507d751ac1350d28a959))
+
 ## [0.9.0](https://github.com/thewoolleyman/livespec-orchestrator-git-jsonl/compare/v0.8.0...v0.9.0) (2026-08-03)
 
 

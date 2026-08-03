@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.8.0](https://github.com/thewoolleyman/livespec-orchestrator-git-jsonl/compare/v0.7.3...v0.8.0) (2026-08-03)
+
+
+### Features
+
+* **io:** parse JSONC onto the Result railway and drop the swallowing twin ([a42e541](https://github.com/thewoolleyman/livespec-orchestrator-git-jsonl/commit/a42e54171ca0b9aa5aef26f9a54b95ccc9a8bf09))
+
 ## [0.7.3](https://github.com/thewoolleyman/livespec-orchestrator-git-jsonl/compare/v0.7.2...v0.7.3) (2026-07-24)
 
 

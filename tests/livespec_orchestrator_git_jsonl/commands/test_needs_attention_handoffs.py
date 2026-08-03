@@ -5,9 +5,11 @@ from pathlib import Path
 import pytest
 from livespec_orchestrator_git_jsonl.commands import needs_attention
 from livespec_orchestrator_git_jsonl.commands.needs_attention import build_attention
+from livespec_orchestrator_git_jsonl.io._jsonc import JsoncParseError
 from livespec_orchestrator_git_jsonl.store import append_work_item
 from livespec_orchestrator_git_jsonl.types import WorkItem
 from livespec_runtime.needs_attention import SpecNextOutput
+from returns.io import IOResult, IOSuccess
 
 
 def _item(*, id_: str, status: str, rank: str) -> WorkItem:
@@ -33,9 +35,9 @@ def _item(*, id_: str, status: str, rank: str) -> WorkItem:
 def test_handoff_commands_omit_work_items_path_when_using_default_store(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    def _no_spec_next(*, project_root: Path) -> SpecNextOutput | None:
+    def _no_spec_next(*, project_root: Path) -> IOResult[SpecNextOutput | None, JsoncParseError]:
         _ = project_root
-        return None
+        return IOSuccess(None)
 
     monkeypatch.setattr(needs_attention, "_spec_next", _no_spec_next)
     append_work_item(

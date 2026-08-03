@@ -25,10 +25,24 @@ from livespec_orchestrator_git_jsonl.commands.needs_attention import (
     render_markdown,
 )
 from livespec_orchestrator_git_jsonl.errors import SchemaViolationError
+from livespec_orchestrator_git_jsonl.io._jsonc import JsoncParseError
 from livespec_orchestrator_git_jsonl.store import append_work_item
 from livespec_orchestrator_git_jsonl.types import WorkItem
 from livespec_runtime.needs_attention import SpecNextOutput
-from returns.io import IOFailure
+from returns.io import IOFailure, IOResult, IOSuccess
+from returns.result import Failure, Success
+from returns.unsafe import unsafe_perform_io
+
+
+def _spec_next_value(outcome: IOResult[SpecNextOutput | None, JsoncParseError]) -> object:
+    """Unwrap a spec-`next` SUCCESS to its bare value.
+
+    ⚠️ `unsafe_perform_io` is not optional here: `IOResult.unwrap()` yields an
+    `IO[...]` wrapper, so `== None` / `is None` against it is False for EVERY
+    input and the assertion silently passes nothing. `Result.unwrap` has no
+    such wrapper — the two spellings differ and pyright reports neither.
+    """
+    return unsafe_perform_io(outcome.unwrap())
 
 
 def _stub_spec_output() -> SpecNextOutput:
@@ -42,9 +56,19 @@ def _stub_spec_output() -> SpecNextOutput:
 
 
 def _stub_spec_next(monkeypatch: pytest.MonkeyPatch, *, output: SpecNextOutput | None) -> None:
-    def _fake(*, project_root: Path) -> SpecNextOutput | None:
+    def _fake(*, project_root: Path) -> IOResult[SpecNextOutput | None, JsoncParseError]:
         _ = project_root
-        return output
+        return IOSuccess(output)
+
+    monkeypatch.setattr(needs_attention, "_spec_next", _fake)
+
+
+def _stub_spec_next_failure(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Stub spec-`next` onto the FAILURE track — unreachable before this unit."""
+
+    def _fake(*, project_root: Path) -> IOResult[SpecNextOutput | None, JsoncParseError]:
+        _ = project_root
+        return IOResult.from_failure(JsoncParseError(detail="jsonc parse failed: boom"))
 
     monkeypatch.setattr(needs_attention, "_spec_next", _fake)
 
@@ -139,6 +163,24 @@ def test_build_attention_drops_spec_item_when_spec_next_none(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     _stub_spec_next(monkeypatch, output=None)
+
+    attention = build_attention(project_root=tmp_path, repo_name="repo", include_hygiene=False)
+
+    assert [item.kind for item in attention if item.kind == "spec"] == []
+
+
+def test_build_attention_still_drops_the_spec_item_when_spec_next_fails(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """The fail-open POLICY is unchanged; only its spelling is.
+
+    `compose_needs_attention(spec_next: SpecNextOutput | None)` lives in the
+    VENDORED `livespec_runtime`, so this repo cannot widen that signature —
+    a parse failure must still land on the same `None` it always did. What
+    changes is that the discard now happens at a visible `.value_or(None)`
+    instead of inside a reader that had already thrown the reason away.
+    """
+    _stub_spec_next_failure(monkeypatch)
 
     attention = build_attention(project_root=tmp_path, repo_name="repo", include_hygiene=False)
 
@@ -282,8 +324,9 @@ def test_spec_next_inlines_top_actionable_candidate(tmp_path: Path) -> None:
         calls=calls,
     )
 
-    output = _spec_next(project_root=tmp_path, seam=seam)
+    outcome = _spec_next(project_root=tmp_path, seam=seam)
 
+    output = _spec_next_value(outcome)
     assert output is not None
     assert output.op == "revise"
     assert output.spec_target == "proposed_changes/owned-heading-coverage-todos.md"
@@ -300,43 +343,82 @@ def test_spec_next_inlines_top_actionable_candidate(tmp_path: Path) -> None:
     ]
 
 
-def test_spec_next_returns_none_when_candidates_empty(tmp_path: Path) -> None:
+def test_spec_next_answers_none_when_candidates_empty(tmp_path: Path) -> None:
     seam = _seam(
         command=["python3", "/core/next.py"],
         result=_SpecNextResult(stdout=json.dumps({"candidates": []}), returncode=0),
     )
-    assert _spec_next(project_root=tmp_path, seam=seam) is None
+    outcome = _spec_next(project_root=tmp_path, seam=seam)
+    assert isinstance(outcome, IOSuccess)
+    assert _spec_next_value(outcome) is None
 
 
-def test_spec_next_returns_none_when_seam_run_raises(tmp_path: Path) -> None:
+def test_spec_next_answers_none_when_seam_run_raises(tmp_path: Path) -> None:
+    # Still an ANSWER on the success track, deliberately: `run_capture` already
+    # names a command that could not be spawned, and `_run_spec_next_cli`
+    # re-collapses it to exit 1 by documented decision. This unit widens the
+    # ONE failure `loads_json_optional` was destroying; it does not invent
+    # variants for situations this seam already rules on.
     seam = _seam(
         command=["python3", "/core/next.py"],
         raises=OSError("boom"),
     )
-    assert _spec_next(project_root=tmp_path, seam=seam) is None
+    outcome = _spec_next(project_root=tmp_path, seam=seam)
+    assert isinstance(outcome, IOSuccess)
+    assert _spec_next_value(outcome) is None
 
 
-def test_spec_next_returns_none_when_cli_exits_nonzero(tmp_path: Path) -> None:
+def test_spec_next_answers_none_when_cli_exits_nonzero(tmp_path: Path) -> None:
+    # A non-zero exit is an ANSWER by this package's own doctrine — see
+    # `io/spec_next.py`'s docstring on `run_capture`: "it ran and exited
+    # non-zero ... is an ANSWER and rides the success track".
     seam = _seam(
         command=["python3", "/core/next.py"],
         result=_SpecNextResult(stdout="", returncode=2),
     )
-    assert _spec_next(project_root=tmp_path, seam=seam) is None
+    outcome = _spec_next(project_root=tmp_path, seam=seam)
+    assert isinstance(outcome, IOSuccess)
+    assert _spec_next_value(outcome) is None
 
 
-def test_spec_next_returns_none_when_stdout_unparseable(tmp_path: Path) -> None:
-    seam = _seam(
-        command=["python3", "/core/next.py"],
-        result=_SpecNextResult(stdout="not json", returncode=0),
+def test_spec_next_names_the_parse_failure_rather_than_answering_empty(tmp_path: Path) -> None:
+    """Unparseable stdout is a FAILURE; a well-formed empty answer is not.
+
+    These two situations used to be the same value. `loads_json_optional`
+    returned `None` on `json.JSONDecodeError`, and `None` is also what
+    `json.loads("null")` returns and what an empty candidate list adapts to —
+    so "CORE's spec-`next` emitted garbage" and "spec-`next` answered fine and
+    has nothing queued" were indistinguishable at every call site, in
+    principle and not merely in practice.
+    """
+    unparseable = _spec_next(
+        project_root=tmp_path,
+        seam=_seam(
+            command=["python3", "/core/next.py"],
+            result=_SpecNextResult(stdout="not json", returncode=0),
+        ),
     )
-    assert _spec_next(project_root=tmp_path, seam=seam) is None
+    assert isinstance(unparseable, IOFailure)
+    assert isinstance(unsafe_perform_io(unparseable.failure()), JsoncParseError)
+
+    empty = _spec_next(
+        project_root=tmp_path,
+        seam=_seam(
+            command=["python3", "/core/next.py"],
+            result=_SpecNextResult(stdout=json.dumps({"candidates": []}), returncode=0),
+        ),
+    )
+    assert isinstance(empty, IOSuccess)
+    assert _spec_next_value(empty) is None
 
 
 def test_spec_next_does_not_run_cli_when_unresolvable(tmp_path: Path) -> None:
     calls: dict[str, object] = {}
     seam = _seam(command=None, result=_SpecNextResult(stdout="{}", returncode=0), calls=calls)
 
-    assert _spec_next(project_root=tmp_path, seam=seam) is None
+    outcome = _spec_next(project_root=tmp_path, seam=seam)
+    assert isinstance(outcome, IOSuccess)
+    assert _spec_next_value(outcome) is None
     assert "run" not in calls
 
 
@@ -375,14 +457,28 @@ def test_adapt_top_candidate_skips_inert_then_selects_actionable(tmp_path: Path)
             ]
         }
     )
-    output = _adapt_top_candidate(stdout=stdout, project_root=tmp_path)
+    outcome = _adapt_top_candidate(stdout=stdout, project_root=tmp_path)
+    assert isinstance(outcome, Success)
+    output = outcome.unwrap()
     assert output is not None
     assert output.op == "propose-change"
 
 
-def test_adapt_top_candidate_invalid_payloads_return_none(tmp_path: Path) -> None:
-    assert _adapt_top_candidate(stdout='"a string"', project_root=tmp_path) is None
-    assert _adapt_top_candidate(stdout='{"candidates": {}}', project_root=tmp_path) is None
+def test_adapt_top_candidate_separates_wrong_shape_from_wrong_syntax(tmp_path: Path) -> None:
+    """Well-formed JSON that carries no candidate is an ANSWER; garbage is not.
+
+    The old name — `..._invalid_payloads_return_none` — called both cases
+    "invalid", which is precisely the conflation: `'"a string"'` is a
+    perfectly valid JSON document that simply is not a candidate envelope.
+    """
+    for well_formed in ('"a string"', '{"candidates": {}}', "null"):
+        outcome = _adapt_top_candidate(stdout=well_formed, project_root=tmp_path)
+        assert isinstance(outcome, Success), well_formed
+        assert outcome.unwrap() is None, well_formed
+
+    broken = _adapt_top_candidate(stdout="{oops", project_root=tmp_path)
+    assert isinstance(broken, Failure)
+    assert isinstance(broken.failure(), JsoncParseError)
 
 
 def _plant_next(root: Path) -> Path:

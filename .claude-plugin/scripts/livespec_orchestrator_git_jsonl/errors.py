@@ -19,6 +19,7 @@ from pathlib import Path
 __all__: list[str] = [
     "MalformedRecordLineError",
     "SchemaViolationError",
+    "SpecRootNotFoundError",
     "SpecVersionNotFoundError",
     "StoreFileMissingError",
 ]
@@ -70,3 +71,11 @@ class SpecVersionNotFoundError(Exception):
         )
         self.spec_root = spec_root
         self.version = version
+
+
+class SpecRootNotFoundError(Exception):
+    """The spec tree itself did not exist at <spec-root>."""
+
+    def __init__(self, *, spec_root: Path) -> None:
+        super().__init__(f"Specification tree not found at {spec_root}")
+        self.spec_root = spec_root

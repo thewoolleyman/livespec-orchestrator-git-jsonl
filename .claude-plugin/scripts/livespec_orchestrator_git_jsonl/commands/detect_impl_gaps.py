@@ -42,11 +42,15 @@ from base64 import b32encode
 from dataclasses import dataclass
 from pathlib import Path
 
-from livespec_orchestrator_git_jsonl.errors import SpecVersionNotFoundError
+from returns.io import IOFailure, IOResult, IOSuccess
+from returns.unsafe import unsafe_perform_io
+
 from livespec_orchestrator_git_jsonl.spec_reader import (
+    SpecTreeUnavailable,
     read_current_specification,
     read_specification_history,
 )
+from livespec_orchestrator_git_jsonl.types import SpecSnapshot
 
 _RULE_KEYWORD_PATTERN = re.compile(r"\b(MUST NOT|SHOULD NOT|MUST|SHOULD)\b")
 _HEADING_PATTERN = re.compile(r"^(#{1,6})\s+(.+?)\s*$")
@@ -117,11 +121,14 @@ def main(*, argv: list[str] | None = None) -> int:
             _ = sys.stderr.write("".join(parts))
             return _EXIT_USAGE_ERROR
         since_version = parsed
-    try:
-        rules = detect_rules(spec_root=spec_root, since_version=since_version)
-    except SpecVersionNotFoundError as exc:
-        _ = sys.stderr.write(f"ERROR: {exc}\n")
+    outcome = detect_rules(spec_root=spec_root, since_version=since_version)
+    if isinstance(outcome, IOFailure):
+        # ⚠️ An ABSENT spec root lands here now. It used to reach the writers
+        # below with an empty rule list and exit 0 — a clean bill of health for
+        # a specification that is not there.
+        _ = sys.stderr.write(f"ERROR: {unsafe_perform_io(outcome.failure())}\n")
         return _EXIT_PRECONDITION_ERROR
+    rules = unsafe_perform_io(outcome.unwrap())
     if args.as_json:
         _write_json(rules=rules)
     else:
@@ -148,7 +155,7 @@ def detect_rules(
     *,
     spec_root: Path,
     since_version: int | None = None,
-) -> list[RuleMatch]:
+) -> IOResult[list[RuleMatch], SpecTreeUnavailable]:
     """Enumerate every MUST/SHOULD rule in the live spec tree.
 
     When `since_version` is None, scans every markdown file in the live
@@ -162,14 +169,26 @@ def detect_rules(
     Returns rules sorted by (spec_file, heading_path, line_text) so
     output ordering is deterministic across runs and platforms.
     """
-    snapshot = read_current_specification(spec_root=spec_root)
+    outcome = read_current_specification(spec_root=spec_root)
+    if isinstance(outcome, IOFailure):
+        return outcome
+    snapshot = unsafe_perform_io(outcome.unwrap())
     if since_version is None:
-        candidate_files = sorted(snapshot.files.keys())
-    else:
-        candidate_files = sorted(
-            _files_changed_since(spec_root=spec_root, since_version=since_version)
-            & snapshot.files.keys()
+        return IOSuccess(_rules_for(snapshot=snapshot, candidate_files=sorted(snapshot.files)))
+    changed = _files_changed_since(
+        spec_root=spec_root, since_version=since_version, live_snapshot=snapshot
+    )
+    if isinstance(changed, IOFailure):
+        return IOResult.from_failure(unsafe_perform_io(changed.failure()))
+    return IOSuccess(
+        _rules_for(
+            snapshot=snapshot,
+            candidate_files=sorted(unsafe_perform_io(changed.unwrap()) & snapshot.files.keys()),
         )
+    )
+
+
+def _rules_for(*, snapshot: SpecSnapshot, candidate_files: list[str]) -> list[RuleMatch]:
     rules: list[RuleMatch] = []
     for spec_file in candidate_files:
         if not spec_file.endswith(".md"):
@@ -180,25 +199,34 @@ def detect_rules(
     return rules
 
 
-def _files_changed_since(*, spec_root: Path, since_version: int) -> set[str]:
+def _files_changed_since(
+    *, spec_root: Path, since_version: int, live_snapshot: SpecSnapshot
+) -> IOResult[set[str], SpecTreeUnavailable]:
     """Return the set of file paths that differ between `<since_version>` and the live spec.
 
-    Compares the live tree (everything under `<spec-root>/` except
-    `history/` and `proposed_changes/`) against the history snapshot
-    at `<since_version>`. A file is "changed" if its content differs,
+    Compares the ALREADY-READ live snapshot against the history snapshot
+    at `<since_version>`. The live tree is supplied by the caller rather
+    than re-read here: `detect_rules` has necessarily read it already (and
+    returned early if it was unreadable), so re-reading was both a second
+    filesystem walk and an unreachable failure branch — which is how the
+    coverage gate surfaced it. A file is "changed" if its content differs,
     or if it appears in only one of the two sides.
 
-    Raises `SpecVersionNotFoundError` if `<since_version>` does not
-    exist under `<spec-root>/history/`.
+    Carries `SpecVersionNotFoundError` on the failure track if
+    `<since_version>` does not exist under `<spec-root>/history/`.
     """
-    since_snapshot = read_specification_history(spec_root=spec_root, version=since_version)
-    live_snapshot = read_current_specification(spec_root=spec_root)
-    changed: set[str] = set()
-    all_paths = set(since_snapshot.files.keys()) | set(live_snapshot.files.keys())
-    for path in all_paths:
-        if since_snapshot.files.get(path, "") != live_snapshot.files.get(path, ""):
-            changed.add(path)
-    return changed
+    since_outcome = read_specification_history(spec_root=spec_root, version=since_version)
+    if isinstance(since_outcome, IOFailure):
+        return IOResult.from_failure(unsafe_perform_io(since_outcome.failure()))
+    since_files = unsafe_perform_io(since_outcome.unwrap()).files
+    live_files = live_snapshot.files
+    return IOSuccess(
+        {
+            path
+            for path in set(since_files) | set(live_files)
+            if since_files.get(path, "") != live_files.get(path, "")
+        }
+    )
 
 
 def _extract_rules_from_file(*, spec_file: str, content: str) -> list[RuleMatch]:

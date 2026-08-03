@@ -8,6 +8,12 @@ from livespec_orchestrator_git_jsonl.commands.detect_impl_gaps import (
     detect_rules,
     main,
 )
+from returns.unsafe import unsafe_perform_io
+
+
+def _rules(spec_root: Path) -> list:
+    """The rule list on the success track, asserting the spec tree was readable."""
+    return unsafe_perform_io(detect_rules(spec_root=spec_root).unwrap())
 
 
 def _write_spec(*, root: Path, files: dict[str, str]) -> None:
@@ -267,8 +273,8 @@ def test_detect_rules_deterministic_across_calls(tmp_path: Path) -> None:
         root=spec,
         files={"spec.md": "# Heading\n\nReaders MUST cope.\nCallers SHOULD retry.\n"},
     )
-    first = detect_rules(spec_root=spec)
-    second = detect_rules(spec_root=spec)
+    first = _rules(spec)
+    second = _rules(spec)
     assert [r.gap_id for r in first] == [r.gap_id for r in second]
 
 
@@ -281,7 +287,7 @@ def test_detect_rules_returns_sorted_by_file_heading_text(tmp_path: Path) -> Non
             "a_first.md": "# A\n\nFile A MUST appear first.\n",
         },
     )
-    rules = detect_rules(spec_root=spec)
+    rules = _rules(spec)
     spec_files = [r.spec_file for r in rules]
     assert spec_files == sorted(spec_files)
 
@@ -538,3 +544,25 @@ def test_since_version_passes_through_spec_target(
     assert rc == 0
     payload = json.loads(captured.out)
     assert len(payload["gap_ids"]) == 2
+
+
+def test_main_refuses_an_absent_spec_root_instead_of_reporting_no_gaps(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """A mistyped `--spec-target` must not read as full conformance.
+
+    This is the user-facing half of the spec_reader fix. `detect-impl-gaps`
+    used to hand an absent spec root to rule extraction, produce zero rules,
+    print `{"gap_ids": []}` and exit 0 — a clean bill of health for a
+    specification that is not there. The same CLI already exited with a
+    precondition error when a *history* version was missing, so one command
+    gave two absences opposite exit codes.
+    """
+    absent = tmp_path / "typo-in-the-path" / "SPECIFICATION"
+
+    exit_code = main(argv=["--spec-target", str(absent), "--json"])
+
+    assert exit_code != 0
+    captured = capsys.readouterr()
+    assert "gap_ids" not in captured.out
+    assert "not found" in captured.err

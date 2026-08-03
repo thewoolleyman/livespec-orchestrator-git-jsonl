@@ -38,7 +38,7 @@ from livespec_orchestrator_git_jsonl.io._cross_repo import (
     parse_cross_repo_manifest_optional,
     parse_depends_on_entry_optional,
 )
-from livespec_orchestrator_git_jsonl.io._jsonc import loads_optional
+from livespec_orchestrator_git_jsonl.io._jsonc import loads
 from livespec_orchestrator_git_jsonl.types import WorkItem
 
 __all__: list[str] = [
@@ -64,7 +64,9 @@ def load_manifest(*, project_root: Path) -> CrossRepoManifest:
     config_path = project_root / _LIVESPEC_CONFIG
     if not config_path.is_file():
         return CrossRepoManifest(targets={})
-    parsed = loads_optional(text=config_path.read_text(encoding="utf-8"))
+    # `.value_or(None)` rather than a swallowing helper: discarding the parse
+    # reason is this caller's DEGRADED-VIEW policy, stated where it applies.
+    parsed = loads(text=config_path.read_text(encoding="utf-8")).value_or(None)
     if not isinstance(parsed, dict):
         return CrossRepoManifest(targets={})
     parsed_dict = cast("dict[str, Any]", parsed)

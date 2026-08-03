@@ -2,11 +2,20 @@
 
 Public surface:
 
-- `JsoncParseError` — raised by `loads` on malformed JSONC input.
-- `loads(*, text)` — strip `//` line comments, then parse as JSON; raises
-  `JsoncParseError` on failure.
-- `loads_optional(*, text)` — like `loads` but returns None on parse error;
-  lets callers outside io/ avoid try/except.
+- `JsoncParseError` — the failure `loads` carries on malformed JSONC input.
+- `loads(*, text)` — strip `//` line comments, then parse as JSON, returning
+  `Result[Any, JsoncParseError]`.
+
+⚠️ `Result`, NOT `IOResult`: the comment-strip and the parse are PURE. The
+file read is the caller's, and that is where the I/O boundary sits — putting
+this on `IOResult` would claim an effect this module does not have.
+
+⛔ THERE IS NO `loads_optional` ANY MORE, AND ITS ABSENCE IS THE POINT. It
+existed only to swallow the raise back into `None` so that "callers outside
+io/ avoid try/except" — which made this module the one place a NAMED parse
+error became an anonymous `None`. A caller that genuinely wants the
+absent-shaped answer now writes `loads(text=...).value_or(None)` at the call
+site, where the choice to discard the reason is visible.
 """
 
 from __future__ import annotations
@@ -15,7 +24,9 @@ import json
 import re
 from typing import Any
 
-__all__: list[str] = ["JsoncParseError", "loads", "loads_optional"]
+from returns.result import Failure, Result, Success
+
+__all__: list[str] = ["JsoncParseError", "loads"]
 
 
 class JsoncParseError(Exception):
@@ -39,18 +50,15 @@ def _strip_line_comments(*, text: str) -> str:
     )
 
 
-def loads(*, text: str) -> Any:
-    """Parse a JSONC string and return the decoded Python value."""
+def loads(*, text: str) -> Result[Any, JsoncParseError]:
+    """Parse a JSONC string, or carry why it did not parse.
+
+    The `try` stays: `json.loads` is the boundary that raises, and this is
+    the one place in the package that converts that raise into a value.
+    """
     stripped = _strip_line_comments(text=text)
     try:
-        return json.loads(stripped)
+        decoded: Any = json.loads(stripped)
     except json.JSONDecodeError as exc:
-        raise JsoncParseError(detail=f"jsonc parse failed: {exc}") from exc
-
-
-def loads_optional(*, text: str) -> Any:
-    """Parse a JSONC string; return None instead of raising on parse failure."""
-    try:
-        return loads(text=text)
-    except JsoncParseError:
-        return None
+        return Failure(JsoncParseError(detail=f"jsonc parse failed: {exc}"))
+    return Success(decoded)

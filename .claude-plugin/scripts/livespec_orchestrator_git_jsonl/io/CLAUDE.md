@@ -11,7 +11,8 @@ check enforces this boundary across the rest of the package.
   dirs), `parse_jsonl_line` (parse one raw line; the error-raising
   core shared by `iter_records` and migration raw-read paths).
 - `_jsonc.py` — JSONC comment-stripping parser: `loads` (raises
-  `JsoncParseError`), `loads_optional` (returns None on parse error).
+  `JsoncParseError` carried on the failure track). A caller wanting the
+  absent-shaped answer writes `.value_or(None)` at its own call site.
   Re-exported by `commands/_jsonc.py` for backwards compatibility.
 - `_cross_repo.py` — cross-repo manifest and entry parsing: wraps
   `livespec_runtime.cross_repo.types.parse_cross_repo_manifest` and

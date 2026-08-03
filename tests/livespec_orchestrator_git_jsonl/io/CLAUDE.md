@@ -12,7 +12,7 @@ check.
   bad-JSON, non-dict-JSON error paths; happy-path yields; append creates
   files and parent directories.
 - `test_jsonc.py` — JSONC parsing: `loads` (with comment stripping and
-  parse-error signaling) and `loads_optional` (None on error).
+  parse-error signaling on the `Result` failure track).
 - `test_cross_repo.py` — cross-repo manifest helpers:
   `parse_cross_repo_manifest_optional` and
   `parse_depends_on_entry_optional` (both return None on schema error).

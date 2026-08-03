@@ -20,21 +20,33 @@ from livespec_runtime.cross_repo.types import (
     parse_cross_repo_manifest,
     parse_depends_on_entry,
 )
+from returns.result import Failure, Result, Success
 
-__all__: list[str] = ["parse_cross_repo_manifest_optional", "parse_depends_on_entry_optional"]
+__all__: list[str] = ["parse_cross_repo_manifest_result", "parse_depends_on_entry_result"]
 
 
-def parse_cross_repo_manifest_optional(*, parsed: dict[str, Any]) -> CrossRepoManifest | None:
-    """Parse a cross_repo_targets block; return None on schema error."""
+def parse_cross_repo_manifest_result(
+    *, parsed: dict[str, Any]
+) -> Result[CrossRepoManifest, CrossRepoSchemaError]:
+    """Parse a cross_repo_targets block, carrying the schema error if it fails.
+
+    ⚠️ RENAMED FROM `*_optional`, because the suffix described the return
+    shape and the shape changed. These are thin adapters over
+    `livespec_runtime.cross_repo.types`' RAISING parsers — this repo's
+    boundary against them — and they used to discard the schema error the
+    sibling had gone to the trouble of raising.
+    """
     try:
-        return parse_cross_repo_manifest(parsed=parsed)
-    except CrossRepoSchemaError:
-        return None
+        return Success(parse_cross_repo_manifest(parsed=parsed))
+    except CrossRepoSchemaError as invalid:
+        return Failure(invalid)
 
 
-def parse_depends_on_entry_optional(*, raw: dict[str, Any]) -> DependsOnEntry | None:
-    """Parse a typed depends_on entry dict; return None on schema error or unknown kind."""
+def parse_depends_on_entry_result(
+    *, raw: dict[str, Any]
+) -> Result[DependsOnEntry, CrossRepoSchemaError]:
+    """Parse a typed depends_on entry dict, carrying the schema error if it fails."""
     try:
-        return parse_depends_on_entry(parsed=raw)
-    except CrossRepoSchemaError:
-        return None
+        return Success(parse_depends_on_entry(parsed=raw))
+    except CrossRepoSchemaError as invalid:
+        return Failure(invalid)

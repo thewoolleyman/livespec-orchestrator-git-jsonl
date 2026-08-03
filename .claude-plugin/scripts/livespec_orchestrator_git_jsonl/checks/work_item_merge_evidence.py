@@ -52,7 +52,7 @@ from livespec_orchestrator_git_jsonl.commands._config import resolve_store_confi
 from livespec_orchestrator_git_jsonl.errors import (
     StoreFileMissingError,
 )
-from livespec_orchestrator_git_jsonl.io._jsonc import loads_optional
+from livespec_orchestrator_git_jsonl.io._jsonc import loads
 from livespec_orchestrator_git_jsonl.store import materialize_work_items, read_work_items
 from livespec_orchestrator_git_jsonl.types import DependsOnRaw, WorkItem
 
@@ -179,7 +179,7 @@ def _configured_branch(*, repo_dir: Path) -> str | None:
     config_path = repo_dir / _CONFIG_FILENAME
     if not config_path.is_file():
         return None
-    parsed = loads_optional(text=config_path.read_text(encoding="utf-8"))
+    parsed = loads(text=config_path.read_text(encoding="utf-8")).value_or(None)
     if not isinstance(parsed, dict):
         return None
     block = cast("dict[str, Any]", parsed).get(_PLUGIN_BLOCK)

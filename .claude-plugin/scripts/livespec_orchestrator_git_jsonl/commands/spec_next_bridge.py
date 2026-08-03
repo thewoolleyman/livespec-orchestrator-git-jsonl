@@ -13,7 +13,7 @@ from typing import Any, Protocol, cast
 from livespec_runtime.attention_item import AttentionUrgency
 from livespec_runtime.needs_attention import SpecNextOutput
 
-from livespec_orchestrator_git_jsonl.io._jsonc import loads_optional as loads_jsonc_optional
+from livespec_orchestrator_git_jsonl.io._jsonc import loads as loads_jsonc
 from livespec_orchestrator_git_jsonl.io.spec_next import (
     load_json_file_optional,
     loads_json_optional,
@@ -148,7 +148,7 @@ def _read_spec_clis_next_argv(*, project_root: Path) -> list[str] | None:
     config_path = project_root / _LIVESPEC_CONFIG
     if not config_path.is_file():
         return None
-    parsed = loads_jsonc_optional(text=config_path.read_text(encoding="utf-8"))
+    parsed = loads_jsonc(text=config_path.read_text(encoding="utf-8")).value_or(None)
     if not isinstance(parsed, dict):
         return None
     spec_clis = cast("dict[str, Any]", parsed).get("spec_clis")

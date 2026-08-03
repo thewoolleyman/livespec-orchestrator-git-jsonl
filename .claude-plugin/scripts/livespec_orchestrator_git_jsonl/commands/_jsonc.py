@@ -2,9 +2,11 @@
 
 Public surface:
 
-- `JsoncParseError` — raised by `loads` on malformed JSONC input.
-- `loads(*, text)` — parse a JSONC string. Raises `JsoncParseError` on
-  malformed input (the only EXPECTED error per the Result-vs-bugs split).
+- `JsoncParseError` — the failure `loads` carries on malformed JSONC input.
+- `loads(*, text)` — parse a JSONC string, returning
+  `Result[Any, JsoncParseError]`. Malformed input is the only EXPECTED
+  failure per the Result-vs-bugs split, and it now rides the failure track
+  instead of being raised.
 """
 
 from __future__ import annotations

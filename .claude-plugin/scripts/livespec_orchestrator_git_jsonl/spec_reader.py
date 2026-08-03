@@ -34,8 +34,21 @@ import difflib
 import re
 from pathlib import Path
 
-from livespec_orchestrator_git_jsonl.errors import SpecVersionNotFoundError
+from returns.io import IOFailure, IOResult, IOSuccess
+from returns.unsafe import unsafe_perform_io
+
+from livespec_orchestrator_git_jsonl.errors import (
+    SpecRootNotFoundError,
+    SpecVersionNotFoundError,
+)
 from livespec_orchestrator_git_jsonl.types import FileDiff, SpecDiff, SpecSnapshot
+
+# The two ways a spec tree can be unavailable, as ONE alias so a consumer that
+# reads either capability names a single failure type. They stay distinct
+# classes because they answer different questions: "there is no spec tree here"
+# is an operator typo; "that version was never ratified" is a real query about a
+# real tree.
+SpecTreeUnavailable = SpecRootNotFoundError | SpecVersionNotFoundError
 
 __all__: list[str] = [
     "current_specification_version",
@@ -47,20 +60,39 @@ __all__: list[str] = [
 _VERSION_DIR_PATTERN = re.compile(r"^v(\d+)$")
 
 
-def read_current_specification(*, spec_root: Path) -> SpecSnapshot:
-    """Return a SpecSnapshot of the live <spec-root>/ tree."""
+def read_current_specification(*, spec_root: Path) -> IOResult[SpecSnapshot, SpecTreeUnavailable]:
+    """Return a SpecSnapshot of the live <spec-root>/ tree, or say it is not there.
+
+    ⚠️ ABSENT AND EMPTY ARE DIFFERENT CLAIMS. Without the guard below,
+    `_read_spec_directory` rglobs a directory that does not exist, yields
+    nothing, and this returns `SpecSnapshot(version=0, files={})` — the exact
+    value a spec root that EXISTS and is empty produces. `detect_impl_gaps`
+    then extracts zero rules and reports zero gaps, so a mistyped
+    `--spec-target` reads as full conformance. The reassuring answer is the one
+    that was fabricated, which is why nothing surfaced it.
+    """
+    if not spec_root.is_dir():
+        return IOFailure(SpecRootNotFoundError(spec_root=spec_root))
     files = _read_spec_directory(directory=spec_root, exclude={"history", "proposed_changes"})
     version = current_specification_version(spec_root=spec_root)
-    return SpecSnapshot(version=version, files=files)
+    return IOSuccess(SpecSnapshot(version=version, files=files))
 
 
-def read_specification_history(*, spec_root: Path, version: int) -> SpecSnapshot:
-    """Return a SpecSnapshot of <spec-root>/history/v{version:03d}/."""
+def read_specification_history(
+    *, spec_root: Path, version: int
+) -> IOResult[SpecSnapshot, SpecTreeUnavailable]:
+    """Return a SpecSnapshot of <spec-root>/history/v{version:03d}/, or why not.
+
+    The refusal is UNCHANGED in substance — this capability always rejected a
+    missing version directory. It is now carried as a value rather than raised,
+    per `io/store.py`'s existing `IOFailure(exc)` precedent, so both reads of
+    this adapter answer the same shape.
+    """
     version_dir = _version_directory(spec_root=spec_root, version=version)
     if not version_dir.exists():
-        raise SpecVersionNotFoundError(spec_root=spec_root, version=version)
+        return IOFailure(SpecVersionNotFoundError(spec_root=spec_root, version=version))
     files = _read_spec_directory(directory=version_dir, exclude=set())
-    return SpecSnapshot(version=version, files=files)
+    return IOSuccess(SpecSnapshot(version=version, files=files))
 
 
 def current_specification_version(*, spec_root: Path) -> int:
@@ -78,10 +110,38 @@ def current_specification_version(*, spec_root: Path) -> int:
     return max(versions) if versions else 0
 
 
-def diff_specification_versions(*, spec_root: Path, version_a: int, version_b: int) -> SpecDiff:
-    """Return a SpecDiff comparing two history versions."""
-    snapshot_a = read_specification_history(spec_root=spec_root, version=version_a)
-    snapshot_b = read_specification_history(spec_root=spec_root, version=version_b)
+def diff_specification_versions(
+    *, spec_root: Path, version_a: int, version_b: int
+) -> IOResult[SpecDiff, SpecTreeUnavailable]:
+    """Return a SpecDiff comparing two history versions, or the first failure.
+
+    Written as explicit early returns rather than a `.bind` chain on purpose:
+    pyright cannot narrow through `returns`' `KindN` higher-kinded types, and
+    this module has three railway sites rather than the "roughly half of all
+    lines" that justifies the file-level pragma in `_prune_history_railway.py`.
+    Restructuring is that comment's own first-named canonical fix; silencing a
+    whole module for three call sites would trade real enforcement for brevity.
+    """
+    outcome_a = read_specification_history(spec_root=spec_root, version=version_a)
+    if isinstance(outcome_a, IOFailure):
+        return IOResult.from_failure(unsafe_perform_io(outcome_a.failure()))
+    outcome_b = read_specification_history(spec_root=spec_root, version=version_b)
+    if isinstance(outcome_b, IOFailure):
+        return IOResult.from_failure(unsafe_perform_io(outcome_b.failure()))
+    return IOSuccess(
+        _diff_snapshots(
+            snapshot_a=unsafe_perform_io(outcome_a.unwrap()),
+            snapshot_b=unsafe_perform_io(outcome_b.unwrap()),
+            version_a=version_a,
+            version_b=version_b,
+        )
+    )
+
+
+def _diff_snapshots(
+    *, snapshot_a: SpecSnapshot, snapshot_b: SpecSnapshot, version_a: int, version_b: int
+) -> SpecDiff:
+    """Compare two ALREADY-READ snapshots file by file."""
     all_paths = sorted(set(snapshot_a.files.keys()) | set(snapshot_b.files.keys()))
     per_file: dict[str, FileDiff] = {}
     for path in all_paths:

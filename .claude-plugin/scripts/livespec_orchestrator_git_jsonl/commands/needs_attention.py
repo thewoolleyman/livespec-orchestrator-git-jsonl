@@ -128,7 +128,17 @@ def build_attention(
     return (
         compose_needs_attention(
             repo=repo_name,
-            spec_next=_spec_next(project_root=project_root),
+            # FAIL-OPEN, UNCHANGED — but now spelled where you can see it.
+            # `compose_needs_attention(spec_next: SpecNextOutput | None)` is the
+            # VENDORED livespec_runtime's signature, so a spec-`next` parse
+            # failure has to land on the same `None` it always did; widening it
+            # is cross-repo work, not this call site's.
+            # ⚠️ `unsafe_perform_io` is load-bearing: `IOResult.value_or(None)`
+            # returns an `IO[...]` WRAPPER, not the bare value, and handing that
+            # to a `SpecNextOutput | None` parameter type-checks clean while
+            # being truthy for every input — the spec item would then be
+            # composed from an IO object on every run.
+            spec_next=unsafe_perform_io(_spec_next(project_root=project_root).value_or(None)),
             impl_next=_impl_next(
                 project_root=project_root,
                 work_items_path=work_items_path,

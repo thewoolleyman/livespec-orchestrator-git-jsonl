@@ -7,6 +7,14 @@ indistinguishable at the call site from one that ran and exited 1 — and
 `load_json_file_optional` collapsed "absent", "unreadable" and "not JSON"
 into a single `None`.
 
+⚠️ THAT SENTENCE SAID "Both readers" WHILE THIS MODULE EXPORTED THREE. The
+third was `loads_json_optional`, which returned `None` on a caught
+`json.JSONDecodeError` — and `json.loads("null")` returns `None` too, so its
+failure signal WAS a legitimate value and no caller could separate them even
+in principle. It is now DELETED rather than converted: `io/_jsonc.py::loads`
+already carries the parse failure as `Result[Any, JsoncParseError]`, so the
+twin had nothing left to do. The count and the claim now agree.
+
 Only the absent file is an ANSWER, and it is the one thing still spelled
 `None`, on the SUCCESS track. Everything else is a named failure carrying
 what could not be done.
@@ -28,7 +36,6 @@ __all__: list[str] = [
     "JsonFileUnreadable",
     "ProcessResult",
     "load_json_file_optional",
-    "loads_json_optional",
     "run_capture",
 ]
 
@@ -65,14 +72,6 @@ class ProcessResult:
 
     stdout: str
     returncode: int
-
-
-def loads_json_optional(*, text: str) -> Any:
-    """Parse JSON text; return None on parse failure."""
-    try:
-        return json.loads(text)
-    except json.JSONDecodeError:
-        return None
 
 
 def load_json_file_optional(*, path: Path) -> IOResult[Any, JsonFileUnreadable]:

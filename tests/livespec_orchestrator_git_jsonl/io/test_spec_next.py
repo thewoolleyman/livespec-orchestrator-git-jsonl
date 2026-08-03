@@ -8,7 +8,6 @@ from livespec_orchestrator_git_jsonl.io.spec_next import (
     CommandUnavailable,
     JsonFileUnreadable,
     load_json_file_optional,
-    loads_json_optional,
     run_capture,
 )
 from returns.io import IOFailure, IOResult, IOSuccess
@@ -25,14 +24,6 @@ def _failure(outcome: IOResult[Any, Any]) -> Any:
     """The failure a read carries, asserting it took the failure track."""
     assert isinstance(outcome, IOFailure), f"expected a failure, got {outcome}"
     return unsafe_perform_io(outcome.failure())
-
-
-def test_loads_json_optional_returns_parsed_json() -> None:
-    assert loads_json_optional(text='{"a": 1}') == {"a": 1}
-
-
-def test_loads_json_optional_returns_none_on_invalid_json() -> None:
-    assert loads_json_optional(text="{not json") is None
 
 
 def test_load_json_file_is_absent_when_missing(tmp_path: Path) -> None:

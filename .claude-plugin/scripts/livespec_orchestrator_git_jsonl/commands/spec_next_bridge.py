@@ -12,13 +12,14 @@ from typing import Any, Protocol, cast
 
 from livespec_runtime.attention_item import AttentionUrgency
 from livespec_runtime.needs_attention import SpecNextOutput
-from returns.io import IOFailure
+from returns.io import IOFailure, IOResult, IOSuccess
+from returns.result import Result
 from returns.unsafe import unsafe_perform_io
 
+from livespec_orchestrator_git_jsonl.io._jsonc import JsoncParseError
 from livespec_orchestrator_git_jsonl.io._jsonc import loads as loads_jsonc
 from livespec_orchestrator_git_jsonl.io.spec_next import (
     load_json_file_optional,
-    loads_json_optional,
     run_capture,
 )
 
@@ -36,6 +37,7 @@ __all__: list[str] = [
     "resolve_spec_next_command",
     "spec_next",
     "spec_output_from_candidate",
+    "top_candidate",
 ]
 
 _LIVESPEC_CONFIG = ".livespec.jsonc"
@@ -112,9 +114,25 @@ def _spec_output_from_candidate(*, candidate: object, project_root: Path) -> Spe
     )
 
 
-def _adapt_top_candidate(*, stdout: str, project_root: Path) -> SpecNextOutput | None:
-    """Adapt the top non-`none` candidate from spec-`next` stdout, or None."""
-    payload = loads_json_optional(text=stdout)
+def _adapt_top_candidate(
+    *, stdout: str, project_root: Path
+) -> Result[SpecNextOutput | None, JsoncParseError]:
+    """Adapt the top non-`none` candidate, or say WHY there is nothing to adapt.
+
+    Two situations that used to share one `None` are now two tracks. Stdout
+    that is not JSON at all is a FAILURE carrying the parse detail; stdout that
+    parses but holds no actionable candidate — including a bare `null`, a
+    non-object, or an empty list — is an ANSWER of `None` on the success track.
+    `loads_json_optional` made those identical, because its failure sentinel was
+    itself a value `json.loads` legitimately returns.
+    """
+    return loads_jsonc(text=stdout).map(
+        lambda payload: _top_candidate(payload=payload, project_root=project_root)
+    )
+
+
+def _top_candidate(*, payload: Any, project_root: Path) -> SpecNextOutput | None:
+    """Pick the first actionable candidate out of an ALREADY-PARSED payload."""
     if not isinstance(payload, dict):
         return None
     candidates = cast("dict[str, Any]", payload).get("candidates")
@@ -265,17 +283,28 @@ def spec_next(
     *,
     project_root: Path,
     seam: SpecNextSeam = DEFAULT_SPEC_NEXT_SEAM,
-) -> SpecNextOutput | None:
-    """Invoke CORE spec-`next` cross-plane and adapt its top candidate."""
+) -> IOResult[SpecNextOutput | None, JsoncParseError]:
+    """Invoke CORE spec-`next` cross-plane and adapt its top candidate.
+
+    ⚠️ ONLY ONE SITUATION RIDES THE FAILURE TRACK, and the narrowness is
+    deliberate rather than unfinished. An unresolvable command, an unspawnable
+    one, and a non-zero exit all stay ANSWERS of `None` — the last by this
+    package's own documented doctrine (`io/spec_next.py` on `run_capture`: "it
+    ran and exited non-zero ... is an ANSWER and rides the success track").
+    What is new is the one failure `loads_json_optional` was destroying:
+    stdout that is not JSON at all.
+    """
     with contextlib.suppress(OSError, subprocess.SubprocessError):
         command = seam.resolve_command(project_root=project_root)
         if command is None:
-            return None
+            return IOSuccess(None)
         result = seam.run(argv=[*command, "--project-root", str(project_root)])
         if result.returncode != 0:
-            return None
-        return _adapt_top_candidate(stdout=result.stdout, project_root=project_root)
-    return None
+            return IOSuccess(None)
+        return IOResult.from_result(
+            _adapt_top_candidate(stdout=result.stdout, project_root=project_root)
+        )
+    return IOSuccess(None)
 
 
 def _quote(*, path: Path) -> str:
@@ -292,3 +321,4 @@ read_spec_clis_next_argv = _read_spec_clis_next_argv
 resolve_core_plugin_root = _resolve_core_plugin_root
 resolve_spec_next_command = _resolve_spec_next_command
 spec_output_from_candidate = _spec_output_from_candidate
+top_candidate = _top_candidate

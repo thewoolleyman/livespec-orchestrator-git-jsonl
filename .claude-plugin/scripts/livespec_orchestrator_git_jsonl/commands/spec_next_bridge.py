@@ -12,6 +12,8 @@ from typing import Any, Protocol, cast
 
 from livespec_runtime.attention_item import AttentionUrgency
 from livespec_runtime.needs_attention import SpecNextOutput
+from returns.io import IOFailure
+from returns.unsafe import unsafe_perform_io
 
 from livespec_orchestrator_git_jsonl.io._jsonc import loads as loads_jsonc
 from livespec_orchestrator_git_jsonl.io.spec_next import (
@@ -159,7 +161,16 @@ def _read_spec_clis_next_argv(*, project_root: Path) -> list[str] | None:
 
 def _claude_installed_core_roots(*, registry: Path) -> Iterator[Path]:
     """Yield CORE roots from a Claude `installed_plugins.json` registry file."""
-    parsed = load_json_file_optional(path=registry)
+    # A registry that is absent or unreadable both mean "no CORE roots from
+    # here" for this generator, so the two are folded back together AT THE
+    # CALL SITE — visibly, rather than inside the reader for every caller.
+    #
+    # ⚠️ `unsafe_perform_io` is NOT optional ceremony here. `IOResult.value_or`
+    # returns `IO[value]`, NOT the value — unlike `Result.value_or`, which
+    # returns it bare. Without the unwrap, `parsed` is an `IO[...]` object,
+    # the `isinstance(parsed, dict)` below is False for EVERY registry, and
+    # this generator silently yields nothing. Caught by the beside-tests.
+    parsed = unsafe_perform_io(load_json_file_optional(path=registry).value_or(None))
     if not isinstance(parsed, dict):
         return
     plugins = cast("dict[str, Any]", parsed).get("plugins")
@@ -234,7 +245,13 @@ def _default_resolve_command(*, project_root: Path) -> list[str] | None:  # prag
 
 def _run_spec_next_cli(*, argv: list[str]) -> _SpecNextResult:  # pragma: no cover
     """Production `run` seam: shell out to CORE's spec-`next` CLI."""
-    completed = run_capture(argv=argv, timeout=_SPEC_NEXT_TIMEOUT_SECONDS)
+    outcome = run_capture(argv=argv, timeout=_SPEC_NEXT_TIMEOUT_SECONDS)
+    if isinstance(outcome, IOFailure):
+        # The CLI never ran. Exit 1 is what this seam has always reported for
+        # that case and what the bridge's callers expect; it is produced HERE,
+        # where the reason is in hand, rather than invented inside the reader.
+        return _SpecNextResult(stdout="", returncode=1)
+    completed = unsafe_perform_io(outcome.unwrap())
     return _SpecNextResult(stdout=completed.stdout, returncode=completed.returncode)
 
 

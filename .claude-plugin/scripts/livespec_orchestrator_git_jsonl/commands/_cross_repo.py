@@ -35,8 +35,8 @@ from livespec_runtime.cross_repo.types import (
 )
 
 from livespec_orchestrator_git_jsonl.io._cross_repo import (
-    parse_cross_repo_manifest_optional,
-    parse_depends_on_entry_optional,
+    parse_cross_repo_manifest_result,
+    parse_depends_on_entry_result,
 )
 from livespec_orchestrator_git_jsonl.io._jsonc import loads
 from livespec_orchestrator_git_jsonl.types import WorkItem
@@ -74,10 +74,10 @@ def load_manifest(*, project_root: Path) -> CrossRepoManifest:
     if not isinstance(block_raw, dict):
         return CrossRepoManifest(targets={})
     block = cast("dict[str, Any]", block_raw)
-    result = parse_cross_repo_manifest_optional(parsed=block)
-    if result is None:
-        return CrossRepoManifest(targets={})
-    return result
+    # `.value_or(...)` rather than a swallowing helper: falling back to an
+    # EMPTY manifest on a schema error is this function's stated degraded-view
+    # policy, and it belongs where that policy is documented.
+    return parse_cross_repo_manifest_result(parsed=block).value_or(CrossRepoManifest(targets={}))
 
 
 def parse_entry(*, raw: object) -> DependsOnEntry | None:
@@ -93,7 +93,7 @@ def parse_entry(*, raw: object) -> DependsOnEntry | None:
         return LocalDependency(work_item_id=raw)
     if isinstance(raw, dict):
         typed_raw = cast("dict[str, Any]", raw)
-        return parse_depends_on_entry_optional(raw=typed_raw)
+        return parse_depends_on_entry_result(raw=typed_raw).value_or(None)
     return None
 
 

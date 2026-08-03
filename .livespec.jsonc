@@ -9,9 +9,22 @@
 //   §"Cross-repo coordination — pin-and-bump"
 //   §"`compat` block" (the schema this file populates)
 {
+  // Worktree-discipline pack policy. "required" — the DEFAULT, and what an
+  // absent key means — makes `just check` fail when the canonical pack is not
+  // installed and imported by the root justfile. "optional" is the sanctioned,
+  // reviewable opt-out. Written explicitly at install time so the obligation is
+  // readable here rather than inferred from a verifier failure.
+  "worktree_discipline": { "pack": "required" },
   "template": "livespec",
   "spec_root": "SPECIFICATION",
   "implementation": { "plugin": "livespec-orchestrator-beads-fabro" },
+  "cross_repo_targets": {
+    "livespec-dev-tooling": {
+      "github_url": "https://github.com/thewoolleyman/livespec-dev-tooling",
+      "local_clone": "/data/projects/livespec-dev-tooling",
+      "default_branch": "master"
+    }
+  },
   // Fleet-default credential-injection wrapper (argv-form command prefix) for
   // this repo's OWN work-item tracking. The livespec-orchestrator-beads-fabro
   // impl-plugin CLIs (see "implementation" above) run against this repo's Dolt

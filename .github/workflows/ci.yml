@@ -122,7 +122,7 @@ jobs:
     # green-in-CI / red-in-sandbox drift this epic exists to remove.
     runs-on: ${{ fromJSON(vars.CI_RUNNER_LABELS || '["self-hosted","local-ci"]') }}
     container:
-      image: ghcr.io/thewoolleyman/livespec-fabro-sandbox:python-v1.18.9
+      image: ghcr.io/thewoolleyman/livespec-fabro-sandbox:python-v1.19.0
     env:
       MISE_DATA_DIR: /root/.local/share/mise
       MISE_NOT_FOUND_AUTO_INSTALL: "0"
@@ -229,7 +229,7 @@ jobs:
     # preserved).
     runs-on: ${{ fromJSON(vars.CI_RUNNER_LABELS || '["self-hosted","local-ci"]') }}
     container:
-      image: ghcr.io/thewoolleyman/livespec-fabro-sandbox:python-v1.18.9
+      image: ghcr.io/thewoolleyman/livespec-fabro-sandbox:python-v1.19.0
     env:
       MISE_DATA_DIR: /root/.local/share/mise
       MISE_NOT_FOUND_AUTO_INSTALL: "0"
@@ -285,7 +285,7 @@ jobs:
     # Self-hosted in the baked image, same rationale as check-python above.
     runs-on: ${{ fromJSON(vars.CI_RUNNER_LABELS || '["self-hosted","local-ci"]') }}
     container:
-      image: ghcr.io/thewoolleyman/livespec-fabro-sandbox:python-v1.18.9
+      image: ghcr.io/thewoolleyman/livespec-fabro-sandbox:python-v1.19.0
     env:
       MISE_DATA_DIR: /root/.local/share/mise
       MISE_NOT_FOUND_AUTO_INSTALL: "0"
@@ -306,6 +306,7 @@ jobs:
           - check-no-direct-destructive-cli
           - check-no-shadow-ledger-body-typechecks
           - check-plan-thread-anchor-declared
+          - check-plan-thread-no-tombstone
           - check-primary-checkout-commit-refuse-hook-installed
           # Byte-identity sibling of the commit-refuse check above: reads
           # the `neutral_hook_body_path` role key from pyproject.toml (a
@@ -446,7 +447,7 @@ jobs:
     # Self-hosted in the baked image, same rationale as check-python above.
     runs-on: ${{ fromJSON(vars.CI_RUNNER_LABELS || '["self-hosted","local-ci"]') }}
     container:
-      image: ghcr.io/thewoolleyman/livespec-fabro-sandbox:python-v1.18.9
+      image: ghcr.io/thewoolleyman/livespec-fabro-sandbox:python-v1.19.0
     env:
       MISE_DATA_DIR: /root/.local/share/mise
       MISE_NOT_FOUND_AUTO_INSTALL: "0"
@@ -498,7 +499,7 @@ jobs:
     # Self-hosted in the baked image, same rationale as check-python above.
     runs-on: ${{ fromJSON(vars.CI_RUNNER_LABELS || '["self-hosted","local-ci"]') }}
     container:
-      image: ghcr.io/thewoolleyman/livespec-fabro-sandbox:python-v1.18.9
+      image: ghcr.io/thewoolleyman/livespec-fabro-sandbox:python-v1.19.0
     env:
       MISE_DATA_DIR: /root/.local/share/mise
       MISE_NOT_FOUND_AUTO_INSTALL: "0"

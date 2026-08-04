@@ -6,6 +6,8 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, cast
 
+from returns.io import impure_safe
+
 __all__: list[str] = [
     "AcceptanceConfig",
     "AcceptanceResult",
@@ -37,8 +39,20 @@ class AcceptanceResult:
     greeting: str
 
 
+@impure_safe(exceptions=(OSError,))
 def run_acceptance(*, config: AcceptanceConfig) -> AcceptanceResult:
-    """Run one acceptance fixture."""
+    """Run one acceptance fixture.
+
+    Reads the fixture off disk and writes the generated program into the
+    workspace, so an absent or unreadable fixture is an ORDINARY outcome
+    of running one and reaches the caller on the failure track.
+
+    The `exceptions=` tuple is SCOPED to `OSError` deliberately. An empty
+    `spec.md` (`IndexError` off `.splitlines()[0]`) and a generated
+    program with no `greet` (`KeyError`) are FIXTURE BUGS, not outcomes
+    of running the harness — they keep escaping as raises rather than
+    arriving as well-formed failure values.
+    """
     fixture_name = _fixture_name(spec_root=config.spec_root)
     generated_program = _write_generated_program(workspace=config.workspace)
     greeting = _generated_greeting(generated_program=generated_program, name=config.name)

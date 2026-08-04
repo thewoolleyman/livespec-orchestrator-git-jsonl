@@ -123,6 +123,17 @@ def test_executable_line_filter_ignores_blank_and_comment_lines() -> None:
 
 
 def test_recipe_body_reader_handles_final_recipe() -> None:
-    body = _recipe_body(recipe_name="check-hook-trees-not-io-exempt")
+    # Derive the final recipe instead of naming one: a name pinned here stops
+    # exercising the no-following-header path as soon as a recipe is appended.
+    lines = _justfile_text().splitlines()
+    header = re.compile(r"([A-Za-z][A-Za-z0-9_-]*)(?:\s+.*)?:")
+    final_index, final_recipe_name = next(
+        (index, match.group(1))
+        for index, line in reversed(list(enumerate(lines)))
+        if (match := header.fullmatch(line)) is not None
+    )
 
-    assert "livespec_dev_tooling.checks.hook_trees_not_io_exempt" in body
+    body = _recipe_body(recipe_name=final_recipe_name)
+
+    assert body == "\n".join(lines[final_index + 1 :])
+    assert _executable_lines(body=body)

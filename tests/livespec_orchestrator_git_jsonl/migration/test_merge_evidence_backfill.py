@@ -27,7 +27,9 @@ from livespec_orchestrator_git_jsonl.checks.work_item_merge_evidence import (
 from livespec_orchestrator_git_jsonl.checks.work_item_merge_evidence import (
     main as check_main,
 )
+from livespec_orchestrator_git_jsonl.errors import MalformedRecordLineError
 from livespec_orchestrator_git_jsonl.migration.merge_evidence_backfill import main
+from livespec_orchestrator_git_jsonl.migration.merge_evidence_backfill_core import backfill_file
 from livespec_orchestrator_git_jsonl.store import (
     append_work_item,
     materialize_work_items,
@@ -490,6 +492,43 @@ def test_honors_canonical_branch_flag(
     audit = index["li-aaa111"].audit
     assert audit is not None
     assert audit.merge_sha == work_sha
+
+
+def test_backfill_file_lifts_its_report_onto_the_io_railway(tmp_path: Path) -> None:
+    """The public entry hands back `IOSuccess(report)`, not a bare report.
+
+    `main()` is the only consumer today, so the railway is not observable
+    through the CLI surface the rest of this module exercises — it has to
+    be asserted on the function itself.
+    """
+    path = tmp_path / "wi.jsonl"
+    _write_raw_store(path=path, records=[_raw_record(audit=_legacy_audit(commits=[]))])
+    result = backfill_file(
+        path=path,
+        repo_dir=tmp_path,
+        canonical_branch="master",
+        grandfather=True,
+        dry_run=True,
+    )
+    assert isinstance(result, IOSuccess)
+    report = unsafe_perform_io(result.unwrap())
+    assert report.orphans == ()
+    assert len(report.repaired) == 1
+
+
+def test_backfill_file_routes_an_unreadable_store_to_the_failure_track(tmp_path: Path) -> None:
+    """An EXPECTED store error flows on the failure track rather than escaping as a raise."""
+    path = tmp_path / "wi.jsonl"
+    _ = path.write_text("not-json\n", encoding="utf-8")
+    result = backfill_file(
+        path=path,
+        repo_dir=tmp_path,
+        canonical_branch="master",
+        grandfather=True,
+        dry_run=True,
+    )
+    assert isinstance(result, IOFailure)
+    assert isinstance(unsafe_perform_io(result.failure()), MalformedRecordLineError)
 
 
 def test_wrapper_is_invocable_as_a_script(tmp_path: Path) -> None:

@@ -7,14 +7,18 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, cast
 
-from returns.io import IOFailure, IOSuccess
+from returns.io import IOFailure, IOSuccess, impure_safe
 from returns.result import Failure
 from returns.unsafe import unsafe_perform_io
 
 from livespec_orchestrator_git_jsonl.checks.work_item_merge_evidence import (
     GRANDFATHER_MERGE_SHA_SENTINEL,
 )
-from livespec_orchestrator_git_jsonl.errors import MalformedRecordLineError
+from livespec_orchestrator_git_jsonl.errors import (
+    MalformedRecordLineError,
+    SchemaViolationError,
+    StoreFileMissingError,
+)
 from livespec_orchestrator_git_jsonl.io.store import parse_jsonl_line
 from livespec_orchestrator_git_jsonl.migration.merge_evidence_git import discover_merge_sha
 from livespec_orchestrator_git_jsonl.store import (
@@ -39,6 +43,14 @@ class BackfillReport:
     orphans: tuple[str, ...]
 
 
+@impure_safe(
+    exceptions=(
+        StoreFileMissingError,
+        MalformedRecordLineError,
+        SchemaViolationError,
+        OSError,
+    )
+)
 def backfill_file(
     *,
     path: Path,
@@ -50,9 +62,15 @@ def backfill_file(
     """Backfill merge-evidence in the work-items store at `path`.
 
     Writes happen only when `dry_run` is False AND no orphan findings
-    were raised (all-or-nothing). Raises the store's EXPECTED errors
-    (`MalformedRecordLineError`, `SchemaViolationError`) when the
-    input — even after phase-1 repair — cannot be read canonically.
+    were raised (all-or-nothing). The store's EXPECTED errors reach the
+    caller on the failure track when the input — even after phase-1
+    repair — cannot be read canonically, or when the phase-2 appends
+    cannot be written.
+
+    The `exceptions=` tuple is SCOPED to exactly the four this function
+    can legitimately produce, and that scoping is the point: anything
+    outside it still escapes as a raise, so a bug in here stays a bug
+    rather than being laundered into a well-formed failure value.
     """
     lines = _load_lines(path=path)
     out_lines, repaired, phase_one_orphans = _phase_one_repairs(
@@ -80,6 +98,10 @@ def backfill_file(
         for transition in transitions:
             append_result = append_work_item(path=path, item=transition)
             if isinstance(append_result, IOFailure):
+                # Raised, not returned: the decorator above lifts it back
+                # onto the SAME failure track, so the loop keeps its
+                # all-or-nothing early exit without this function growing a
+                # second exit shape.
                 raise unsafe_perform_io(append_result.failure())
     return BackfillReport(repaired=repaired, appended=appended, orphans=phase_two_orphans)
 

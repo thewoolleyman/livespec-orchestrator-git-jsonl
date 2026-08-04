@@ -50,6 +50,9 @@ import argparse
 import sys
 from pathlib import Path
 
+from returns.io import IOSuccess
+from returns.unsafe import unsafe_perform_io
+
 from livespec_orchestrator_git_jsonl.checks.work_item_merge_evidence import (
     resolve_canonical_branch,
 )
@@ -64,6 +67,22 @@ from livespec_orchestrator_git_jsonl.migration.merge_evidence_backfill_core impo
 )
 
 __all__: list[str] = ["BackfillReport", "backfill_file", "main"]
+
+
+def _failure_message(*, target_path: Path, failure: Exception) -> str:
+    """Render the diagnostic for a value on `backfill_file`'s failure track.
+
+    Same taxonomy and same precedence as the two-arm `except` this
+    replaced: the store's read errors say the INPUT is unusable, and the
+    `OSError` that reaches here says the phase-2 append failed after the
+    input read fine. The `else` is exactly `OSError` because
+    `backfill_file`'s `exceptions=` tuple admits nothing else — an
+    unexpected type never becomes a failure value there, it escapes.
+    """
+    read_errors = StoreFileMissingError | MalformedRecordLineError | SchemaViolationError
+    if isinstance(failure, read_errors):
+        return f"ERROR: {target_path} not backfillable — {failure}"
+    return f"ERROR: failed to append merge-evidence transition: {failure}"
 
 
 def main(*, argv: list[str] | None = None) -> int:
@@ -93,20 +112,18 @@ def main(*, argv: list[str] | None = None) -> int:
         if args.canonical_branch is not None
         else resolve_canonical_branch(repo_dir=repo_dir)
     )
-    try:
-        report = backfill_file(
-            path=target_path,
-            repo_dir=repo_dir,
-            canonical_branch=canonical_branch,
-            grandfather=grandfather,
-            dry_run=dry_run,
-        )
-    except (StoreFileMissingError, MalformedRecordLineError, SchemaViolationError) as exc:
-        _ = sys.stderr.write(f"ERROR: {target_path} not backfillable — {exc}\n")
+    result = backfill_file(
+        path=target_path,
+        repo_dir=repo_dir,
+        canonical_branch=canonical_branch,
+        grandfather=grandfather,
+        dry_run=dry_run,
+    )
+    if not isinstance(result, IOSuccess):
+        failure = unsafe_perform_io(result.failure())
+        _ = sys.stderr.write(_failure_message(target_path=target_path, failure=failure) + "\n")
         return 1
-    except OSError as exc:
-        _ = sys.stderr.write(f"ERROR: failed to append merge-evidence transition: {exc}\n")
-        return 1
+    report = unsafe_perform_io(result.unwrap())
     for line in (*report.repaired, *report.appended, *report.orphans):
         _ = sys.stdout.write(line + "\n")
     verb = "would apply" if dry_run or report.orphans else "applied"

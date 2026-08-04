@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.9.2](https://github.com/thewoolleyman/livespec-orchestrator-git-jsonl/compare/v0.9.1...v0.9.2) (2026-08-04)
+
+
+### Bug Fixes
+
+* **acceptance:** the harness raised the one failure its callers most expect ([13d8e68](https://github.com/thewoolleyman/livespec-orchestrator-git-jsonl/commit/13d8e68ab63f5333ed50f43abc5941583caa9393))
+* **migration:** the backfill entry's expected errors escaped as raises ([564e105](https://github.com/thewoolleyman/livespec-orchestrator-git-jsonl/commit/564e10582539f480f1ee4e9206d072e7bfb5baf4))
+
 ## [0.9.1](https://github.com/thewoolleyman/livespec-orchestrator-git-jsonl/compare/v0.9.0...v0.9.1) (2026-08-03)
 
 

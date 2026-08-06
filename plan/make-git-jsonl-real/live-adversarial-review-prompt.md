@@ -1,7 +1,7 @@
 # Live adversarial review prompt
 
 Use this prompt when one agent session is driving the `make-git-jsonl-real`
-plan thread and you want a second, READ-ONLY session to watch the work
+plan and you want a second, READ-ONLY session to watch the work
 live, challenge completion claims, and force fixes before any slice is
 called done. Two things it exists to prevent: (a) the loop quietly
 **reinventing the factory** (sandboxes, parallelism, auto-resolving
@@ -144,7 +144,7 @@ Required watcher loop:
 - The loop must capture the watched pane, check for new PR/worktree activity,
   and re-read live ledger state for the active `make-git-jsonl-real` epic or
   child when relevant. Keep it running until the maintainer explicitly stops the
-  review, the watched session is explicitly stood down, or the plan thread
+  review, the watched session is explicitly stood down, or the plan
   closes with independently verified evidence.
 - Use short output windows so the reviewer session stays usable. A concrete
   starting point:

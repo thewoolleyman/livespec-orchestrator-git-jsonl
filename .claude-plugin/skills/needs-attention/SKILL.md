@@ -30,4 +30,4 @@ Default output is Markdown for human review. `--json` emits the same flat
 
 The binding composes only the primitives this plugin ships: spec-side
 `next`, impl-side `next`, `list-work-items` human-valve lanes, and hygiene
-scan. This plugin has no plan skill, so it does not gather plan threads.
+scan. This plugin has no plan skill, so it does not gather plans.

@@ -321,6 +321,7 @@ check:
         check-coverage
         check-no-divergent-heads
         check-no-raw-store-read
+        check-spec-governance-default-block
         check-work-item-merge-evidence
         check-doctor-static
     )
@@ -387,6 +388,9 @@ check-no-divergent-heads:
 # self-identification + order-independent-reduction obligations.
 check-no-raw-store-read:
     uv run python3 .claude-plugin/scripts/bin/check_no_raw_store_read.py
+
+check-spec-governance-default-block:
+    uv run python dev-tooling/check_spec_governance_default_block.py
 
 # Plugin-private merge-evidence static check (li-tenpup;
 # SPECIFICATION/contracts.md "Work-items JSONL record schema" ->

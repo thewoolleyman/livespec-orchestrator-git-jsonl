@@ -321,6 +321,7 @@ check:
         check-coverage
         check-no-divergent-heads
         check-no-raw-store-read
+        check-spec-governance-default-block
         check-work-item-merge-evidence
         check-doctor-static
     )
@@ -387,6 +388,27 @@ check-no-divergent-heads:
 # self-identification + order-independent-reduction obligations.
 check-no-raw-store-read:
     uv run python3 .claude-plugin/scripts/bin/check_no_raw_store_read.py
+
+# Fails when this repo's `.livespec.jsonc` drifts from the commented
+# spec_governance safe-default documentation block shipped by livespec-runtime.
+# The block is comment-only and arms nothing; the verifier keeps the consumer
+# copy in lockstep with the runtime-owned manifest.
+check-spec-governance-default-block:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    uv run python - <<'PY'
+    import json
+    from pathlib import Path
+
+    from returns.result import Failure
+
+    from livespec_runtime.spec_governance import verify_livespec_jsonc_default_block
+
+    result = verify_livespec_jsonc_default_block(path=Path(".livespec.jsonc"))
+    if isinstance(result, Failure):
+        raise SystemExit(result.failure())
+    print(json.dumps(result.unwrap(), sort_keys=True))
+    PY
 
 # Plugin-private merge-evidence static check (li-tenpup;
 # SPECIFICATION/contracts.md "Work-items JSONL record schema" ->

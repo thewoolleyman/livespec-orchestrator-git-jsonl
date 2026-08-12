@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.10.0](https://github.com/thewoolleyman/livespec-orchestrator-git-jsonl/compare/v0.9.2...v0.10.0) (2026-08-12)
+
+
+### Features
+
+* **ci:** gate auto-merge on the livespec spec-PR merge policy ([c304d1c](https://github.com/thewoolleyman/livespec-orchestrator-git-jsonl/commit/c304d1c95359ae3620b76c50ac43541984d5ce93))
+
 ## [0.9.2](https://github.com/thewoolleyman/livespec-orchestrator-git-jsonl/compare/v0.9.1...v0.9.2) (2026-08-04)
 
 

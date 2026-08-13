@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.10.2](https://github.com/thewoolleyman/livespec-orchestrator-git-jsonl/compare/v0.10.1...v0.10.2) (2026-08-13)
+
+
+### Bug Fixes
+
+* **ci:** unshallow self-hosted checkout so origin/master..HEAD ranges resolve ([4ac6616](https://github.com/thewoolleyman/livespec-orchestrator-git-jsonl/commit/4ac661630631c3b03c68008fb0ea12dddc1fb5e6))
+
 ## [0.10.1](https://github.com/thewoolleyman/livespec-orchestrator-git-jsonl/compare/v0.10.0...v0.10.1) (2026-08-13)
 
 

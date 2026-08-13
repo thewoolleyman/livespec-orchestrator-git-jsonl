@@ -62,9 +62,13 @@ name: CI
 # makes uv retry the fetch in-process instead of failing the job.
 # Combined with the ~/.cache/uv actions/cache step (keyed on uv.lock)
 # every uv-sync job uses below, an unchanged lock installs from cache
-# and never contacts PyPI at all.
+# and never contacts PyPI at all. mise defaults to zero retries when
+# fetching tool binaries from the GitHub releases CDN, which is the
+# same class of intermittent mid-download drop; MISE_HTTP_RETRIES
+# applies the same fix mise-side.
 env:
   UV_HTTP_RETRIES: "5"
+  MISE_HTTP_RETRIES: "5"
   # Test-parallelism lane signal read by the justfile's `test_nprocs`
   # (plan/fabro-ci-image-factoring cont.5). RUNNER_ENVIRONMENT does NOT
   # propagate into container jobs, so derive the lane from the routing

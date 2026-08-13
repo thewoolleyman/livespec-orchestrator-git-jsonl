@@ -45,6 +45,11 @@
 # to '["ubuntu-latest"]'. Both directions are repo-variable edits; neither
 # needs a specification revision.
 #
+# CI_RUNNER_LABELS was set to self-hosted (2026-08-13) as part of livespec
+# plan/fleet-ci-runner-pool's fleet-wide rollout (epic livespec-s43svm.1),
+# proving this repo's self-hosted routing on a real pull_request event before
+# folding into the standing self-hosted rotation.
+#
 # The fallback literal is repeated inline at each runs-on rather than
 # single-sourced through a job output, and every copy (the runs-on values plus
 # LIVESPEC_CI_LANE above) MUST stay in lockstep. The repetition is deliberate:

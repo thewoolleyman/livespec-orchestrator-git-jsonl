@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.10.1](https://github.com/thewoolleyman/livespec-orchestrator-git-jsonl/compare/v0.10.0...v0.10.1) (2026-08-13)
+
+
+### Bug Fixes
+
+* **ci:** add MISE_HTTP_RETRIES alongside UV_HTTP_RETRIES ([38858a9](https://github.com/thewoolleyman/livespec-orchestrator-git-jsonl/commit/38858a9eb42dd0c053b00a8795d31fcc721091b6))
+
 ## [0.10.0](https://github.com/thewoolleyman/livespec-orchestrator-git-jsonl/compare/v0.9.2...v0.10.0) (2026-08-12)
 
 

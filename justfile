@@ -298,6 +298,9 @@ check:
         check-plan-thread-anchor-declared
         check-plan-thread-epic-parity
         check-plan-thread-no-tombstone
+        check-plan-anchor-declared
+        check-plan-epic-parity
+        check-plan-no-tombstone
         check-plugin-resolution
         check-primary-checkout-commit-refuse-hook-installed
         check-private-calls
@@ -845,3 +848,12 @@ check-shell-quality:
 
 check-plan-thread-no-tombstone:
     uv run python -m livespec_dev_tooling.checks.plan_thread_no_tombstone
+
+check-plan-anchor-declared:
+    uv run python -m livespec_dev_tooling.checks.plan_anchor_declared
+
+check-plan-epic-parity:
+    uv run python -m livespec_dev_tooling.checks.plan_epic_parity
+
+check-plan-no-tombstone:
+    uv run python -m livespec_dev_tooling.checks.plan_no_tombstone

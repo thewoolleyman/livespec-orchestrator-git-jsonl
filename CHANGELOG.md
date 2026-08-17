@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.10.3](https://github.com/thewoolleyman/livespec-orchestrator-git-jsonl/compare/v0.10.2...v0.10.3) (2026-08-17)
+
+
+### Bug Fixes
+
+* **check:** harden the coverage dedup — clean-env producer + consume-once consumer ([7b8daf2](https://github.com/thewoolleyman/livespec-orchestrator-git-jsonl/commit/7b8daf2b736a1733f18b2981aaaa190e19c8c549))
+
 ## [0.10.2](https://github.com/thewoolleyman/livespec-orchestrator-git-jsonl/compare/v0.10.1...v0.10.2) (2026-08-13)
 
 

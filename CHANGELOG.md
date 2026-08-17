@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.11.0](https://github.com/thewoolleyman/livespec-orchestrator-git-jsonl/compare/v0.10.4...v0.11.0) (2026-08-17)
+
+
+### Features
+
+* **ci:** batch the cheap checks — the matrices become batch jobs ([061a675](https://github.com/thewoolleyman/livespec-orchestrator-git-jsonl/commit/061a6751c06652ca7b52b562094587df2df28009))
+
 ## [0.10.4](https://github.com/thewoolleyman/livespec-orchestrator-git-jsonl/compare/v0.10.3...v0.10.4) (2026-08-17)
 
 

@@ -356,3 +356,19 @@ Three failure modes that cost dispatched agents real time:
 config) use `chore(...)` / `docs(...)` / `chore(spec):` subjects and skip the
 ritual entirely. Always use `mise exec -- git ...` so the hooks fire; never
 pass `--no-verify`.
+
+## CI runner routing
+
+`CI_RUNNER_LABELS` (a repo variable, never a `.github/workflows/` edit —
+`check-no-workflow-edits` forbids that here) routes this repo's gating
+`pull_request`/`push` CI matrix. As of 2026-08-17 it points at the ARC k3s
+scale set `livespec-orchestrator-git-k3s` (livespec-s43svm.16's per-repo
+real-traffic cutover) — note the shortened name: this repo has the fleet's
+worst-case name length, so the scale set drops the `-jsonl` suffix
+(mechanical hyphen-boundary truncation, `livespec-orchestrator-git-jsonl-k3s`
+being 35 chars, over the fleet's <=30-char budget). Proven by this
+changeset's own required checks. The podman pool alternative stays
+configured but idle for this repo. See
+`livespec/plan/fleet-ci-runner-pool/research/k3s-arc-kueue-migration.md`
+("Real-traffic cutover log") and the `livespec-s43svm.16` ledger comments for
+the full cross-repo cutover record.

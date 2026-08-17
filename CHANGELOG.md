@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.10.4](https://github.com/thewoolleyman/livespec-orchestrator-git-jsonl/compare/v0.10.3...v0.10.4) (2026-08-17)
+
+
+### Bug Fixes
+
+* **pre-commit:** wire repo-state checks into the doc-only subset ([e7118f9](https://github.com/thewoolleyman/livespec-orchestrator-git-jsonl/commit/e7118f9c9c4d1d0aa3005755a84ce1cef2e11033))
+
 ## [0.10.3](https://github.com/thewoolleyman/livespec-orchestrator-git-jsonl/compare/v0.10.2...v0.10.3) (2026-08-17)
 
 

@@ -513,7 +513,7 @@ dev = [
     { name = "hypothesis-jsonschema", specifier = "==0.23.1" },
     { name = "import-linter", specifier = "==2.1" },
     { name = "livespec-dev-tooling", git = "https://github.com/thewoolleyman/livespec-dev-tooling.git?tag=v1.24.8" },
-    { name = "livespec-runtime", git = "https://github.com/thewoolleyman/livespec-runtime.git?tag=v0.20.0" },
+    { name = "livespec-runtime", git = "https://github.com/thewoolleyman/livespec-runtime.git?tag=v0.20.1" },
     { name = "mutmut", specifier = "==3.2.3" },
     { name = "pyright", specifier = "==1.1.391" },
     { name = "pytest", specifier = "==8.3.4" },
@@ -525,8 +525,8 @@ dev = [
 
 [[package]]
 name = "livespec-runtime"
-version = "0.20.0"
-source = { git = "https://github.com/thewoolleyman/livespec-runtime.git?tag=v0.20.0#0ecdebf27c9ea8df6864a72c47cec3a101d81822" }
+version = "0.20.1"
+source = { git = "https://github.com/thewoolleyman/livespec-runtime.git?tag=v0.20.1#a35d890fb966e967fa6ce2583540cc67eb0016da" }
 dependencies = [
     { name = "returns", version = "0.26.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
     { name = "returns", version = "0.29.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.11'" },

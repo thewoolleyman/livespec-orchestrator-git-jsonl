@@ -170,39 +170,16 @@ jobs:
       fail-fast: false
       matrix:
         target:
+          # Batched-CI shape (work-item livespec-dev-tooling-yilyxr.9,
+          # porting dev-tooling PR #1469): tool-backed slugs must be
+          # LITERAL matrix members (check-tool-backed-check-completeness)
+          # and the suite-running coverage targets are wall-dominant, so
+          # they keep legs; the cheap targets moved to the batch jobs.
           - check-lint
           - check-format
           - check-types
           - check-coverage
-          # fleet-ci-aggregate-coverage (epic livespec-cf4bcu) slice 5:
-          # canonical `just check` aggregate slugs that inspect .py source
-          # (AST/style/coverage checks over the product + test trees) but
-          # were not yet run in CI. The py_changed gate is correct for
-          # these — nothing to check when a PR changes no .py.
-          - check-private-calls
-          - check-global-writes
-          - check-supervisor-discipline
-          - check-no-raise-outside-io
-          - check-no-except-outside-io
-          - check-no-fmt-directives
-          - check-public-api-result-typed
-          - check-main-guard
-          - check-wrapper-shape
-          - check-keyword-only-args
-          - check-match-keyword-only
-          - check-no-inheritance
-          - check-assert-never-exhaustiveness
-          - check-newtype-domain-primitives
-          - check-all-declared
-          - check-no-write-direct
-          - check-pbt-coverage-pure-modules
-          - check-check-mutation
-          - check-file-lloc
-          - check-no-lloc-soft-warnings
           - check-per-file-coverage
-          - check-rop-pipeline-shape
-          - check-tests-mirror-pairing
-          - check-tests-no-subprocess-spawn
     steps:
       # Per-step `if:` (not job-level) so each matrix entry still
       # reports a status check named `${{ matrix.target }}`. With
@@ -317,6 +294,77 @@ jobs:
   # members of BOTH the `just check` targets array AND a CI matrix —
   # so the metadata matrix MUST carry it here to satisfy the both-
   # surfaces invariant it enforces.
+  # Batched cheap .py-scanning checks (work-item livespec-dev-tooling-yilyxr.9,
+  # porting dev-tooling PR #1469): one container setup for 23 sub-minute
+  # targets. Failures are COLLECTED (matrix fail-fast:false parity); each
+  # target is a literal `just <slug>` line (ci-matrix-completeness assertion
+  # a) and the job is gating (assertion b: in ci-green.needs).
+  check-python-batch:
+    name: check-python-batch
+    needs: setup
+    runs-on: ${{ fromJSON(vars.CI_RUNNER_LABELS || '["ubuntu-latest"]') }}
+    container:
+      image: ghcr.io/thewoolleyman/livespec-fabro-sandbox:python-v1.24.8
+    env:
+      MISE_DATA_DIR: /root/.local/share/mise
+      MISE_NOT_FOUND_AUTO_INSTALL: "0"
+      GITHUB_TOKEN: ${{ github.token }}
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - name: Skip when no .py changes
+        if: needs.setup.outputs.py_changed != 'true'
+        run: echo "::notice::skipped check-python-batch — no .py changes in this PR"
+
+      - name: Checkout
+        if: needs.setup.outputs.py_changed == 'true'
+        uses: actions/checkout@v5
+
+      - name: Trust workspace for git (hosted container root-vs-checkout uid)
+        if: needs.setup.outputs.py_changed == 'true'
+        run: git config --global --add safe.directory '*'
+
+      - name: mise trust + install (baked tools — install is a near-no-op)
+        if: needs.setup.outputs.py_changed == 'true'
+        run: |
+          mise trust
+          mise install
+
+      - name: Install Python dev deps via uv
+        if: needs.setup.outputs.py_changed == 'true'
+        run: uv sync --all-groups
+
+      - name: Run the batched python checks
+        if: needs.setup.outputs.py_changed == 'true'
+        run: |
+          failed=""
+          just check-private-calls || failed="$failed check-private-calls"
+          just check-global-writes || failed="$failed check-global-writes"
+          just check-supervisor-discipline || failed="$failed check-supervisor-discipline"
+          just check-no-raise-outside-io || failed="$failed check-no-raise-outside-io"
+          just check-no-except-outside-io || failed="$failed check-no-except-outside-io"
+          just check-no-fmt-directives || failed="$failed check-no-fmt-directives"
+          just check-public-api-result-typed || failed="$failed check-public-api-result-typed"
+          just check-main-guard || failed="$failed check-main-guard"
+          just check-wrapper-shape || failed="$failed check-wrapper-shape"
+          just check-keyword-only-args || failed="$failed check-keyword-only-args"
+          just check-match-keyword-only || failed="$failed check-match-keyword-only"
+          just check-no-inheritance || failed="$failed check-no-inheritance"
+          just check-assert-never-exhaustiveness || failed="$failed check-assert-never-exhaustiveness"
+          just check-newtype-domain-primitives || failed="$failed check-newtype-domain-primitives"
+          just check-all-declared || failed="$failed check-all-declared"
+          just check-no-write-direct || failed="$failed check-no-write-direct"
+          just check-pbt-coverage-pure-modules || failed="$failed check-pbt-coverage-pure-modules"
+          just check-check-mutation || failed="$failed check-check-mutation"
+          just check-file-lloc || failed="$failed check-file-lloc"
+          just check-no-lloc-soft-warnings || failed="$failed check-no-lloc-soft-warnings"
+          just check-rop-pipeline-shape || failed="$failed check-rop-pipeline-shape"
+          just check-tests-mirror-pairing || failed="$failed check-tests-mirror-pairing"
+          just check-tests-no-subprocess-spawn || failed="$failed check-tests-no-subprocess-spawn"
+          if [ -n "$failed" ]; then
+            echo "Failed targets:$failed"
+            exit 1
+          fi
+
   check-metadata:
     name: ${{ matrix.target }}
     needs: setup
@@ -333,70 +381,12 @@ jobs:
       fail-fast: false
       matrix:
         target:
-          - check-aggregate-completeness
-          - check-handoff-dispatch-routing
-          - check-hook-trees-not-io-exempt
-          - check-local-memory-drift-audit
-          # check-no-direct-destructive-cli greps the agent-facing trees
-          # for direct destructive-default CLI invocations
-          # (livespec/SPECIFICATION/non-functional-requirements.md
-          # §"Destructive-default CLI wrapping") so a violation fails CI.
-          - check-no-direct-destructive-cli
-          - check-no-shadow-ledger-body-typechecks
-          - check-plan-anchor-declared
-          - check-plan-no-tombstone
-          - check-primary-checkout-commit-refuse-hook-installed
-          # Byte-identity sibling of the commit-refuse check above: reads
-          # the `neutral_hook_body_path` role key from pyproject.toml (a
-          # config surface, no .py source), so it lives in this always-run
-          # metadata matrix. This repo is an orchestrator plugin, NOT a
-          # Driver, so it declares NO neutral_hook_body_path and the check
-          # no-ops here — it is wired so CI provably runs the whole
-          # canonical aggregate.
-          - check-no-shadow-ledger-body-identical
-          # check-red-green-replay (no-arg) validates the COMMIT RANGE
-          # origin/master..HEAD — every non-merge commit touching product
-          # impl .py must carry EITHER the TDD-Red-*/TDD-Green-* pair
-          # shape OR the TDD-Suite-Green-* green-verified shape,
-          # regardless of subject prefix (livespec-dev-tooling v0.11.0
-          # commit-range mode). It runs unconditionally: on zero-.py PRs
-          # the range carries no product .py and trivially passes; on
-          # master pushes the range is empty.
+          # Batched-CI shape (work-item livespec-dev-tooling-yilyxr.9):
+          # only the pytest-spawning, variable-duration targets keep
+          # their own matrix leg; the cheap repo-metadata targets moved
+          # to the single check-metadata-batch job below.
           - check-red-green-replay
-          - check-required-role-keys-declared
-          - check-self-hosted-routing
-          - check-shell-quality
-          - check-source-trees-scoped-to-consumer
-          - check-tool-backed-check-completeness
-          # fleet-ci-aggregate-coverage (epic livespec-cf4bcu) slice 5:
-          # canonical aggregate slugs that inspect NON-.py surfaces
-          # (justfile, docs, marketplace/SKILL.md, AGENTS.md, mise config),
-          # need full git history, or gate CI config — so they belong in
-          # this always-run, fetch-depth:0 metadata matrix, NOT the
-          # py-gated one. check-check-coverage-incremental diffs
-          # origin/master...HEAD (needs the base ref this matrix's
-          # fetch-depth:0 provides) and spawns its own pytest, so it is
-          # self-contained here. The two world-gate checks
-          # (check-master-ci-green, check-branch-protection-alignment) are
-          # deliberately ABSENT: livespec-dev-tooling v0.37.2 excludes them
-          # from the CI-mirror requirement (they enforce at pre-push under
-          # an admin token; see .ai/ci-gate-discipline.md).
-          - check-claude-md-coverage
-          - check-heading-coverage
-          - check-vendor-manifest
-          - check-no-direct-tool-invocation
-          - check-agents-ai-references-resolve
-          - check-canonical-recipe-fidelity
           - check-check-coverage-incremental
-          - check-check-tools
-          - check-ci-matrix-completeness
-          - check-comment-line-anchors
-          - check-commit-pairs-source-and-test
-          - check-fleet-marketplace-relative-sources
-          - check-no-todo-registry
-          - check-partition-completeness
-          - check-plugin-resolution
-          - check-skill-invocation-paths
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -472,58 +462,6 @@ jobs:
 
       - name: Install Python dev deps via uv
         run: uv sync --all-groups
-
-      # The shared livespec-dev-tooling commit-refuse-hook check enforces the
-      # canonical structural `.git/hooks/pre-commit` AND `.git/hooks/pre-push`
-      # body on the primary checkout per
-      # livespec/SPECIFICATION/non-functional-requirements.md
-      # §"Primary-checkout commit-refuse hook". `actions/checkout` clones with
-      # empty hook bodies; install the canonical body by REUSING the shared
-      # livespec-dev-tooling installer (NOT a vendored copy) so the invariant is
-      # satisfied for the CI run. Runs AFTER `uv sync` because the installer is a
-      # Python module from that package; delegates through `just` (the single
-      # invocation source of truth). The installed body is STRUCTURAL (refuse
-      # when `git rev-parse --git-dir` == `--git-common-dir`, armed on install)
-      # and supersedes the legacy livespec.primaryPath mechanism.
-      # Install BOTH facets of the Worktree-discipline concern the
-      # check-primary-checkout-commit-refuse-hook-installed verifier guards:
-      # the commit-refuse hooks AND the worktree-discipline pack
-      # (worktree-lib.sh + branch-protection.sh). The pack scripts are
-      # gitignored (installed, not tracked), so a fresh `actions/checkout`
-      # clone lacks them; installing them here makes the verifier's 3rd arm
-      # VALIDATE the byte-identical pack rather than SKIP it (the verifier
-      # skips when neither pack script is present). Both installers are
-      # from-package (NOT vendored copies) and run AFTER `uv sync` because
-      # they are Python modules from that package; delegated through `just`
-      # (the single invocation source of truth).
-      - name: Install commit-refuse hook (satisfy hook invariant)
-        if: matrix.target == 'check-primary-checkout-commit-refuse-hook-installed'
-        run: just install-commit-refuse-hooks
-
-      # SPLIT OUT of the combined step above so the pack can be installed for a
-      # SECOND target without also installing commit-refuse hooks into a job
-      # that has no use for them.
-      #
-      # check-shell-quality NEEDS the pack, and without it that check was passing
-      # VACUOUSLY here. `dev-tooling/*.just` is gitignored and this justfile
-      # imports it OPTIONALLY (`import? 'dev-tooling/worktree.just'`), so on a
-      # fresh `actions/checkout` the `worktree-*` recipes DO NOT EXIST and the
-      # scan had no subject — green for work it never did.
-      #
-      # Propagation of livespec-dev-tooling-9ywf, which fixed exactly this in the
-      # producer on 2026-08-03 and was never carried to consumers; work-item
-      # livespec-dev-tooling-y6e2, per-repo item bd-gj-wkp. Adoption precedes
-      # this enforcement: with the current canonical pack installed, `just
-      # check-shell-quality` exits 0 with ZERO violations in all nine fleet
-      # repos, measured individually before the change. The control proving the
-      # gate can still fail is real rather than synthetic — the PREVIOUS pack
-      # (sha256 4fcac10a…) yields six violations across `worktree-create`,
-      # `worktree-land` and `worktree-reap`.
-      - name: Install canonical worktree pack (satisfy pack invariant)
-        if: >-
-          matrix.target == 'check-primary-checkout-commit-refuse-hook-installed'
-          || matrix.target == 'check-shell-quality'
-        run: just install-worktree-pack
 
       - name: just ${{ matrix.target }}
         env:
@@ -604,6 +542,86 @@ jobs:
         if: needs.setup.outputs.py_changed == 'true'
         run: just check-e2e-cli
 
+  # Batched cheap repo-metadata checks (work-item livespec-dev-tooling-yilyxr.9,
+  # porting dev-tooling PR #1469): one container setup for 30 sub-minute
+  # targets. Failures are COLLECTED; every target is a literal `just <slug>`
+  # line (ci-matrix-completeness assertion a) and the job is gating
+  # (assertion b: in ci-green.needs). The commit-refuse hook and worktree
+  # pack install UNCONDITIONALLY because the checks needing them live in
+  # this batch (livespec-dev-tooling-9ywf / y6e2).
+  check-metadata-batch:
+    name: check-metadata-batch
+    runs-on: ${{ fromJSON(vars.CI_RUNNER_LABELS || '["ubuntu-latest"]') }}
+    container:
+      image: ghcr.io/thewoolleyman/livespec-fabro-sandbox:python-v1.24.8
+    env:
+      MISE_DATA_DIR: /root/.local/share/mise
+      MISE_NOT_FOUND_AUTO_INSTALL: "0"
+      GITHUB_TOKEN: ${{ github.token }}
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Trust workspace for git (hosted container root-vs-checkout uid)
+        run: git config --global --add safe.directory '*'
+
+      - name: mise trust + install (baked tools — install is a near-no-op)
+        run: |
+          mise trust
+          mise install
+
+      - name: Install Python dev deps via uv
+        run: uv sync --all-groups
+
+      - name: Install commit-refuse hook (satisfy invariant)
+        run: just install-commit-refuse-hooks
+
+      - name: Install canonical worktree pack (satisfy invariant)
+        run: just install-worktree-pack
+
+      - name: Run the batched metadata checks
+        env:
+          LIVESPEC_FAIL_IF_CI_MATRIX_GAPS_EXIST: "true"
+        run: |
+          failed=""
+          just check-aggregate-completeness || failed="$failed check-aggregate-completeness"
+          just check-handoff-dispatch-routing || failed="$failed check-handoff-dispatch-routing"
+          just check-hook-trees-not-io-exempt || failed="$failed check-hook-trees-not-io-exempt"
+          just check-local-memory-drift-audit || failed="$failed check-local-memory-drift-audit"
+          just check-no-direct-destructive-cli || failed="$failed check-no-direct-destructive-cli"
+          just check-no-shadow-ledger-body-typechecks || failed="$failed check-no-shadow-ledger-body-typechecks"
+          just check-plan-anchor-declared || failed="$failed check-plan-anchor-declared"
+          just check-plan-no-tombstone || failed="$failed check-plan-no-tombstone"
+          just check-primary-checkout-commit-refuse-hook-installed || failed="$failed check-primary-checkout-commit-refuse-hook-installed"
+          just check-no-shadow-ledger-body-identical || failed="$failed check-no-shadow-ledger-body-identical"
+          just check-required-role-keys-declared || failed="$failed check-required-role-keys-declared"
+          just check-self-hosted-routing || failed="$failed check-self-hosted-routing"
+          just check-shell-quality || failed="$failed check-shell-quality"
+          just check-source-trees-scoped-to-consumer || failed="$failed check-source-trees-scoped-to-consumer"
+          just check-tool-backed-check-completeness || failed="$failed check-tool-backed-check-completeness"
+          just check-claude-md-coverage || failed="$failed check-claude-md-coverage"
+          just check-heading-coverage || failed="$failed check-heading-coverage"
+          just check-vendor-manifest || failed="$failed check-vendor-manifest"
+          just check-no-direct-tool-invocation || failed="$failed check-no-direct-tool-invocation"
+          just check-agents-ai-references-resolve || failed="$failed check-agents-ai-references-resolve"
+          just check-canonical-recipe-fidelity || failed="$failed check-canonical-recipe-fidelity"
+          just check-check-tools || failed="$failed check-check-tools"
+          just check-ci-matrix-completeness || failed="$failed check-ci-matrix-completeness"
+          just check-comment-line-anchors || failed="$failed check-comment-line-anchors"
+          just check-commit-pairs-source-and-test || failed="$failed check-commit-pairs-source-and-test"
+          just check-fleet-marketplace-relative-sources || failed="$failed check-fleet-marketplace-relative-sources"
+          just check-no-todo-registry || failed="$failed check-no-todo-registry"
+          just check-partition-completeness || failed="$failed check-partition-completeness"
+          just check-plugin-resolution || failed="$failed check-plugin-resolution"
+          just check-skill-invocation-paths || failed="$failed check-skill-invocation-paths"
+          if [ -n "$failed" ]; then
+            echo "Failed targets:$failed"
+            exit 1
+          fi
+
   acceptance:
     name: acceptance
     needs: setup
@@ -646,7 +664,7 @@ jobs:
   # livespec-orchestrator-git-jsonl does not send CI telemetry to Honeycomb.
   export-telemetry:
     name: export-telemetry
-    needs: [setup, check-python, check-metadata, e2e-cli, acceptance]
+    needs: [setup, check-python, check-python-batch, check-metadata, check-metadata-batch, e2e-cli, acceptance]
     if: ${{ !cancelled() && github.event_name == 'push' }}
     runs-on: ubuntu-latest
     permissions:
@@ -677,7 +695,7 @@ jobs:
   # `needs:`.
   ci-green:
     name: ci-green
-    needs: [check-python, check-doctor-static, check-metadata, e2e-cli, acceptance]
+    needs: [check-python, check-python-batch, check-doctor-static, check-metadata, check-metadata-batch, e2e-cli, acceptance]
     if: always()
     runs-on: ubuntu-latest
     steps:

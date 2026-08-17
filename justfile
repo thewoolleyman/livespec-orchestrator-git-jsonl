@@ -632,8 +632,12 @@ check-pbt-coverage-pure-modules:
 check-per-file-coverage:
     #!/usr/bin/env bash
     set -uo pipefail
-    uv run pytest -n "$(bash dev-tooling/just-test-nprocs.sh)" --cov --cov-branch --cov-config=pyproject.toml --cov-report=term-missing || exit $?
-    uv run python -m livespec_dev_tooling.checks.per_file_coverage
+    # Clean-env producer (livespec-dev-tooling-yilyxr.8, dev-tooling PR #1462
+    # design): COVERAGE_FILE unset so the repo-root .coverage exists for
+    # check-coverage's consume-once reuse even under the dispatcher's
+    # namespaced export, and measures identically to a clean CI job.
+    env -u COVERAGE_FILE uv run pytest -n "$(bash dev-tooling/just-test-nprocs.sh)" --cov --cov-branch --cov-config=pyproject.toml --cov-report=term-missing || exit $?
+    env -u COVERAGE_FILE uv run python -m livespec_dev_tooling.checks.per_file_coverage
 
 # Shared baseline plugin-resolution Verifier (Conformance-Pattern,
 # livespec-zs22.7.7 M6). The check is shipped by livespec-dev-tooling;

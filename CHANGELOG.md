@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.11.1](https://github.com/thewoolleyman/livespec-orchestrator-git-jsonl/compare/v0.11.0...v0.11.1) (2026-08-18)
+
+
+### Bug Fixes
+
+* **ci:** make export-ci-telemetry.sh ARG_MAX-safe ([cd09bd6](https://github.com/thewoolleyman/livespec-orchestrator-git-jsonl/commit/cd09bd6be28edd82f5a62b36645340023c4cabc8))
+
 ## [0.11.0](https://github.com/thewoolleyman/livespec-orchestrator-git-jsonl/compare/v0.10.4...v0.11.0) (2026-08-17)
 
 

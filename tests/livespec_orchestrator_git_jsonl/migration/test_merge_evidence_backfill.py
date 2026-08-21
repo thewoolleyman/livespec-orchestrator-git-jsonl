@@ -30,6 +30,11 @@ from livespec_orchestrator_git_jsonl.checks.work_item_merge_evidence import (
 from livespec_orchestrator_git_jsonl.errors import MalformedRecordLineError
 from livespec_orchestrator_git_jsonl.migration.merge_evidence_backfill import main
 from livespec_orchestrator_git_jsonl.migration.merge_evidence_backfill_core import backfill_file
+from livespec_orchestrator_git_jsonl.migration.merge_evidence_git import (
+    _id_grep_candidates,
+    _introducing_sha,
+    discover_merge_sha,
+)
 from livespec_orchestrator_git_jsonl.store import (
     append_work_item,
     materialize_work_items,
@@ -45,6 +50,7 @@ from livespec_orchestrator_git_jsonl.types import (
     WorkItemType,
 )
 from returns.io import IOFailure, IOResult, IOSuccess
+from returns.result import Failure, Success
 from returns.unsafe import unsafe_perform_io
 
 
@@ -492,6 +498,84 @@ def test_honors_canonical_branch_flag(
     audit = index["li-aaa111"].audit
     assert audit is not None
     assert audit.merge_sha == work_sha
+
+
+def test_discover_merge_sha_distinguishes_broken_repo_from_unreachable_sha(
+    tmp_path: Path,
+) -> None:
+    repo = tmp_path / "repo"
+    repo.mkdir()
+    _ = _init_repo(root=repo)
+    unreachable = discover_merge_sha(
+        repo_dir=repo,
+        canonical_branch="master",
+        work_item_id="li-aaa111",
+        commits=["0" * 40],
+    )
+    broken = discover_merge_sha(
+        repo_dir=tmp_path / "not-a-repo",
+        canonical_branch="master",
+        work_item_id="li-aaa111",
+        commits=["0" * 40],
+    )
+    assert isinstance(unreachable, Success)
+    assert unreachable.unwrap() is None
+    assert isinstance(broken, Failure)
+
+
+def test_id_grep_candidates_preserves_git_failure(tmp_path: Path) -> None:
+    result = _id_grep_candidates(
+        repo_dir=tmp_path / "not-a-repo",
+        canonical_branch="master",
+        work_item_id="li-aaa111",
+    )
+    assert isinstance(result, Failure)
+    failure = result.failure()
+    assert failure.command == ("git", "log", "--format=%H", "--grep=li-aaa111", "origin/master")
+    assert failure.cwd == tmp_path / "not-a-repo"
+    assert failure.returncode != 0
+
+
+def test_introducing_sha_preserves_git_failure(tmp_path: Path) -> None:
+    result = _introducing_sha(
+        repo_dir=tmp_path / "not-a-repo",
+        canonical_branch="master",
+        sha="0" * 40,
+    )
+    assert isinstance(result, Failure)
+    failure = result.failure()
+    assert failure.command == ("git", "cat-file", "-e", "0" * 40)
+    assert failure.cwd == tmp_path / "not-a-repo"
+    assert failure.returncode != 0
+
+
+def test_discover_merge_sha_still_resolves_introduced_sha(tmp_path: Path) -> None:
+    _ = _init_repo(root=tmp_path)
+    work_sha, merge_sha = _merged_feature(root=tmp_path)
+    result = discover_merge_sha(
+        repo_dir=tmp_path,
+        canonical_branch="master",
+        work_item_id="li-aaa111",
+        commits=[work_sha],
+    )
+    assert isinstance(result, Success)
+    assert result.unwrap() == merge_sha
+
+
+def test_git_lookup_failure_reaches_backfill_file_failure_track(tmp_path: Path) -> None:
+    path = tmp_path / "wi.jsonl"
+    _write_raw_store(path=path, records=[_raw_record(audit=_legacy_audit(commits=["0" * 40]))])
+    result = backfill_file(
+        path=path,
+        repo_dir=tmp_path / "not-a-repo",
+        canonical_branch="master",
+        grandfather=False,
+        dry_run=True,
+    )
+    assert isinstance(result, IOFailure)
+    failure = unsafe_perform_io(result.failure())
+    assert failure.__class__.__name__ == "GitEvidenceLookupError"
+    assert "git cat-file" in str(failure)
 
 
 def test_backfill_file_lifts_its_report_onto_the_io_railway(tmp_path: Path) -> None:

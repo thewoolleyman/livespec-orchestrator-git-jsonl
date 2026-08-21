@@ -15,6 +15,7 @@ from livespec_orchestrator_git_jsonl.checks.work_item_merge_evidence import (
     GRANDFATHER_MERGE_SHA_SENTINEL,
 )
 from livespec_orchestrator_git_jsonl.errors import (
+    GitEvidenceLookupError,
     MalformedRecordLineError,
     SchemaViolationError,
     StoreFileMissingError,
@@ -48,6 +49,7 @@ class BackfillReport:
         StoreFileMissingError,
         MalformedRecordLineError,
         SchemaViolationError,
+        GitEvidenceLookupError,
         OSError,
     )
 )
@@ -152,15 +154,12 @@ def _phase_one_repairs(
             out_lines.append(line)
             continue
         work_item_id = str(record.get("id"))
-        merge_sha = (
-            GRANDFATHER_MERGE_SHA_SENTINEL
-            if grandfather
-            else discover_merge_sha(
-                repo_dir=repo_dir,
-                canonical_branch=canonical_branch,
-                work_item_id=work_item_id,
-                commits=cast("list[Any]", audit.get("commits") or []),
-            )
+        merge_sha = _merge_sha_for(
+            repo_dir=repo_dir,
+            canonical_branch=canonical_branch,
+            work_item_id=work_item_id,
+            commits=cast("list[Any]", audit.get("commits") or []),
+            grandfather=grandfather,
         )
         if merge_sha is None:
             orphans.append(_orphan_finding(work_item_id=work_item_id, branch=canonical_branch))
@@ -205,15 +204,12 @@ def _phase_two_transitions(
             continue
         if head.resolution not in _REQUIRE_EVIDENCE_RESOLUTIONS:
             continue
-        merge_sha = (
-            GRANDFATHER_MERGE_SHA_SENTINEL
-            if grandfather
-            else discover_merge_sha(
-                repo_dir=repo_dir,
-                canonical_branch=canonical_branch,
-                work_item_id=item_id,
-                commits=[],
-            )
+        merge_sha = _merge_sha_for(
+            repo_dir=repo_dir,
+            canonical_branch=canonical_branch,
+            work_item_id=item_id,
+            commits=[],
+            grandfather=grandfather,
         )
         if merge_sha is None:
             orphans.append(_orphan_finding(work_item_id=item_id, branch=canonical_branch))
@@ -237,6 +233,28 @@ def _phase_two_transitions(
             f"{item_id}: appended merge-evidence transition record (merge_sha {merge_sha})"
         )
     return tuple(transitions), tuple(appended), tuple(orphans)
+
+
+def _merge_sha_for(
+    *,
+    repo_dir: Path,
+    canonical_branch: str,
+    work_item_id: str,
+    commits: list[Any],
+    grandfather: bool,
+) -> str | None:
+    """Resolve merge evidence, raising failed git lookups onto the caller's IO rail."""
+    if grandfather:
+        return GRANDFATHER_MERGE_SHA_SENTINEL
+    merge_sha_result = discover_merge_sha(
+        repo_dir=repo_dir,
+        canonical_branch=canonical_branch,
+        work_item_id=work_item_id,
+        commits=commits,
+    )
+    if isinstance(merge_sha_result, Failure):
+        raise merge_sha_result.failure()
+    return merge_sha_result.unwrap()
 
 
 def _orphan_finding(*, work_item_id: str, branch: str) -> str:

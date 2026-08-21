@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.11.2](https://github.com/thewoolleyman/livespec-orchestrator-git-jsonl/compare/v0.11.1...v0.11.2) (2026-08-21)
+
+
+### Bug Fixes
+
+* propagate merge evidence git lookup failures ([b13b91a](https://github.com/thewoolleyman/livespec-orchestrator-git-jsonl/commit/b13b91aa707f3f8dd29ab9cfb70e5588d388586d))
+
 ## [0.11.1](https://github.com/thewoolleyman/livespec-orchestrator-git-jsonl/compare/v0.11.0...v0.11.1) (2026-08-18)
 
 

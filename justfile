@@ -845,8 +845,14 @@ check-shell-quality:
 check-plan-anchor-declared:
     uv run python -m livespec_dev_tooling.checks.plan_anchor_declared
 
+check-plan-thread-anchor-declared:
+    just check-plan-anchor-declared
+
 check-plan-epic-parity:
     uv run python -m livespec_dev_tooling.checks.plan_epic_parity
+
+check-plan-thread-epic-parity:
+    just check-plan-epic-parity
 
 check-plan-no-tombstone:
     uv run python -m livespec_dev_tooling.checks.plan_no_tombstone

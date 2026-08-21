@@ -17,12 +17,33 @@ discipline on self.args during super().__init__().
 from pathlib import Path
 
 __all__: list[str] = [
+    "GitEvidenceLookupError",
     "MalformedRecordLineError",
     "SchemaViolationError",
     "SpecRootNotFoundError",
     "SpecVersionNotFoundError",
     "StoreFileMissingError",
 ]
+
+
+class GitEvidenceLookupError(Exception):
+    """A local git evidence command failed before yielding a usable answer."""
+
+    def __init__(
+        self,
+        *,
+        cwd: Path,
+        command: tuple[str, ...],
+        returncode: int,
+        stderr: str,
+    ) -> None:
+        rendered = " ".join(command)
+        detail = stderr.strip() or f"exit code {returncode}"
+        super().__init__(f"{rendered} failed in {cwd}: {detail}")
+        self.cwd = cwd
+        self.command = command
+        self.returncode = returncode
+        self.stderr = stderr
 
 
 class StoreFileMissingError(Exception):

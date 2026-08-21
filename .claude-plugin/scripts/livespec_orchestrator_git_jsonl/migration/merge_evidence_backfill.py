@@ -57,6 +57,7 @@ from livespec_orchestrator_git_jsonl.checks.work_item_merge_evidence import (
     resolve_canonical_branch,
 )
 from livespec_orchestrator_git_jsonl.errors import (
+    GitEvidenceLookupError,
     MalformedRecordLineError,
     SchemaViolationError,
     StoreFileMissingError,
@@ -82,6 +83,8 @@ def _failure_message(*, target_path: Path, failure: Exception) -> str:
     read_errors = StoreFileMissingError | MalformedRecordLineError | SchemaViolationError
     if isinstance(failure, read_errors):
         return f"ERROR: {target_path} not backfillable — {failure}"
+    if isinstance(failure, GitEvidenceLookupError):
+        return f"ERROR: failed to discover merge evidence: {failure}"
     return f"ERROR: failed to append merge-evidence transition: {failure}"
 
 

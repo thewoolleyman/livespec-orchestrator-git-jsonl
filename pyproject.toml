@@ -370,3 +370,29 @@ supervisor_entry_files = [
 subprocess_spawn_allowlist = [
     "tests/livespec_orchestrator_git_jsonl/migration/test_merge_evidence_backfill.py",
 ]
+
+# ================= total_absence_returns, v179 member 2 =================
+# The fleet's declared `X | None` absence, exercised here for the first time.
+# 2 convicted-and-shaped candidates were re-derived at master 5922f79 (universe
+# 50) and read ONE AT A TIME; 1 is declared and 1 was REFUSED.
+#
+# ⚠️ REFUSED: `migration/merge_evidence_git.py::discover_merge_sha`, and its
+# conflation is stated in the SOURCE rather than inferred. `_id_grep_candidates`
+# runs git with `check=False` and comments: "A failed invocation (e.g. repo_dir
+# is not a git repo, or the origin ref is absent) leaves stdout empty, so the
+# split() below yields no candidates without a separate returncode branch." So a
+# FAILED git invocation and a genuinely UNREACHABLE sha both return None. On
+# MERGE-EVIDENCE discovery that is the wrong direction: a broken repo reads as
+# "no evidence exists". Filed for conversion, not exempted.
+#
+# THE TEST APPLIED: a `None` is an ABSENCE when every route to it answers the
+# function's own question negatively, and a FAILURE when some route means "I
+# could not obtain an answer". Fallible I/O, a parse, and a guard tripping are
+# the three shapes that make it the latter.
+#
+# ⚠️ ONE ENTRY, NOT TWO: unlike livespec-overseer, this repo keeps a SINGLE copy
+# of its package under `.claude-plugin/scripts/`. There is no mirror tree, so
+# there is no second path to declare.
+total_absence_returns = [
+    { file = ".claude-plugin/scripts/livespec_orchestrator_git_jsonl/commands/attention_impl.py", function = "impl_next", reason = "Ranks work-items the caller ALREADY HOLDS and returns the top candidate, or None when nothing ranks. Total over its arguments and performs no I/O -- the items and the manifest arrive as parameters, so the fallible gathering happened in the caller. None means 'no candidate qualifies as the next impl action', which is the answer this ranking function exists to give and is how every caller reads it: an empty ranking is a legitimate state of the queue, not a failure to consult it." },
+]

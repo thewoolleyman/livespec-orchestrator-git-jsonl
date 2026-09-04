@@ -744,7 +744,9 @@ check-pre-commit:
     bash dev-tooling/just-check-pre-commit.sh
 
 # When zero `.py` files are staged, `check-pre-commit` delegates here.
-# Pre-push delegates here via `check-pre-push` for zero-py changesets.
+# (Pre-push no longer delegates here: it runs the full `just check`
+# aggregate for every push — PR gate ≡ master gate, plan
+# pr-gate-master-parity R3.)
 # check-claude-md-coverage and check-heading-coverage are intentionally
 # absent here: backlog work-items li-bb5suo (CLAUDE.md backfill) and
 # li-4liaxt (heading-coverage backfill) close the gap; until those land
@@ -754,11 +756,13 @@ check-pre-commit:
 check-pre-commit-doc-only:
     bash dev-tooling/just-check-pre-commit-doc-only.sh
 
-# Skip the Python-code check subset when the pushed commits contain
-# zero `.py` changes; those checks are deterministic functions of
-# the source tree and would pass-or-fail identically against the
-# merge-base. Falls back to `origin/master` when no upstream branch
-# is configured locally.
+# Pre-push runs the FULL `just check` aggregate — PR gate ≡ master gate
+# (livespec plan pr-gate-master-parity R3, epic livespec-citqsd). The
+# retired zero-.py branch delegated a doc-only push to the weaker
+# check-pre-commit-doc-only subset; that skew is gone, so a doc-only push
+# is now gated identically to a code push, matching CI. The green-token
+# memoization inside the script still short-circuits a tree byte-identical
+# to the last green check.
 check-pre-push:
     bash dev-tooling/just-check-pre-push.sh
 

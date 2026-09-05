@@ -247,8 +247,20 @@ ensure-codex-plugins:
 # release, then re-run `copier update --vcs-ref=master` here.
 # ---------------------------------------------------------------
 
+# Factory workflow-edit guard (livespec-dev-tooling-fy02). Delegates to the
+# worktree pack's single canonical body, installed UNTRACKED at
+# dev-tooling/check-no-workflow-edits.sh by `just install-worktree-pack`.
+# Repo-LOCAL (non-canonical) slug: a member of the `check:` aggregate below
+# — in the repo-private extras block AFTER the canonical run, as
+# `check-aggregate-completeness` requires — so it runs at pre-push and in
+# the Dispatcher's janitor gate, but NOT mirrored into CI (the body
+# self-exits 0 under GITHUB_ACTIONS; CI has no local author to control).
+# The retired tracked copy carried a `LIVESPEC_WORKFLOW_EDIT_BASE` base-ref
+# override; the pack body carries no environment override of any kind —
+# the only allowance is the ledger-verified human authorization the body
+# itself documents.
 check-no-workflow-edits:
-    bash dev-tooling/just-check-no-workflow-edits.sh
+    bash dev-tooling/check-no-workflow-edits.sh
 
 # Deliberately omit errexit so the aggregate reports every failing target before exiting non-zero.
 check:
@@ -323,6 +335,7 @@ check:
         check-coverage
         check-no-divergent-heads
         check-no-raw-store-read
+        check-no-workflow-edits
         check-spec-governance-default-block
         check-work-item-merge-evidence
         check-doctor-static

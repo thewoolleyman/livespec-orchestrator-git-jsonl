@@ -76,6 +76,7 @@ targets=(
     check-coverage
     check-no-divergent-heads
     check-no-raw-store-read
+    check-no-workflow-edits
     check-spec-governance-default-block
     check-work-item-merge-evidence
     check-doctor-static

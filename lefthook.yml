@@ -5,11 +5,21 @@
 # publishes a new release.
 #
 # Authority: livespec/SPECIFICATION/contracts.md
-#   §"Pre-commit step ordering" — pre-commit runs three commands in order
-#   (00-lint-autofix-staged, 01-commit-pairs-source-and-test,
-#   02-check-pre-commit); commit-msg runs red-green-replay; pre-push runs the
-#   full aggregate. Earlier steps fail-fast so a missing test pair surfaces
-#   without waiting for pytest.
+#   §"Pre-commit step ordering" (v219) — pre-commit runs four commands in order
+#   (00-install-worktree-pack, 01-lint-autofix-staged,
+#   02-commit-pairs-source-and-test, 03-check-pre-commit); commit-msg runs
+#   red-green-replay; pre-push runs 00-install-worktree-pack and then the full
+#   aggregate (01-check-pre-push). Earlier steps fail-fast so a missing test
+#   pair surfaces without waiting for pytest.
+#
+# Why the installer runs FIRST at both pre-commit and pre-push: the
+# worktree-discipline pack (dev-tooling/worktree-lib.sh, gate-run.sh,
+# worktree.just, ...) is gitignored-and-installed, so a worktree created by a
+# raw `git worktree add` (or one predating a livespec-dev-tooling pin bump)
+# would otherwise reach the gate with the pack absent or stale and fail
+# `worktree_pack_absent` only after the whole aggregate ran. The installer is
+# idempotent, writes only ignored files, installs from the package THIS
+# checkout resolves, and the byte-identity verifier still asserts the result.
 #
 # Worktree-discipline gate: the worktree-only repository mutation protocol (see
 # AGENTS.md §"Repository mutation protocol") is enforced by the STRUCTURAL
@@ -45,11 +55,13 @@
 
 pre-commit:
   commands:
-    00-lint-autofix-staged:
+    00-install-worktree-pack:
+      run: just install-worktree-pack
+    01-lint-autofix-staged:
       run: just lint-autofix-staged
-    01-commit-pairs-source-and-test:
+    02-commit-pairs-source-and-test:
       run: just check-commit-pairs-source-and-test
-    02-check-pre-commit:
+    03-check-pre-commit:
       run: just check-pre-commit
 
 commit-msg:
@@ -59,5 +71,7 @@ commit-msg:
 
 pre-push:
   commands:
-    check:
+    00-install-worktree-pack:
+      run: just install-worktree-pack
+    01-check-pre-push:
       run: just check-pre-push

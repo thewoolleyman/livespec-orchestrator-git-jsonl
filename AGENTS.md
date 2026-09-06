@@ -123,6 +123,12 @@ JavaScript repo wires package.json `"wt:create": "just worktree-create"`.
    auto-trusted and the first `mise exec` inside it never stalls on a "config
    not trusted" prompt.
 
+   A raw `git worktree add -b <branch>
+   "$HOME/.worktrees/livespec-orchestrator-git-jsonl/<branch>" master` also
+   yields a usable worktree — the pre-commit and pre-push hooks install the
+   pack before any gate reads it, so the worktree can commit and push with no
+   `just bootstrap` — but it skips hydration, so prefer the recipe.
+
 2. **Hydrate (if this repo needs it).** "Hydrate" means prepare the fresh
    worktree so the repo's checks and tooling can run inside it; what that
    entails is ecosystem-specific (Python: create a `.venv`; JavaScript:

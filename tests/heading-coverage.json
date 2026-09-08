@@ -4,168 +4,192 @@
     "spec_root": "SPECIFICATION",
     "spec_file": "spec.md",
     "test": "TODO",
-    "reason": "Baseline heading-coverage backfill (li-4liaxt). The shared heading_coverage check is now satisfied by enumerating every SPECIFICATION/ H2 heading; real test IDs are populated as the governed propose-change/revise loop's resulting_files[] mechanism binds each heading to an exercising test."
+    "reason": "Baseline heading-coverage backfill (li-4liaxt). The shared heading_coverage check is now satisfied by enumerating every SPECIFICATION/ H2 heading; real test IDs are populated as the governed propose-change/revise loop's resulting_files[] mechanism binds each heading to an exercising test.",
+    "work_item": "bd-gj-6ps"
   },
   {
     "heading": "## Scope boundary",
     "spec_root": "SPECIFICATION",
     "spec_file": "spec.md",
     "test": "TODO",
-    "reason": "Baseline heading-coverage backfill (li-4liaxt). The shared heading_coverage check is now satisfied by enumerating every SPECIFICATION/ H2 heading; real test IDs are populated as the governed propose-change/revise loop's resulting_files[] mechanism binds each heading to an exercising test."
+    "reason": "Baseline heading-coverage backfill (li-4liaxt). The shared heading_coverage check is now satisfied by enumerating every SPECIFICATION/ H2 heading; real test IDs are populated as the governed propose-change/revise loop's resulting_files[] mechanism binds each heading to an exercising test.",
+    "work_item": "bd-gj-6ps"
   },
   {
     "heading": "## Terminology",
     "spec_root": "SPECIFICATION",
     "spec_file": "spec.md",
     "test": "TODO",
-    "reason": "Baseline heading-coverage backfill (li-4liaxt). The shared heading_coverage check is now satisfied by enumerating every SPECIFICATION/ H2 heading; real test IDs are populated as the governed propose-change/revise loop's resulting_files[] mechanism binds each heading to an exercising test."
+    "reason": "Baseline heading-coverage backfill (li-4liaxt). The shared heading_coverage check is now satisfied by enumerating every SPECIFICATION/ H2 heading; real test IDs are populated as the governed propose-change/revise loop's resulting_files[] mechanism binds each heading to an exercising test.",
+    "work_item": "bd-gj-6ps"
   },
   {
     "heading": "## Substrate properties",
     "spec_root": "SPECIFICATION",
     "spec_file": "spec.md",
     "test": "TODO",
-    "reason": "Baseline heading-coverage backfill (li-4liaxt). The shared heading_coverage check is now satisfied by enumerating every SPECIFICATION/ H2 heading; real test IDs are populated as the governed propose-change/revise loop's resulting_files[] mechanism binds each heading to an exercising test."
+    "reason": "Baseline heading-coverage backfill (li-4liaxt). The shared heading_coverage check is now satisfied by enumerating every SPECIFICATION/ H2 heading; real test IDs are populated as the governed propose-change/revise loop's resulting_files[] mechanism binds each heading to an exercising test.",
+    "work_item": "bd-gj-6ps"
   },
   {
     "heading": "## Lifecycle and evolution",
     "spec_root": "SPECIFICATION",
     "spec_file": "spec.md",
     "test": "TODO",
-    "reason": "Baseline heading-coverage backfill (li-4liaxt). The shared heading_coverage check is now satisfied by enumerating every SPECIFICATION/ H2 heading; real test IDs are populated as the governed propose-change/revise loop's resulting_files[] mechanism binds each heading to an exercising test."
+    "reason": "Baseline heading-coverage backfill (li-4liaxt). The shared heading_coverage check is now satisfied by enumerating every SPECIFICATION/ H2 heading; real test IDs are populated as the governed propose-change/revise loop's resulting_files[] mechanism binds each heading to an exercising test.",
+    "work_item": "bd-gj-6ps"
   },
   {
     "heading": "## What this spec is not",
     "spec_root": "SPECIFICATION",
     "spec_file": "spec.md",
     "test": "TODO",
-    "reason": "Baseline heading-coverage backfill (li-4liaxt). The shared heading_coverage check is now satisfied by enumerating every SPECIFICATION/ H2 heading; real test IDs are populated as the governed propose-change/revise loop's resulting_files[] mechanism binds each heading to an exercising test."
+    "reason": "Baseline heading-coverage backfill (li-4liaxt). The shared heading_coverage check is now satisfied by enumerating every SPECIFICATION/ H2 heading; real test IDs are populated as the governed propose-change/revise loop's resulting_files[] mechanism binds each heading to an exercising test.",
+    "work_item": "bd-gj-6ps"
   },
   {
     "heading": "## The seven-skill surface",
     "spec_root": "SPECIFICATION",
     "spec_file": "contracts.md",
     "test": "TODO",
-    "reason": "Baseline heading-coverage backfill (li-4liaxt). The shared heading_coverage check is now satisfied by enumerating every SPECIFICATION/ H2 heading; real test IDs are populated as the governed propose-change/revise loop's resulting_files[] mechanism binds each heading to an exercising test."
+    "reason": "Baseline heading-coverage backfill (li-4liaxt). The shared heading_coverage check is now satisfied by enumerating every SPECIFICATION/ H2 heading; real test IDs are populated as the governed propose-change/revise loop's resulting_files[] mechanism binds each heading to an exercising test.",
+    "work_item": "bd-gj-6ps"
   },
   {
     "heading": "## Plugin namespace",
     "spec_root": "SPECIFICATION",
     "spec_file": "contracts.md",
     "test": "TODO",
-    "reason": "Baseline heading-coverage backfill (li-4liaxt). The shared heading_coverage check is now satisfied by enumerating every SPECIFICATION/ H2 heading; real test IDs are populated as the governed propose-change/revise loop's resulting_files[] mechanism binds each heading to an exercising test."
+    "reason": "Baseline heading-coverage backfill (li-4liaxt). The shared heading_coverage check is now satisfied by enumerating every SPECIFICATION/ H2 heading; real test IDs are populated as the governed propose-change/revise loop's resulting_files[] mechanism binds each heading to an exercising test.",
+    "work_item": "bd-gj-6ps"
   },
   {
     "heading": "## Work-items JSONL record schema",
     "spec_root": "SPECIFICATION",
     "spec_file": "contracts.md",
     "test": "TODO",
-    "reason": "Baseline heading-coverage backfill (li-4liaxt). The shared heading_coverage check is now satisfied by enumerating every SPECIFICATION/ H2 heading; real test IDs are populated as the governed propose-change/revise loop's resulting_files[] mechanism binds each heading to an exercising test."
+    "reason": "Baseline heading-coverage backfill (li-4liaxt). The shared heading_coverage check is now satisfied by enumerating every SPECIFICATION/ H2 heading; real test IDs are populated as the governed propose-change/revise loop's resulting_files[] mechanism binds each heading to an exercising test.",
+    "work_item": "bd-gj-6ps"
   },
   {
     "heading": "## Spec Reader internal API",
     "spec_root": "SPECIFICATION",
     "spec_file": "contracts.md",
     "test": "TODO",
-    "reason": "Baseline heading-coverage backfill (li-4liaxt). The shared heading_coverage check is now satisfied by enumerating every SPECIFICATION/ H2 heading; real test IDs are populated as the governed propose-change/revise loop's resulting_files[] mechanism binds each heading to an exercising test."
+    "reason": "Baseline heading-coverage backfill (li-4liaxt). The shared heading_coverage check is now satisfied by enumerating every SPECIFICATION/ H2 heading; real test IDs are populated as the governed propose-change/revise loop's resulting_files[] mechanism binds each heading to an exercising test.",
+    "work_item": "bd-gj-6ps"
   },
   {
     "heading": "## Persistent Agent Knowledge realization",
     "spec_root": "SPECIFICATION",
     "spec_file": "contracts.md",
     "test": "TODO",
-    "reason": "Baseline heading-coverage backfill (li-4liaxt). The shared heading_coverage check is now satisfied by enumerating every SPECIFICATION/ H2 heading; real test IDs are populated as the governed propose-change/revise loop's resulting_files[] mechanism binds each heading to an exercising test."
+    "reason": "Baseline heading-coverage backfill (li-4liaxt). The shared heading_coverage check is now satisfied by enumerating every SPECIFICATION/ H2 heading; real test IDs are populated as the governed propose-change/revise loop's resulting_files[] mechanism binds each heading to an exercising test.",
+    "work_item": "bd-gj-6ps"
   },
   {
     "heading": "## Cross-boundary handoffs",
     "spec_root": "SPECIFICATION",
     "spec_file": "contracts.md",
     "test": "TODO",
-    "reason": "Baseline heading-coverage backfill (li-4liaxt). The shared heading_coverage check is now satisfied by enumerating every SPECIFICATION/ H2 heading; real test IDs are populated as the governed propose-change/revise loop's resulting_files[] mechanism binds each heading to an exercising test."
+    "reason": "Baseline heading-coverage backfill (li-4liaxt). The shared heading_coverage check is now satisfied by enumerating every SPECIFICATION/ H2 heading; real test IDs are populated as the governed propose-change/revise loop's resulting_files[] mechanism binds each heading to an exercising test.",
+    "work_item": "bd-gj-6ps"
   },
   {
     "heading": "## `compat` block",
     "spec_root": "SPECIFICATION",
     "spec_file": "contracts.md",
     "test": "TODO",
-    "reason": "Baseline heading-coverage backfill (li-4liaxt). The shared heading_coverage check is now satisfied by enumerating every SPECIFICATION/ H2 heading; real test IDs are populated as the governed propose-change/revise loop's resulting_files[] mechanism binds each heading to an exercising test."
+    "reason": "Baseline heading-coverage backfill (li-4liaxt). The shared heading_coverage check is now satisfied by enumerating every SPECIFICATION/ H2 heading; real test IDs are populated as the governed propose-change/revise loop's resulting_files[] mechanism binds each heading to an exercising test.",
+    "work_item": "bd-gj-6ps"
   },
   {
     "heading": "## Inherited from livespec",
     "spec_root": "SPECIFICATION",
     "spec_file": "constraints.md",
     "test": "TODO",
-    "reason": "Baseline heading-coverage backfill (li-4liaxt). The shared heading_coverage check is now satisfied by enumerating every SPECIFICATION/ H2 heading; real test IDs are populated as the governed propose-change/revise loop's resulting_files[] mechanism binds each heading to an exercising test."
+    "reason": "Baseline heading-coverage backfill (li-4liaxt). The shared heading_coverage check is now satisfied by enumerating every SPECIFICATION/ H2 heading; real test IDs are populated as the governed propose-change/revise loop's resulting_files[] mechanism binds each heading to an exercising test.",
+    "work_item": "bd-gj-6ps"
   },
   {
     "heading": "## JSONL substrate constraints",
     "spec_root": "SPECIFICATION",
     "spec_file": "constraints.md",
     "test": "TODO",
-    "reason": "Baseline heading-coverage backfill (li-4liaxt). The shared heading_coverage check is now satisfied by enumerating every SPECIFICATION/ H2 heading; real test IDs are populated as the governed propose-change/revise loop's resulting_files[] mechanism binds each heading to an exercising test."
+    "reason": "Baseline heading-coverage backfill (li-4liaxt). The shared heading_coverage check is now satisfied by enumerating every SPECIFICATION/ H2 heading; real test IDs are populated as the governed propose-change/revise loop's resulting_files[] mechanism binds each heading to an exercising test.",
+    "work_item": "bd-gj-6ps"
   },
   {
     "heading": "## Process boundaries",
     "spec_root": "SPECIFICATION",
     "spec_file": "constraints.md",
     "test": "TODO",
-    "reason": "Baseline heading-coverage backfill (li-4liaxt). The shared heading_coverage check is now satisfied by enumerating every SPECIFICATION/ H2 heading; real test IDs are populated as the governed propose-change/revise loop's resulting_files[] mechanism binds each heading to an exercising test."
+    "reason": "Baseline heading-coverage backfill (li-4liaxt). The shared heading_coverage check is now satisfied by enumerating every SPECIFICATION/ H2 heading; real test IDs are populated as the governed propose-change/revise loop's resulting_files[] mechanism binds each heading to an exercising test.",
+    "work_item": "bd-gj-6ps"
   },
   {
     "heading": "## Spec Reader implementation constraints",
     "spec_root": "SPECIFICATION",
     "spec_file": "constraints.md",
     "test": "TODO",
-    "reason": "Baseline heading-coverage backfill (li-4liaxt). The shared heading_coverage check is now satisfied by enumerating every SPECIFICATION/ H2 heading; real test IDs are populated as the governed propose-change/revise loop's resulting_files[] mechanism binds each heading to an exercising test."
+    "reason": "Baseline heading-coverage backfill (li-4liaxt). The shared heading_coverage check is now satisfied by enumerating every SPECIFICATION/ H2 heading; real test IDs are populated as the governed propose-change/revise loop's resulting_files[] mechanism binds each heading to an exercising test.",
+    "work_item": "bd-gj-6ps"
   },
   {
     "heading": "## Skill orchestration constraints",
     "spec_root": "SPECIFICATION",
     "spec_file": "constraints.md",
     "test": "TODO",
-    "reason": "Baseline heading-coverage backfill (li-4liaxt). The shared heading_coverage check is now satisfied by enumerating every SPECIFICATION/ H2 heading; real test IDs are populated as the governed propose-change/revise loop's resulting_files[] mechanism binds each heading to an exercising test."
+    "reason": "Baseline heading-coverage backfill (li-4liaxt). The shared heading_coverage check is now satisfied by enumerating every SPECIFICATION/ H2 heading; real test IDs are populated as the governed propose-change/revise loop's resulting_files[] mechanism binds each heading to an exercising test.",
+    "work_item": "bd-gj-6ps"
   },
   {
     "heading": "## Persistent Agent Knowledge constraints",
     "spec_root": "SPECIFICATION",
     "spec_file": "constraints.md",
     "test": "TODO",
-    "reason": "Baseline heading-coverage backfill (li-4liaxt). The shared heading_coverage check is now satisfied by enumerating every SPECIFICATION/ H2 heading; real test IDs are populated as the governed propose-change/revise loop's resulting_files[] mechanism binds each heading to an exercising test."
+    "reason": "Baseline heading-coverage backfill (li-4liaxt). The shared heading_coverage check is now satisfied by enumerating every SPECIFICATION/ H2 heading; real test IDs are populated as the governed propose-change/revise loop's resulting_files[] mechanism binds each heading to an exercising test.",
+    "work_item": "bd-gj-6ps"
   },
   {
     "heading": "## Forbidden patterns",
     "spec_root": "SPECIFICATION",
     "spec_file": "constraints.md",
     "test": "TODO",
-    "reason": "Baseline heading-coverage backfill (li-4liaxt). The shared heading_coverage check is now satisfied by enumerating every SPECIFICATION/ H2 heading; real test IDs are populated as the governed propose-change/revise loop's resulting_files[] mechanism binds each heading to an exercising test."
+    "reason": "Baseline heading-coverage backfill (li-4liaxt). The shared heading_coverage check is now satisfied by enumerating every SPECIFICATION/ H2 heading; real test IDs are populated as the governed propose-change/revise loop's resulting_files[] mechanism binds each heading to an exercising test.",
+    "work_item": "bd-gj-6ps"
   },
   {
     "heading": "## Scenario 1 \u2014 Gap-tied fix cycle",
     "spec_root": "SPECIFICATION",
     "spec_file": "scenarios.md",
     "test": "TODO",
-    "reason": "Scenario-tier coverage pending \u2014 an integration-tier (or above) test will exercise this user-observable scenario; a unit-tier test does not. Registered as TODO per the scenarios.md integration-tier-or-above transition allowance (epic li-scetier; dev-tooling v0.10.0 granular-scenario rule)."
+    "reason": "Scenario-tier coverage pending \u2014 an integration-tier (or above) test will exercise this user-observable scenario; a unit-tier test does not. Registered as TODO per the scenarios.md integration-tier-or-above transition allowance (epic li-scetier; dev-tooling v0.10.0 granular-scenario rule).",
+    "work_item": "bd-gj-6ps"
   },
   {
     "heading": "## Scenario 2 \u2014 Freeform bug fix",
     "spec_root": "SPECIFICATION",
     "spec_file": "scenarios.md",
     "test": "TODO",
-    "reason": "Scenario-tier coverage pending \u2014 an integration-tier (or above) test will exercise this user-observable scenario; a unit-tier test does not. Registered as TODO per the scenarios.md integration-tier-or-above transition allowance (epic li-scetier; dev-tooling v0.10.0 granular-scenario rule)."
+    "reason": "Scenario-tier coverage pending \u2014 an integration-tier (or above) test will exercise this user-observable scenario; a unit-tier test does not. Registered as TODO per the scenarios.md integration-tier-or-above transition allowance (epic li-scetier; dev-tooling v0.10.0 granular-scenario rule).",
+    "work_item": "bd-gj-6ps"
   },
   {
     "heading": "## Scenario 3 \u2014 Doctor cross-boundary read",
     "spec_root": "SPECIFICATION",
     "spec_file": "scenarios.md",
     "test": "TODO",
-    "reason": "Scenario-tier coverage pending \u2014 an integration-tier (or above) test will exercise this user-observable scenario; a unit-tier test does not. Registered as TODO per the scenarios.md integration-tier-or-above transition allowance (epic li-scetier; dev-tooling v0.10.0 granular-scenario rule)."
+    "reason": "Scenario-tier coverage pending \u2014 an integration-tier (or above) test will exercise this user-observable scenario; a unit-tier test does not. Registered as TODO per the scenarios.md integration-tier-or-above transition allowance (epic li-scetier; dev-tooling v0.10.0 granular-scenario rule).",
+    "work_item": "bd-gj-6ps"
   },
   {
     "heading": "## Scenario 4 \u2014 Cross-repo Layer 3 loop driver (livespec-resident)",
     "spec_root": "SPECIFICATION",
     "spec_file": "scenarios.md",
     "test": "TODO",
-    "reason": "Scenario-tier coverage pending \u2014 an integration-tier (or above) test will exercise this user-observable scenario; a unit-tier test does not. Registered as TODO per the scenarios.md integration-tier-or-above transition allowance (epic li-scetier; dev-tooling v0.10.0 granular-scenario rule)."
+    "reason": "Scenario-tier coverage pending \u2014 an integration-tier (or above) test will exercise this user-observable scenario; a unit-tier test does not. Registered as TODO per the scenarios.md integration-tier-or-above transition allowance (epic li-scetier; dev-tooling v0.10.0 granular-scenario rule).",
+    "work_item": "bd-gj-6ps"
   },
   {
     "heading": "## Append-only store disciplines",
@@ -179,6 +203,7 @@
     "spec_root": "SPECIFICATION",
     "spec_file": "scenarios.md",
     "test": "TODO",
-    "reason": "Scenario-tier coverage pending - an integration-tier (or above) test will exercise this user-observable scenario; a unit-tier test does not. Registered as TODO per the scenarios.md integration-tier-or-above transition allowance (epic li-scetier; dev-tooling v0.10.0 granular-scenario rule)."
+    "reason": "Scenario-tier coverage pending - an integration-tier (or above) test will exercise this user-observable scenario; a unit-tier test does not. Registered as TODO per the scenarios.md integration-tier-or-above transition allowance (epic li-scetier; dev-tooling v0.10.0 granular-scenario rule).",
+    "work_item": "bd-gj-6ps"
   }
 ]

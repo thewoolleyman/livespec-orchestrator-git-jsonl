@@ -3,193 +3,169 @@
     "heading": "## Purpose",
     "spec_root": "SPECIFICATION",
     "spec_file": "spec.md",
-    "test": "TODO",
-    "reason": "Baseline heading-coverage backfill (li-4liaxt). The shared heading_coverage check is now satisfied by enumerating every SPECIFICATION/ H2 heading; real test IDs are populated as the governed propose-change/revise loop's resulting_files[] mechanism binds each heading to an exercising test.",
-    "work_item": "bd-gj-6ps"
+    "test": "tests.livespec_orchestrator_git_jsonl.test_substrate_conformance.test_the_substrate_is_plain_jsonl_readable_without_a_database",
+    "reason": "Realized by the JSONL substrate: appended work-items land as plain-text JSON lines recoverable with a plain reader — the 'no embedded database, readable with cat' property the Purpose section rests on. Control-armed: a non-plaintext substrate would not round-trip through json.loads over the raw lines."
   },
   {
     "heading": "## Scope boundary",
     "spec_root": "SPECIFICATION",
     "spec_file": "spec.md",
     "test": "TODO",
-    "reason": "Baseline heading-coverage backfill (li-4liaxt). The shared heading_coverage check is now satisfied by enumerating every SPECIFICATION/ H2 heading; real test IDs are populated as the governed propose-change/revise loop's resulting_files[] mechanism binds each heading to an exercising test.",
-    "work_item": "bd-gj-6ps"
+    "reason": "RESIDUAL (meta): this heading states an authoring rule — the spec MUST NOT re-state livespec's contract; it concretizes for the JSONL substrate and points upstream, with the pin moving forward in a discrete bump-pin PR. It governs the spec document, not a runtime behavior of this plugin, so there is no pytest that verifies THIS repo's conformance to it. Left TODO for maintainer disposition per the fleet-heading-coverage-convergence architectural-residual carve-out."
   },
   {
     "heading": "## Terminology",
     "spec_root": "SPECIFICATION",
     "spec_file": "spec.md",
-    "test": "TODO",
-    "reason": "Baseline heading-coverage backfill (li-4liaxt). The shared heading_coverage check is now satisfied by enumerating every SPECIFICATION/ H2 heading; real test IDs are populated as the governed propose-change/revise loop's resulting_files[] mechanism binds each heading to an exercising test.",
-    "work_item": "bd-gj-6ps"
+    "test": "tests.livespec_orchestrator_git_jsonl.test_store.test_materialize_work_items_supersession_head_wins",
+    "reason": "Realized by the latest-record-wins / supersession-chain reduction the Terminology section defines: the materialized view is the supersession-chain head per id. Control-armed by test_store: the head-wins assertion fails if the reduction picks a superseded record."
   },
   {
     "heading": "## Substrate properties",
     "spec_root": "SPECIFICATION",
     "spec_file": "spec.md",
-    "test": "TODO",
-    "reason": "Baseline heading-coverage backfill (li-4liaxt). The shared heading_coverage check is now satisfied by enumerating every SPECIFICATION/ H2 heading; real test IDs are populated as the governed propose-change/revise loop's resulting_files[] mechanism binds each heading to an exercising test.",
-    "work_item": "bd-gj-6ps"
+    "test": "tests.livespec_orchestrator_git_jsonl.test_store.test_read_work_items_empty_line_raises",
+    "reason": "Realized by the store reader enforcing the substrate properties (one JSON object per line, no empty lines between records, trailing newline). Control-armed by test_store: an empty line between records raises rather than parsing."
   },
   {
     "heading": "## Lifecycle and evolution",
     "spec_root": "SPECIFICATION",
     "spec_file": "spec.md",
     "test": "TODO",
-    "reason": "Baseline heading-coverage backfill (li-4liaxt). The shared heading_coverage check is now satisfied by enumerating every SPECIFICATION/ H2 heading; real test IDs are populated as the governed propose-change/revise loop's resulting_files[] mechanism binds each heading to an exercising test.",
-    "work_item": "bd-gj-6ps"
+    "reason": "RESIDUAL (meta/governance): this heading describes how the SPECIFICATION evolves through the livespec propose/critique/revise/doctor/prune loop. It is a spec-governance process statement, not runtime behavior of this plugin; the doctor-static suite (not a pytest in this repo) is what enforces the history/proposed_changes structure the loop produces. Left TODO for maintainer disposition per the architectural-residual carve-out."
   },
   {
     "heading": "## What this spec is not",
     "spec_root": "SPECIFICATION",
     "spec_file": "spec.md",
     "test": "TODO",
-    "reason": "Baseline heading-coverage backfill (li-4liaxt). The shared heading_coverage check is now satisfied by enumerating every SPECIFICATION/ H2 heading; real test IDs are populated as the governed propose-change/revise loop's resulting_files[] mechanism binds each heading to an exercising test.",
-    "work_item": "bd-gj-6ps"
+    "reason": "RESIDUAL (meta/negative): this heading is negative scoping of the spec document (not a re-statement of livespec's contract, not a Python implementation manual, not a substitute for the upstream invariant catalog). It asserts no runtime behavior of this plugin, so no pytest verifies THIS repo's conformance. Left TODO for maintainer disposition per the architectural-residual carve-out."
   },
   {
     "heading": "## The seven-skill surface",
     "spec_root": "SPECIFICATION",
     "spec_file": "contracts.md",
-    "test": "TODO",
-    "reason": "Baseline heading-coverage backfill (li-4liaxt). The shared heading_coverage check is now satisfied by enumerating every SPECIFICATION/ H2 heading; real test IDs are populated as the governed propose-change/revise loop's resulting_files[] mechanism binds each heading to an exercising test.",
-    "work_item": "bd-gj-6ps"
+    "test": "tests.livespec_orchestrator_git_jsonl.test_plugin_surface.test_every_contract_named_skill_ships_a_skill_md",
+    "reason": "Realized by the shipped skills tree: each of the seven required skills (four heavyweight authored + three thin-transport) ships a SKILL.md under .claude-plugin/skills/. Control-armed: a dropped skill directory fails the test."
   },
   {
     "heading": "## Plugin namespace",
     "spec_root": "SPECIFICATION",
     "spec_file": "contracts.md",
-    "test": "TODO",
-    "reason": "Baseline heading-coverage backfill (li-4liaxt). The shared heading_coverage check is now satisfied by enumerating every SPECIFICATION/ H2 heading; real test IDs are populated as the governed propose-change/revise loop's resulting_files[] mechanism binds each heading to an exercising test.",
-    "work_item": "bd-gj-6ps"
+    "test": "tests.livespec_orchestrator_git_jsonl.test_plugin_surface.test_the_plugin_namespace_is_fixed_by_the_manifest",
+    "reason": "Realized by .claude-plugin/plugin.json, which fixes the /livespec-orchestrator-git-jsonl: namespace the cross-boundary invariants invoke through. Control-armed: a renamed manifest fails the name assertion."
   },
   {
     "heading": "## Work-items JSONL record schema",
     "spec_root": "SPECIFICATION",
     "spec_file": "contracts.md",
-    "test": "TODO",
-    "reason": "Baseline heading-coverage backfill (li-4liaxt). The shared heading_coverage check is now satisfied by enumerating every SPECIFICATION/ H2 heading; real test IDs are populated as the governed propose-change/revise loop's resulting_files[] mechanism binds each heading to an exercising test.",
-    "work_item": "bd-gj-6ps"
+    "test": "tests.livespec_orchestrator_git_jsonl.test_store.test_append_work_item_serializes_exactly_twenty_keys",
+    "reason": "Realized by the store codec: an appended record serializes exactly the canonical key set and no extra keys. Control-armed by test_store, which pins the serialized key set of an appended record."
   },
   {
     "heading": "## Spec Reader internal API",
     "spec_root": "SPECIFICATION",
     "spec_file": "contracts.md",
-    "test": "TODO",
-    "reason": "Baseline heading-coverage backfill (li-4liaxt). The shared heading_coverage check is now satisfied by enumerating every SPECIFICATION/ H2 heading; real test IDs are populated as the governed propose-change/revise loop's resulting_files[] mechanism binds each heading to an exercising test.",
-    "work_item": "bd-gj-6ps"
+    "test": "tests.livespec_orchestrator_git_jsonl.test_spec_reader.test_read_current_specification_excludes_proposed_changes",
+    "reason": "Realized by the Spec Reader module's read_current_specification capability, which exposes only ratified canonical content and excludes proposed_changes. Control-armed by test_spec_reader: a proposed-changes file must not appear in the current snapshot."
   },
   {
     "heading": "## Persistent Agent Knowledge realization",
     "spec_root": "SPECIFICATION",
     "spec_file": "contracts.md",
     "test": "TODO",
-    "reason": "Baseline heading-coverage backfill (li-4liaxt). The shared heading_coverage check is now satisfied by enumerating every SPECIFICATION/ H2 heading; real test IDs are populated as the governed propose-change/revise loop's resulting_files[] mechanism binds each heading to an exercising test.",
-    "work_item": "bd-gj-6ps"
+    "reason": "RESIDUAL (convention/meta): the realization is a documentation convention (.ai/<topic>.md files referenced from CLAUDE.md/AGENTS.md, loaded by the harness), not code with a runtime behavior path. This repo's .ai/ directory is empty, so no topic-file reference invariant is actually exercised. The doctor-static check `agents-ai-reference-resolution` is what enforces reference resolution. Left TODO for maintainer disposition per the architectural-residual carve-out."
   },
   {
     "heading": "## Cross-boundary handoffs",
     "spec_root": "SPECIFICATION",
     "spec_file": "contracts.md",
     "test": "TODO",
-    "reason": "Baseline heading-coverage backfill (li-4liaxt). The shared heading_coverage check is now satisfied by enumerating every SPECIFICATION/ H2 heading; real test IDs are populated as the governed propose-change/revise loop's resulting_files[] mechanism binds each heading to an exercising test.",
-    "work_item": "bd-gj-6ps"
+    "reason": "RESIDUAL (architectural): this heading enumerates the red-edge handoffs this plugin participates in (capture-spec-drift -> propose-change; doctor -> list-work-items --json; doctor -> detect-impl-gaps --json) and fixes the mechanism as namespace invocation, never wrapper-path shell-out. It is an architectural declaration; the handoff edges are exercised across the doctor/livespec boundary, not by a self-contained pytest verifying THIS repo. Left TODO for maintainer disposition per the architectural-residual carve-out."
   },
   {
     "heading": "## `compat` block",
     "spec_root": "SPECIFICATION",
     "spec_file": "contracts.md",
     "test": "TODO",
-    "reason": "Baseline heading-coverage backfill (li-4liaxt). The shared heading_coverage check is now satisfied by enumerating every SPECIFICATION/ H2 heading; real test IDs are populated as the governed propose-change/revise loop's resulting_files[] mechanism binds each heading to an exercising test.",
-    "work_item": "bd-gj-6ps"
+    "reason": "RESIDUAL (static-check-only / not applicable to this repo): the compat block is a CONSUMER-side .livespec.jsonc contract for a repo whose implementation.plugin is livespec-orchestrator-git-jsonl. THIS repo tracks its own work in beads (implementation.plugin = livespec-orchestrator-beads-fabro) and ships NO git-jsonl compat block, so there is no this-repo conformance target; the only coverage available is the canonical_branch resolver's own unit test, which verifies the tool rather than this repo (a category error). Left TODO for maintainer disposition."
   },
   {
     "heading": "## Inherited from livespec",
     "spec_root": "SPECIFICATION",
     "spec_file": "constraints.md",
-    "test": "TODO",
-    "reason": "Baseline heading-coverage backfill (li-4liaxt). The shared heading_coverage check is now satisfied by enumerating every SPECIFICATION/ H2 heading; real test IDs are populated as the governed propose-change/revise loop's resulting_files[] mechanism binds each heading to an exercising test.",
-    "work_item": "bd-gj-6ps"
+    "test": "tests.livespec_orchestrator_git_jsonl.test_substrate_conformance.test_no_pypi_runtime_dependencies_are_declared",
+    "reason": "Realized by the packaging posture the inherited constraints require: no PyPI runtime dependencies are declared and libraries are vendored under .claude-plugin/scripts/_vendor/. Control-armed: a populated dependencies array or a missing vendor tree fails the test."
   },
   {
     "heading": "## JSONL substrate constraints",
     "spec_root": "SPECIFICATION",
     "spec_file": "constraints.md",
-    "test": "TODO",
-    "reason": "Baseline heading-coverage backfill (li-4liaxt). The shared heading_coverage check is now satisfied by enumerating every SPECIFICATION/ H2 heading; real test IDs are populated as the governed propose-change/revise loop's resulting_files[] mechanism binds each heading to an exercising test.",
-    "work_item": "bd-gj-6ps"
+    "test": "tests.livespec_orchestrator_git_jsonl.test_store.test_read_work_items_extra_key_raises",
+    "reason": "Realized by the store reader enforcing the exact-schema JSONL substrate constraint: records with keys beyond the canonical schema are rejected. Control-armed by test_store: an extra key raises a schema violation."
   },
   {
     "heading": "## Process boundaries",
     "spec_root": "SPECIFICATION",
     "spec_file": "constraints.md",
-    "test": "TODO",
-    "reason": "Baseline heading-coverage backfill (li-4liaxt). The shared heading_coverage check is now satisfied by enumerating every SPECIFICATION/ H2 heading; real test IDs are populated as the governed propose-change/revise loop's resulting_files[] mechanism binds each heading to an exercising test.",
-    "work_item": "bd-gj-6ps"
+    "test": "tests.livespec_orchestrator_git_jsonl.test_substrate_conformance.test_jsonl_stores_declare_merge_union_so_git_is_the_conflict_boundary",
+    "reason": "Realized by the .gitattributes '*.jsonl merge=union' entry: the plugin adds no lockfile, so git commit/merge serialization is the conflict-resolution boundary for concurrent appends. Control-armed: removing the merge=union attribute fails the test."
   },
   {
     "heading": "## Spec Reader implementation constraints",
     "spec_root": "SPECIFICATION",
     "spec_file": "constraints.md",
-    "test": "TODO",
-    "reason": "Baseline heading-coverage backfill (li-4liaxt). The shared heading_coverage check is now satisfied by enumerating every SPECIFICATION/ H2 heading; real test IDs are populated as the governed propose-change/revise loop's resulting_files[] mechanism binds each heading to an exercising test.",
-    "work_item": "bd-gj-6ps"
+    "test": "tests.livespec_orchestrator_git_jsonl.test_spec_reader.test_read_current_specification_excludes_history",
+    "reason": "Realized by the read-only Spec Reader module honoring the implementation constraints: the current-specification read excludes history and never mutates the tree. Control-armed by test_spec_reader: history content must not appear in the current snapshot."
   },
   {
     "heading": "## Skill orchestration constraints",
     "spec_root": "SPECIFICATION",
     "spec_file": "constraints.md",
-    "test": "TODO",
-    "reason": "Baseline heading-coverage backfill (li-4liaxt). The shared heading_coverage check is now satisfied by enumerating every SPECIFICATION/ H2 heading; real test IDs are populated as the governed propose-change/revise loop's resulting_files[] mechanism binds each heading to an exercising test.",
-    "work_item": "bd-gj-6ps"
+    "test": "tests.bin.test_next.test_next_wrapper_threads_exit_code",
+    "reason": "Realized by the thin-transport wrapper layout the orchestration constraints mandate: the next skill's logic lives in .claude-plugin/scripts/bin/next.py and the SKILL.md is a pass-through. Control-armed by the bin wrapper test, which invokes the wrapper and pins its exit-code threading."
   },
   {
     "heading": "## Persistent Agent Knowledge constraints",
     "spec_root": "SPECIFICATION",
     "spec_file": "constraints.md",
     "test": "TODO",
-    "reason": "Baseline heading-coverage backfill (li-4liaxt). The shared heading_coverage check is now satisfied by enumerating every SPECIFICATION/ H2 heading; real test IDs are populated as the governed propose-change/revise loop's resulting_files[] mechanism binds each heading to an exercising test.",
-    "work_item": "bd-gj-6ps"
+    "reason": "RESIDUAL (convention/meta): these constraints (topic files referenced from CLAUDE.md/AGENTS.md, atomic write-plus-reference, durable-pending exemption from livespec doctor invariants) govern a documentation convention rather than a runtime code path. This repo's .ai/ directory is empty, so the orphan-reference invariant is not exercised; the doctor-static `agents-ai-reference-resolution` check enforces it. Left TODO for maintainer disposition per the architectural-residual carve-out."
   },
   {
     "heading": "## Forbidden patterns",
     "spec_root": "SPECIFICATION",
     "spec_file": "constraints.md",
     "test": "TODO",
-    "reason": "Baseline heading-coverage backfill (li-4liaxt). The shared heading_coverage check is now satisfied by enumerating every SPECIFICATION/ H2 heading; real test IDs are populated as the governed propose-change/revise loop's resulting_files[] mechanism binds each heading to an exercising test.",
-    "work_item": "bd-gj-6ps"
+    "reason": "RESIDUAL (negative / static-check-only): these are negative rules (no mutating flags on list/next, no silent close, no off-substrate persistence, no unresolvable-decision guessing, no drift-scan writes) enforced by static checks and the merge-evidence check rather than by a pytest verifying THIS repo's data. Mapping to the merge-evidence check's own unit test would verify the tool, not this repo (a category error). Left TODO for maintainer disposition."
   },
   {
-    "heading": "## Scenario 1 \u2014 Gap-tied fix cycle",
+    "heading": "## Scenario 1 — Gap-tied fix cycle",
     "spec_root": "SPECIFICATION",
     "spec_file": "scenarios.md",
-    "test": "TODO",
-    "reason": "Scenario-tier coverage pending \u2014 an integration-tier (or above) test will exercise this user-observable scenario; a unit-tier test does not. Registered as TODO per the scenarios.md integration-tier-or-above transition allowance (epic li-scetier; dev-tooling v0.10.0 granular-scenario rule).",
-    "work_item": "bd-gj-6ps"
+    "test": "tests.integration.test_scenarios.test_scenario_1_gap_tied_fix_cycle",
+    "reason": "Integration-tier: exercises the gap-tied cycle end to end across the store and the next ranker — file a gap-tied ready record, confirm next surfaces it as the implement recommendation, append the completed closing record with an audit, and confirm next no longer ranks it."
   },
   {
-    "heading": "## Scenario 2 \u2014 Freeform bug fix",
+    "heading": "## Scenario 2 — Freeform bug fix",
     "spec_root": "SPECIFICATION",
     "spec_file": "scenarios.md",
-    "test": "TODO",
-    "reason": "Scenario-tier coverage pending \u2014 an integration-tier (or above) test will exercise this user-observable scenario; a unit-tier test does not. Registered as TODO per the scenarios.md integration-tier-or-above transition allowance (epic li-scetier; dev-tooling v0.10.0 granular-scenario rule).",
-    "work_item": "bd-gj-6ps"
+    "test": "tests.integration.test_scenarios.test_scenario_2_freeform_bug_fix",
+    "reason": "Integration-tier: exercises the freeform cycle across the store, next, and list-work-items — file a freeform ready record, confirm next ranks it, close it via the freeform path (done/completed/reason, no gap re-detection), and confirm list-work-items --filter closed surfaces it."
   },
   {
-    "heading": "## Scenario 3 \u2014 Doctor cross-boundary read",
+    "heading": "## Scenario 3 — Doctor cross-boundary read",
     "spec_root": "SPECIFICATION",
     "spec_file": "scenarios.md",
-    "test": "TODO",
-    "reason": "Scenario-tier coverage pending \u2014 an integration-tier (or above) test will exercise this user-observable scenario; a unit-tier test does not. Registered as TODO per the scenarios.md integration-tier-or-above transition allowance (epic li-scetier; dev-tooling v0.10.0 granular-scenario rule).",
-    "work_item": "bd-gj-6ps"
+    "test": "tests.integration.test_scenarios.test_scenario_3_doctor_cross_boundary_read",
+    "reason": "Integration-tier: exercises doctor's cross-boundary queries across list-work-items and detect-impl-gaps — both complete deterministically with the contract JSON shapes (an array of materialized views, and a {gap_ids: [...]} object)."
   },
   {
-    "heading": "## Scenario 4 \u2014 Cross-repo Layer 3 loop driver (livespec-resident)",
+    "heading": "## Scenario 4 — Cross-repo Layer 3 loop driver (livespec-resident)",
     "spec_root": "SPECIFICATION",
     "spec_file": "scenarios.md",
-    "test": "TODO",
-    "reason": "Scenario-tier coverage pending \u2014 an integration-tier (or above) test will exercise this user-observable scenario; a unit-tier test does not. Registered as TODO per the scenarios.md integration-tier-or-above transition allowance (epic li-scetier; dev-tooling v0.10.0 granular-scenario rule).",
-    "work_item": "bd-gj-6ps"
+    "test": "tests.integration.test_scenarios.test_scenario_4_cross_repo_layer_3_empty_queue_signal",
+    "reason": "Integration-tier: exercises the Layer-2 emission the Layer-3 driver composes — with no ready work the impl-side next emits an empty candidates[] with has_more false, never a legacy single-object shape."
   },
   {
     "heading": "## Append-only store disciplines",
@@ -199,11 +175,10 @@
     "reason": "Realized by work-item livespec-impl-plaintext-lhq: the supersedes field, the sha256 per-record identity, the order-independent supersession-chain-head reduction, and the .gitattributes '*.jsonl merge=union' entry. The mapped test pins order independence; the sibling reduction tests in test_store.py cover tie-breaks, divergence surfacing, and identical-line collapse. The two store-integrity checks (no-divergent-heads, no-raw-store-read) are realized by work-items livespec-impl-git-jsonl-5ej + livespec-impl-git-jsonl-p3q: tests/livespec_orchestrator_git_jsonl/checks/ exercises both, and the checks are wired into the just check aggregate as private extras consuming the canonical reducer / query surface."
   },
   {
-    "heading": "## Scenario 5 \u2014 Ledger-intent drift surfaces missing spec behavior",
+    "heading": "## Scenario 5 — Ledger-intent drift surfaces missing spec behavior",
     "spec_root": "SPECIFICATION",
     "spec_file": "scenarios.md",
-    "test": "TODO",
-    "reason": "Scenario-tier coverage pending - an integration-tier (or above) test will exercise this user-observable scenario; a unit-tier test does not. Registered as TODO per the scenarios.md integration-tier-or-above transition allowance (epic li-scetier; dev-tooling v0.10.0 granular-scenario rule).",
-    "work_item": "bd-gj-6ps"
+    "test": "tests.integration.test_scenarios.test_scenario_5_ledger_intent_scan_is_read_only",
+    "reason": "Integration-tier: exercises the ledger-intent scan's read path across the store and the append-only materialized-view reduction — materialize the supersession-chain head and assert the store file bytes are unchanged by the read (the scan never writes work-item state)."
   }
 ]

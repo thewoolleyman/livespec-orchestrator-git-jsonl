@@ -11,7 +11,7 @@
     "spec_root": "SPECIFICATION",
     "spec_file": "spec.md",
     "test": "TODO",
-    "reason": "RESIDUAL (meta): this heading states an authoring rule — the spec MUST NOT re-state livespec's contract; it concretizes for the JSONL substrate and points upstream, with the pin moving forward in a discrete bump-pin PR. It governs the spec document, not a runtime behavior of this plugin, so there is no pytest that verifies THIS repo's conformance to it. Left TODO for maintainer disposition per the fleet-heading-coverage-convergence architectural-residual carve-out."
+    "reason": "RESIDUAL (glossary/meta — no enforcing check, no runtime behavior). This heading is an authoring rule for the spec document: the SPECIFICATION MUST NOT re-state livespec's contract, MUST concretize for the JSONL substrate, and points upstream, with the pin moving in a discrete bump-pin PR. No mechanical check enforces 'do not restate upstream' and the rule governs prose, not code. Recommended for spec-restructure (fold into a testable contracts.md clause or accept as permanent glossary residual)."
   },
   {
     "heading": "## Terminology",
@@ -32,14 +32,14 @@
     "spec_root": "SPECIFICATION",
     "spec_file": "spec.md",
     "test": "TODO",
-    "reason": "RESIDUAL (meta/governance): this heading describes how the SPECIFICATION evolves through the livespec propose/critique/revise/doctor/prune loop. It is a spec-governance process statement, not runtime behavior of this plugin; the doctor-static suite (not a pytest in this repo) is what enforces the history/proposed_changes structure the loop produces. Left TODO for maintainer disposition per the architectural-residual carve-out."
+    "reason": "RESIDUAL (enforced by core doctor-static; not pytest-mappable). The livespec-lifecycle structure this heading describes IS enforced against THIS repo by the check-doctor-static aggregate member (findings doctor-proposed-changes-and-history-dirs, doctor-version-directories-complete, doctor-version-contiguity, doctor-revision-to-proposed-change-pairing, doctor-accept-decision-snapshot-consistency, doctor-out-of-band-edits — all `pass` on this repo). It cannot be re-bound to a pytest conformance test here: the doctor_static runner ships in the livespec CORE plugin (resolved from the plugin cache, no stable importable module in this repo) and tests-no-subprocess-spawn forbids invoking it as a subprocess. Maintainer disposition: allow a heading to map to an armed check_id/recipe, or make the core doctor checks importable in-process."
   },
   {
     "heading": "## What this spec is not",
     "spec_root": "SPECIFICATION",
     "spec_file": "spec.md",
     "test": "TODO",
-    "reason": "RESIDUAL (meta/negative): this heading is negative scoping of the spec document (not a re-statement of livespec's contract, not a Python implementation manual, not a substitute for the upstream invariant catalog). It asserts no runtime behavior of this plugin, so no pytest verifies THIS repo's conformance. Left TODO for maintainer disposition per the architectural-residual carve-out."
+    "reason": "RESIDUAL (glossary/meta — no enforcing check, no runtime behavior). This heading is negative scoping of the spec document (not a re-statement of livespec's contract, not a Python implementation manual, not a substitute for the upstream invariant catalog). It asserts no mechanically-checkable rule and no runtime behavior. Recommended for spec-restructure or acceptance as permanent glossary residual."
   },
   {
     "heading": "## The seven-skill surface",
@@ -74,21 +74,21 @@
     "spec_root": "SPECIFICATION",
     "spec_file": "contracts.md",
     "test": "TODO",
-    "reason": "RESIDUAL (convention/meta): the realization is a documentation convention (.ai/<topic>.md files referenced from CLAUDE.md/AGENTS.md, loaded by the harness), not code with a runtime behavior path. This repo's .ai/ directory is empty, so no topic-file reference invariant is actually exercised. The doctor-static check `agents-ai-reference-resolution` is what enforces reference resolution. Left TODO for maintainer disposition per the architectural-residual carve-out."
+    "reason": "RESIDUAL (enforced by core doctor-static; not pytest-mappable). The .ai/<topic>.md reference-resolution this heading realizes IS enforced against THIS repo by the check-doctor-static finding doctor-agents-ai-reference-resolution (`pass` — this repo currently declares zero .ai topic references, so the invariant holds vacuously). Same blocker as Lifecycle: the doctor_static runner is CORE-owned (no stable importable module) and subprocess is banned in tests, so it cannot be re-bound to a pytest conformance test here. Maintainer disposition as above."
   },
   {
     "heading": "## Cross-boundary handoffs",
     "spec_root": "SPECIFICATION",
     "spec_file": "contracts.md",
-    "test": "TODO",
-    "reason": "RESIDUAL (architectural): this heading enumerates the red-edge handoffs this plugin participates in (capture-spec-drift -> propose-change; doctor -> list-work-items --json; doctor -> detect-impl-gaps --json) and fixes the mechanism as namespace invocation, never wrapper-path shell-out. It is an architectural declaration; the handoff edges are exercised across the doctor/livespec boundary, not by a self-contained pytest verifying THIS repo. Left TODO for maintainer disposition per the architectural-residual carve-out."
+    "test": "tests.livespec_orchestrator_git_jsonl.test_check_conformance.test_skill_invocation_paths_clean_on_this_repo_and_catches_a_wrapper_path_shell_out",
+    "reason": "Conformance: runs the skill-invocation-paths check-runner against THIS repo (clean) and against a control-armed fixture whose SKILL.md hard-codes an `uv run .claude-plugin/scripts/bin/*.py` wrapper-path shell-out (reddens) — realizing the handoff-mechanism rule that skills are invoked through the canonical namespace/plugin-root form, never a direct shell-out to a wrapper path."
   },
   {
     "heading": "## `compat` block",
     "spec_root": "SPECIFICATION",
     "spec_file": "contracts.md",
     "test": "TODO",
-    "reason": "RESIDUAL (static-check-only / not applicable to this repo): the compat block is a CONSUMER-side .livespec.jsonc contract for a repo whose implementation.plugin is livespec-orchestrator-git-jsonl. THIS repo tracks its own work in beads (implementation.plugin = livespec-orchestrator-beads-fabro) and ships NO git-jsonl compat block, so there is no this-repo conformance target; the only coverage available is the canonical_branch resolver's own unit test, which verifies the tool rather than this repo (a category error). Left TODO for maintainer disposition."
+    "reason": "RESIDUAL (not applicable to this repo + core-enforced). This repo's own .livespec.jsonc declares a livespec-orchestrator-beads-fabro backend, so it ships NO livespec-orchestrator-git-jsonl compat block — there is no this-repo git-jsonl compat block to conformance-test. The block's validity IS enforced against consumers by the core doctor-static finding doctor-livespec-jsonc-valid (and the upstream contract-version-compatibility invariant), neither of which is importable in-process here nor subprocess-invocable under the test ban. Maintainer disposition: this is a consumer-side contract; converge via a consumer-repo conformance test or a heading-to-check_id mapping."
   },
   {
     "heading": "## Inherited from livespec",
@@ -130,14 +130,14 @@
     "spec_root": "SPECIFICATION",
     "spec_file": "constraints.md",
     "test": "TODO",
-    "reason": "RESIDUAL (convention/meta): these constraints (topic files referenced from CLAUDE.md/AGENTS.md, atomic write-plus-reference, durable-pending exemption from livespec doctor invariants) govern a documentation convention rather than a runtime code path. This repo's .ai/ directory is empty, so the orphan-reference invariant is not exercised; the doctor-static `agents-ai-reference-resolution` check enforces it. Left TODO for maintainer disposition per the architectural-residual carve-out."
+    "reason": "RESIDUAL (enforced by core doctor-static; not pytest-mappable). Same substance and same enforcing finding as the contracts.md 'Persistent Agent Knowledge realization' row (doctor-agents-ai-reference-resolution, `pass` on this repo). The orphan-reference / atomic-write constraints are a documentation convention enforced by CORE doctor-static, which cannot be run as an in-process pytest here (CORE-owned runner + tests-no-subprocess-spawn ban). Maintainer disposition as above."
   },
   {
     "heading": "## Forbidden patterns",
     "spec_root": "SPECIFICATION",
     "spec_file": "constraints.md",
-    "test": "TODO",
-    "reason": "RESIDUAL (negative / static-check-only): these are negative rules (no mutating flags on list/next, no silent close, no off-substrate persistence, no unresolvable-decision guessing, no drift-scan writes) enforced by static checks and the merge-evidence check rather than by a pytest verifying THIS repo's data. Mapping to the merge-evidence check's own unit test would verify the tool, not this repo (a category error). Left TODO for maintainer disposition."
+    "test": "tests.livespec_orchestrator_git_jsonl.checks.test_no_raw_store_read.test_main_conformance_run_against_this_repo",
+    "reason": "Conformance: runs the no-raw-store-read check-runner against THIS repo's source and asserts clean (OK) — realizing the 'read path only via the query surface / no off-substrate raw store read' forbidden pattern. The sibling tests in the same module supply control-armed violating fixtures (a literal store-basename open, a declared-path open, a builtin open of the declared name) that the check catches and reddens."
   },
   {
     "heading": "## Scenario 1 — Gap-tied fix cycle",

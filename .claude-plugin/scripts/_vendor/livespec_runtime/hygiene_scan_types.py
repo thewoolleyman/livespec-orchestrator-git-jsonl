@@ -7,12 +7,16 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta
 from pathlib import Path
 
-__all__: list[str] = [
-    "CommandResult",
-    "CommandRunner",
-    "GitWorktree",
-    "ScanContext",
-]
+from returns.io import IOResult
+
+# DECLARED INTERNAL by `SPECIFICATION/contracts.md` section "Module-level
+# public surface": a size-decomposition split-out of
+# `livespec_runtime.hygiene_scan`, the family's SINGLE ratified import path.
+# The five types stay module-level and importable, and all five are ratified
+# THERE — `hygiene_scan.py` re-exports them, including the `CommandRunner`
+# and `ScanContext` its documented signatures name. What narrows is the
+# second, undocumented import path.
+__all__: list[str] = []
 
 
 @dataclass(frozen=True, slots=True, kw_only=True)
@@ -24,7 +28,27 @@ class CommandResult:
     returncode: int = 0
 
 
-CommandRunner = Callable[..., CommandResult]
+@dataclass(frozen=True, slots=True, kw_only=True)
+class CommandUnavailable:
+    """A command the hygiene scan depends on could not be SPAWNED.
+
+    Deliberately NOT inhabited by "the command ran and exited non-zero".
+    Every reader in this subsystem already branches on `returncode` — a
+    `git symbolic-ref` that finds nothing, a `ls-remote` against a deleted
+    branch — so those are ordinary ANSWERS and stay on the success track.
+    Widening this to cover them would convert the scan's normal readings
+    into errors.
+
+    `argv` is the shell-quoted command so an operator can rerun it: the
+    scan is invoked from janitors and hooks where a bare "a command
+    failed" leaves nothing to act on.
+    """
+
+    argv: str
+    detail: str
+
+
+CommandRunner = Callable[..., IOResult[CommandResult, CommandUnavailable]]
 
 
 @dataclass(frozen=True, slots=True, kw_only=True)

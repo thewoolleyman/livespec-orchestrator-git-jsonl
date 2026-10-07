@@ -31,10 +31,12 @@ targets=(
     check-global-writes
     check-handoff-dispatch-routing
     check-heading-coverage
+    check-heading-coverage-debt-register
     check-hook-trees-not-io-exempt
     check-keyword-only-args
     check-local-memory-drift-audit
     check-main-guard
+    check-marketplace-ref-release-only
     check-master-ci-green
     check-match-keyword-only
     check-newtype-domain-primitives
@@ -52,8 +54,9 @@ targets=(
     check-partition-completeness
     check-pbt-coverage-pure-modules
     check-per-file-coverage
-    check-plan-thread-anchor-declared
-    check-plan-thread-epic-parity
+    check-plan-anchor-declared
+    check-plan-epic-parity
+    check-plan-no-live-handoff-file
     check-plugin-resolution
     check-primary-checkout-commit-refuse-hook-installed
     check-private-calls

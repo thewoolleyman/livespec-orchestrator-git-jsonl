@@ -1,0 +1,44 @@
+[
+  {
+    "spec_root": "SPECIFICATION",
+    "spec_file": "constraints.md",
+    "heading": "## Persistent Agent Knowledge constraints",
+    "work_item": "bd-gj-6ps",
+    "first_seen": "2026-05-28"
+  },
+  {
+    "spec_root": "SPECIFICATION",
+    "spec_file": "contracts.md",
+    "heading": "## Persistent Agent Knowledge realization",
+    "work_item": "bd-gj-6ps",
+    "first_seen": "2026-05-28"
+  },
+  {
+    "spec_root": "SPECIFICATION",
+    "spec_file": "contracts.md",
+    "heading": "## `compat` block",
+    "work_item": "bd-gj-6ps",
+    "first_seen": "2026-05-28"
+  },
+  {
+    "spec_root": "SPECIFICATION",
+    "spec_file": "spec.md",
+    "heading": "## Lifecycle and evolution",
+    "work_item": "bd-gj-6ps",
+    "first_seen": "2026-05-28"
+  },
+  {
+    "spec_root": "SPECIFICATION",
+    "spec_file": "spec.md",
+    "heading": "## Scope boundary",
+    "work_item": "bd-gj-6ps",
+    "first_seen": "2026-05-28"
+  },
+  {
+    "spec_root": "SPECIFICATION",
+    "spec_file": "spec.md",
+    "heading": "## What this spec is not",
+    "work_item": "bd-gj-6ps",
+    "first_seen": "2026-05-28"
+  }
+]

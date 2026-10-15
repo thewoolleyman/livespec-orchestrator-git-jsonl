@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.11.4](https://github.com/thewoolleyman/livespec-orchestrator-git-jsonl/compare/v0.11.3...v0.11.4) (2026-10-15)
+
+
+### Bug Fixes
+
+* **beads:** restore the dolt.prefix line the backup-lane comment joined ([8640172](https://github.com/thewoolleyman/livespec-orchestrator-git-jsonl/commit/8640172a76d91e04cccecb93f16044d39cb85914))
+
 ## [0.11.3](https://github.com/thewoolleyman/livespec-orchestrator-git-jsonl/compare/v0.11.2...v0.11.3) (2026-09-10)
 
 

@@ -139,6 +139,14 @@
     "reason": "RESIDUAL (enforced by core doctor-static; not pytest-mappable). Same substance and same enforcing finding as the contracts.md 'Persistent Agent Knowledge realization' row (doctor-agents-ai-reference-resolution, `pass` on this repo). The orphan-reference / atomic-write constraints are a documentation convention enforced by CORE doctor-static, which cannot be run as an in-process pytest here (CORE-owned runner + tests-no-subprocess-spawn ban). Maintainer disposition as above."
   },
   {
+    "heading": "## Factory routing",
+    "spec_root": "SPECIFICATION",
+    "spec_file": "constraints.md",
+    "test": "TODO",
+    "work_item": "bd-gj-6ps",
+    "reason": "An integration-tier test is owed and will land with the registry-switch work-item to be filed in this tenant under plan petri-factory-on-gmktec (epic bd-ib-fyozyd), which takes over ownership of this row; until then its host-captured proof is a dispatch from the control node that resolves legacy through /etc/livespec/fabro-factories.json."
+  },
+  {
     "heading": "## Forbidden patterns",
     "spec_root": "SPECIFICATION",
     "spec_file": "constraints.md",

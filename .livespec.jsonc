@@ -189,6 +189,31 @@
         "verify_commit_refuse_hook": { "mode": "internal_livespec_dev_tooling" },
         "verify_plugin_resolution": { "mode": "internal_livespec_dev_tooling" }
       },
+      // Committed MIRROR of the capability set the sandbox image this
+      // repository's dispatches run on publishes at
+      // /etc/livespec/sandbox-capabilities. The published file is the
+      // authority and the `dod_gate` node reads it from inside the sandbox;
+      // this array exists for the surfaces that have no sandbox to reach
+      // into — the filing and approve displays, and the control host's
+      // dod-preflight, which REFUSES outright while the key is absent
+      // ("the governed repository commits no dispatcher.sandbox_capabilities,
+      // so this host cannot run the gate's capability check (check 5)").
+      //
+      // MEASURED, never guessed (coordinator ruling R347 rejected a guessed
+      // mirror; the orchestrator repository's own block describes ITS
+      // sandbox). Probed 2026-10-21 inside the sandbox of this repository's
+      // own dispatch of bd-gj-mluwnm (Ubuntu 24.04.5 LTS). The image
+      // published exactly these four names, in this order
+      // (/etc/livespec/sandbox-capabilities,
+      // sha256:1ef30541cca41ebc02893e18634080b6f11937b89de1b2ca763f194b4acbf36f),
+      // and each was EXERCISED rather than merely looked up: terminal =
+      // GNU bash 5.2.21 at /usr/bin/bash; tmux = /usr/bin/tmux 3.4, which
+      // created and listed a detached session; headless_browser =
+      // Playwright 1.63.0 driving Chromium 153.0.8010.12, which rendered a
+      // page to a PNG; herdr = /usr/local/bin/herdr 0.9.3, which printed
+      // its usage. tests/test_sandbox_capabilities_mirror.py holds this
+      // array to that measurement.
+      "sandbox_capabilities": ["terminal", "tmux", "headless_browser", "herdr"],
       "auto_approve_ready": true,
       "wip_cap": 10,
       "acceptance_mode": "ai-only",

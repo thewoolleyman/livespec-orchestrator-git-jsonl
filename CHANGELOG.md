@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.11.7](https://github.com/thewoolleyman/livespec-orchestrator-git-jsonl/compare/v0.11.6...v0.11.7) (2026-10-21)
+
+
+### Bug Fixes
+
+* **dispatch:** commit the measured sandbox-capability mirror ([05d2e6e](https://github.com/thewoolleyman/livespec-orchestrator-git-jsonl/commit/05d2e6e47a2262aaa692ba8acde74575f47fbcb6))
+
 ## [0.11.6](https://github.com/thewoolleyman/livespec-orchestrator-git-jsonl/compare/v0.11.5...v0.11.6) (2026-10-21)
 
 

@@ -168,6 +168,27 @@
     // that surface round-trips the file through json.dumps and silently strips
     // every comment here while reporting green — tracked as bd-ib-lmi5.
     "dispatcher": {
+      // Sandbox toolchain + conformance premises. Every prepare step is a
+      // PROJECTION of this repository's own declaration, and an undeclared
+      // premise is the ratified explicit NO-OP. With nothing declared here,
+      // the registry-switch dispatch of bd-gj-2kt36v (fabro run
+      // 01M5E8WB8SBT131P7VMK1GH2NW on hp, 2026-10-21) died in setup after
+      // 4 s: `mise trust` never ran, so the mise-managed
+      // `uv sync --all-groups` refused the untrusted .mise.toml. A run that
+      // got past setup would also have installed no commit-refuse hook.
+      // Values mirror livespec-runtime's block (itself mirroring
+      // livespec-dev-tooling's, the schema author's own); this repository's
+      // dev group installs livespec-dev-tooling, and `uv sync --all-groups`
+      // runs immediately before the conformance trio.
+      "prepare_toolchain": {
+        "mise": ["sh", "-c", "mise trust && env -u GITHUB_TOKEN -u GH_TOKEN -u GITHUB_API_TOKEN mise install --quiet"],
+        "lefthook": ["uv", "run", "lefthook", "install"]
+      },
+      "conformance": {
+        "hook_install": { "mode": "internal_livespec_dev_tooling" },
+        "verify_commit_refuse_hook": { "mode": "internal_livespec_dev_tooling" },
+        "verify_plugin_resolution": { "mode": "internal_livespec_dev_tooling" }
+      },
       "auto_approve_ready": true,
       "wip_cap": 10,
       "acceptance_mode": "ai-only",

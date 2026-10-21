@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.11.6](https://github.com/thewoolleyman/livespec-orchestrator-git-jsonl/compare/v0.11.5...v0.11.6) (2026-10-21)
+
+
+### Bug Fixes
+
+* **dispatch:** commit a registry-backed `legacy` factory entry ([c02b1de](https://github.com/thewoolleyman/livespec-orchestrator-git-jsonl/commit/c02b1de2cfe82ab4069d037e29bf4b1de72b482e))
+
 ## [0.11.5](https://github.com/thewoolleyman/livespec-orchestrator-git-jsonl/compare/v0.11.4...v0.11.5) (2026-10-21)
 
 

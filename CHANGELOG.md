@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.11.5](https://github.com/thewoolleyman/livespec-orchestrator-git-jsonl/compare/v0.11.4...v0.11.5) (2026-10-21)
+
+
+### Bug Fixes
+
+* **dispatch:** declare the sandbox prepare_toolchain and conformance premises ([ebe3bc0](https://github.com/thewoolleyman/livespec-orchestrator-git-jsonl/commit/ebe3bc0ee21ad0a4f2c820473bf6db9347c3a225))
+
 ## [0.11.4](https://github.com/thewoolleyman/livespec-orchestrator-git-jsonl/compare/v0.11.3...v0.11.4) (2026-10-15)
 
 

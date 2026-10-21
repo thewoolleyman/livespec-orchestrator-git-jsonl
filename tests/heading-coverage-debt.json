@@ -2,13 +2,6 @@
   {
     "spec_root": "SPECIFICATION",
     "spec_file": "constraints.md",
-    "heading": "## Factory routing",
-    "work_item": "bd-gj-6ps",
-    "first_seen": "2026-10-20"
-  },
-  {
-    "spec_root": "SPECIFICATION",
-    "spec_file": "constraints.md",
     "heading": "## Persistent Agent Knowledge constraints",
     "work_item": "bd-gj-6ps",
     "first_seen": "2026-05-28"

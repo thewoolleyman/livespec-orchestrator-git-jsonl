@@ -192,11 +192,24 @@
       "auto_approve_ready": true,
       "wip_cap": 10,
       "acceptance_mode": "ai-only",
+      // Registry-backed factory table. Per SPECIFICATION/constraints.md
+      // section "Factory routing" (ratified at v019), no entry committed
+      // here names a machine: each declares "registry": true and carries
+      // neither a server nor a docker_host value. Which Fabro server
+      // answers to a factory name is bound ONLY in the fleet gitops
+      // inventory's factory registry, which each dispatching host renders
+      // and a dispatch resolves by name.
+      //
+      // `legacy` replaces the two hostname-bearing entries this repository
+      // used to commit — `hp` (the former default) and the retired `vps`.
+      // The registry maps `legacy` to the same instance `hp` named, so
+      // routing is unchanged, and a recorded item pin naming `hp`, `vps`
+      // or `default` falls back to `default_factory` under the ratified
+      // recorded-pin fallback.
       "factories": {
-        "hp": { "server": "https://hp-xubuntu.perch-rudd.ts.net:32276" },
-        "vps": { "server": "https://vps.perch-rudd.ts.net:32276" }
+        "legacy": { "registry": true }
       },
-      "default_factory": "hp"
+      "default_factory": "legacy"
     }
   }
 }

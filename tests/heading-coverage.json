@@ -142,9 +142,8 @@
     "heading": "## Factory routing",
     "spec_root": "SPECIFICATION",
     "spec_file": "constraints.md",
-    "test": "TODO",
-    "work_item": "bd-gj-6ps",
-    "reason": "An integration-tier test is owed and will land with the registry-switch work-item to be filed in this tenant under plan petri-factory-on-gmktec (epic bd-ib-fyozyd), which takes over ownership of this row; until then its host-captured proof is a dispatch from the control node that resolves legacy through /etc/livespec/fabro-factories.json."
+    "test": "tests.test_factory_routing_conformance.test_this_repository_commits_only_registry_backed_factory_entries",
+    "reason": "Realized by this repository's OWN committed .livespec.jsonc, which is what the heading governs: dispatcher.factories declares the single registry-backed entry `legacy` (\"registry\": true, no server, no docker_host), so no committed entry names a machine, and the sibling test_the_committed_default_factory_names_legacy pins dispatcher.default_factory to it. Control-armed by test_the_predicate_flags_a_hostname_bearing_factory_entry in the same module: the pre-v019 shape (a server-bearing entry beside a registry-backed one) is flagged by the same predicate, so the clean verdict on the committed table is a reading rather than a vacuous pass. The post-merge dispatch that resolves `legacy` through the dispatching host's rendered factory registry is the separate host-captured proof and is deliberately NOT read here."
   },
   {
     "heading": "## Forbidden patterns",

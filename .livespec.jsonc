@@ -232,9 +232,17 @@
       // or `default` falls back to `default_factory` under the ratified
       // recorded-pin fallback.
       "factories": {
+        // The current Fabro server, selected by default since the R668 cutover
+        // (plan petri-factory-on-gmktec); resolved through the factory registry.
+        "petri": {
+          "registry": true,
+          "bin": "/home/ubuntu/.local/state/fabro-currency/carrier-petri-v0.382-adeefec4c/fabro",
+          "secret_channel": "native_secrets",
+          "environment": "livespec-ci"
+        },
         "legacy": { "registry": true }
       },
-      "default_factory": "legacy"
+      "default_factory": "petri"
     }
   }
 }

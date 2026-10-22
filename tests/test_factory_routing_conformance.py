@@ -7,15 +7,16 @@ under `dispatcher.factories` to be REGISTRY-BACKED — it declares
 so no committed factory entry names a machine. Which Fabro server
 answers to a factory name is bound only in the fleet gitops inventory's
 factory registry, which each dispatching host renders and a dispatch
-resolves by name. The same section requires
-`dispatcher.default_factory` to name `legacy`.
+resolves by name. The same section (amended at v020 by the R668 cutover)
+requires `dispatcher.default_factory` to name `petri`, with `legacy`
+remaining a declared registry-backed entry.
 
 The surface under test is this repository's OWN committed
 `.livespec.jsonc`, read from the checkout — the heading governs what
 this repository commits, not what any shipped module computes, so the
 committed file IS the realization. Reading it is tree-reading, never a
 host read: the registry file the dispatching host renders is deliberately
-NOT consulted here, and the post-merge dispatch that resolves `legacy`
+NOT consulted here, and the post-merge dispatch that resolves `petri`
 through it is the separate host-captured proof.
 
 Control-armed: `_hostname_bearing` is exercised against a synthetic table
@@ -71,10 +72,11 @@ def test_the_predicate_flags_a_hostname_bearing_factory_entry() -> None:
 
 def test_this_repository_commits_only_registry_backed_factory_entries() -> None:
     factories: dict[str, Any] = _dispatcher_block()["factories"]
-    assert tuple(factories) == ("legacy",)
+    assert tuple(factories) == ("petri", "legacy")
+    assert factories["petri"]["registry"] is True
     assert factories["legacy"]["registry"] is True
     assert _hostname_bearing(factories=factories) == ()
 
 
-def test_the_committed_default_factory_names_legacy() -> None:
-    assert _dispatcher_block()["default_factory"] == "legacy"
+def test_the_committed_default_factory_names_petri() -> None:
+    assert _dispatcher_block()["default_factory"] == "petri"

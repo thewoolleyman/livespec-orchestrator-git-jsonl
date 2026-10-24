@@ -8,8 +8,8 @@ so no committed factory entry names a machine. Which Fabro server
 answers to a factory name is bound only in the fleet gitops inventory's
 factory registry, which each dispatching host renders and a dispatch
 resolves by name. The same section (amended at v020 by the R668 cutover)
-requires `dispatcher.default_factory` to name `petri`, with `legacy`
-remaining a declared registry-backed entry.
+requires `dispatcher.default_factory` to name `petri`; `legacy`, the
+retired hp-xubuntu instance, is no longer declared (2026-10-24).
 
 The surface under test is this repository's OWN committed
 `.livespec.jsonc`, read from the checkout — the heading governs what
@@ -72,9 +72,8 @@ def test_the_predicate_flags_a_hostname_bearing_factory_entry() -> None:
 
 def test_this_repository_commits_only_registry_backed_factory_entries() -> None:
     factories: dict[str, Any] = _dispatcher_block()["factories"]
-    assert tuple(factories) == ("petri", "legacy")
+    assert tuple(factories) == ("petri",)
     assert factories["petri"]["registry"] is True
-    assert factories["legacy"]["registry"] is True
     assert _hostname_bearing(factories=factories) == ()
 
 

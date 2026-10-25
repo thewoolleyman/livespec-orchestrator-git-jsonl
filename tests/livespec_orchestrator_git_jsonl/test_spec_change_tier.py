@@ -28,14 +28,21 @@ tier's own serialization.
 import json
 from dataclasses import fields
 from pathlib import Path
-from typing import Any
+from typing import Any, get_args, get_type_hints
 
 import pytest
-from livespec_orchestrator_git_jsonl.spec_change_tier import spec_change_tier_to_dict
+from livespec_orchestrator_git_jsonl.errors import SchemaViolationError
+from livespec_orchestrator_git_jsonl.spec_change_tier import (
+    SPEC_CHANGE_TIER_VALUES,
+    SPEC_CHANGE_VERDICT_KINDS,
+    parse_spec_change_tier,
+    spec_change_tier_to_dict,
+)
 from livespec_orchestrator_git_jsonl.store import append_work_item, read_work_items
 from livespec_orchestrator_git_jsonl.types import WorkItem
 from livespec_runtime.spec_stated import SpecChangeTier, SpecStatedVerdict
 from returns.io import IOSuccess
+from returns.result import Failure, Result, Success
 from returns.unsafe import unsafe_perform_io
 
 _HEADING = "## The seven-skill surface"
@@ -193,3 +200,201 @@ def test_the_serializer_takes_the_tier_by_keyword_only() -> None:
     """
     with pytest.raises(TypeError):
         _ = spec_change_tier_to_dict(None)  # type: ignore[misc]
+
+
+# -- the read path: `parse_spec_change_tier` ---------------------------------
+#
+# The parser is the ONE authority on the tier's shape: the write path validates
+# through it too (`store_schema._spec_change_tier_error`), so every refusal
+# below is simultaneously a refusal `append_work_item` makes. That is why the
+# ill-shaped cases are exercised here as parses rather than as appends — a
+# second account of the shape is exactly what would let the write path admit a
+# record the read path then refuses, stranding the filing on disk as a line
+# nobody can materialize.
+
+
+def _parsed(*, tier: object) -> Result[SpecChangeTier | None, SchemaViolationError]:
+    return parse_spec_change_tier(
+        path=Path("work-items.jsonl"),
+        line_number=1,
+        parsed={"spec_change_tier": tier},
+    )
+
+
+def _refusal(*, tier: object) -> str:
+    result = _parsed(tier=tier)
+    assert isinstance(result, Failure)
+    return result.failure().detail
+
+
+def _tier_payload(**overrides: object) -> dict[str, object]:
+    payload: dict[str, object] = {
+        "tier": "spec-change",
+        "linked_proposal_topic": _TOPIC,
+        "verdict": {
+            "kind": "unstated",
+            "stated_by": [],
+            "generalization_target": _HEADING,
+            "rationale": "no ratified clause states this filing behaviour",
+        },
+        "judged_at": _JUDGED_AT,
+    }
+    payload.update(overrides)
+    return payload
+
+
+def test_the_two_tier_values_are_the_ones_the_vendored_dataclass_annotates() -> None:
+    """contracts.md record schema: the tier vocabulary is the dataclass's own.
+
+    The vendored `SpecChangeTier` annotates `tier` with a bare inline
+    `Literal`, so this module spells the pair rather than importing it. Control:
+    a release that renames or widens the annotation fails here, where a human
+    reads the diff — rather than in a parser that quietly refuses every record
+    carrying the new value.
+    """
+    annotated = get_args(get_type_hints(SpecChangeTier)["tier"])
+    assert set(SPEC_CHANGE_TIER_VALUES) == set(annotated)
+    assert set(SPEC_CHANGE_VERDICT_KINDS) == {"partial", "unstated"}
+
+
+def test_an_absent_key_and_an_explicit_null_both_read_as_no_tier() -> None:
+    """contracts.md record schema: `spec_change_tier` is OPTIONAL on the read path.
+
+    A legacy record authored before the field, and a record explicitly carrying
+    `null`, are both "no classification ran". Control: refusing the absent key
+    would make every pre-v022 line a schema violation.
+    """
+    absent = parse_spec_change_tier(path=Path("w.jsonl"), line_number=1, parsed={})
+    assert isinstance(absent, Success)
+    assert absent.unwrap() is None
+    explicit = _parsed(tier=None)
+    assert isinstance(explicit, Success)
+    assert explicit.unwrap() is None
+
+
+def test_a_well_formed_tier_round_trips_through_the_serializer() -> None:
+    """The parse is the serializer's inverse, which is what makes the key durable.
+
+    Control: a closing or amending record has to carry the chain head's tier
+    forward, so a reader that could not reconstruct the value it read would
+    lose it at the next append.
+    """
+    original = _spec_change_tier()
+    result = _parsed(tier=spec_change_tier_to_dict(tier=original))
+    assert isinstance(result, Success)
+    assert result.unwrap() == original
+
+
+def test_a_spec_change_tier_without_an_earning_verdict_is_refused() -> None:
+    """contracts.md record schema: `spec-change` needs a `partial`/`unstated` verdict.
+
+    Both ways of failing to earn it are refused — a null verdict, and a
+    `stated` one. Control: downgrading either to `tier: none` would silently
+    lose a filing the maintainer was told had a spec change owed, and admitting
+    it would let the tier that routes work to a proposal be written by anyone.
+    """
+    assert "without a verdict" in _refusal(tier=_tier_payload(verdict=None))
+    stated = {
+        "kind": "stated",
+        "stated_by": [_HEADING],
+        "generalization_target": None,
+        "rationale": "the ratified text already states this",
+    }
+    assert "without a verdict" in _refusal(tier=_tier_payload(verdict=stated))
+
+
+def test_a_tier_of_none_may_carry_a_stated_verdict() -> None:
+    """contracts.md "capture-work-item": a `feature` judged `stated` is tier `none`.
+
+    The judgement ran and answered; recording the answer beside `tier: none` is
+    what distinguishes it from a filing nobody judged. Control: refusing the
+    pair would force the skill to discard a verdict it was required to obtain.
+    """
+    stated = {
+        "kind": "stated",
+        "stated_by": [_HEADING],
+        "generalization_target": None,
+        "rationale": "the ratified text already states this",
+    }
+    result = _parsed(tier=_tier_payload(tier="none", linked_proposal_topic=None, verdict=stated))
+    assert isinstance(result, Success)
+    parsed = result.unwrap()
+    assert parsed is not None
+    assert parsed.tier == "none"
+    assert parsed.verdict is not None
+    assert parsed.verdict.kind == "stated"
+    assert parsed.verdict.stated_by == (_HEADING,)
+
+
+def test_a_tier_that_is_not_an_object_is_refused() -> None:
+    """contracts.md record schema: the key is "object or `null`" and nothing else."""
+    assert "must be object or null" in _refusal(tier="spec-change")
+
+
+def test_a_tier_missing_its_own_keys_names_every_one_of_them() -> None:
+    """All four missing keys are named at once, not the first one.
+
+    A tier object is authored by a skill prompt at one moment per filing, and
+    each re-run costs a model call. Control: naming only the first would make
+    the operator pay four.
+    """
+    detail = _refusal(tier={})
+    for name in ("tier", "linked_proposal_topic", "verdict", "judged_at"):
+        assert name in detail
+
+
+def test_a_tier_value_outside_the_vocabulary_is_refused() -> None:
+    """contracts.md record schema: the tier is one of the two enumerated values."""
+    assert "not in allowed set" in _refusal(tier=_tier_payload(tier="maybe-spec-change"))
+
+
+def test_a_verdict_that_is_not_an_object_is_refused() -> None:
+    """The nested verdict is "object or null" on the same terms as the tier."""
+    assert "verdict' must be object or null" in _refusal(tier=_tier_payload(verdict="unstated"))
+
+
+def test_a_verdict_missing_its_own_keys_is_refused() -> None:
+    """The nested object owes all four of the shared dataclass's fields."""
+    detail = _refusal(tier=_tier_payload(verdict={"kind": "unstated"}))
+    assert "verdict' missing required keys" in detail
+
+
+@pytest.mark.parametrize(
+    "overrides",
+    [
+        {"kind": "probably"},
+        {"stated_by": "## not a list"},
+        {"stated_by": [7]},
+        {"generalization_target": 7},
+        {"rationale": None},
+    ],
+)
+def test_an_ill_shaped_verdict_field_is_refused(overrides: dict[str, object]) -> None:
+    """Each of the four verdict fields is graded, and any one of them refuses.
+
+    Control: a parser that checked only `kind` would accept a `stated_by`
+    carrying integers, and the propose-change handoff would then name a heading
+    that is not a string at all.
+    """
+    verdict: dict[str, object] = {
+        "kind": "unstated",
+        "stated_by": [],
+        "generalization_target": _HEADING,
+        "rationale": "r",
+    }
+    verdict.update(overrides)
+    assert "needs a kind in" in _refusal(tier=_tier_payload(verdict=verdict))
+
+
+@pytest.mark.parametrize(
+    "overrides",
+    [{"judged_at": None}, {"linked_proposal_topic": 7}],
+)
+def test_an_ill_shaped_timestamp_or_topic_is_refused(overrides: dict[str, object]) -> None:
+    """`judged_at` is a string; `linked_proposal_topic` is a string or null.
+
+    Control: a non-string topic reaches the propose-change handoff as a slug
+    nobody can resolve, and a null `judged_at` loses which judgement the tier
+    came from.
+    """
+    assert "needs a string 'judged_at'" in _refusal(tier=_tier_payload(**overrides))

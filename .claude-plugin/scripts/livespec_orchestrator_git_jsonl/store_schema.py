@@ -5,7 +5,13 @@ from typing import Any, get_args
 
 from returns.result import Failure, Result, Success
 
+from livespec_orchestrator_git_jsonl._store_schema_fields import (
+    enum_membership_error,
+    optional_string_key_error,
+    required_keys_error,
+)
 from livespec_orchestrator_git_jsonl.errors import SchemaViolationError
+from livespec_orchestrator_git_jsonl.spec_change_tier import parse_spec_change_tier
 from livespec_orchestrator_git_jsonl.store_audit_schema import validate_audit_payload
 from livespec_orchestrator_git_jsonl.types import (
     FactorySafety,
@@ -117,13 +123,35 @@ def _work_item_schema_error(
     )
     if review_requirement is not None:
         return review_requirement
+    spec_change_tier = _spec_change_tier_error(path=path, line_number=line_number, parsed=parsed)
+    if spec_change_tier is not None:
+        return spec_change_tier
     return _factory_safety_error(path=path, line_number=line_number, parsed=parsed)
+
+
+def _spec_change_tier_error(
+    *, path: Path, line_number: int, parsed: dict[str, Any]
+) -> SchemaViolationError | None:
+    """Grade `spec_change_tier` through the SAME parser the read path uses.
+
+    The parser is the authority and this is a thin adapter onto it, deliberately:
+    a second account of the tier's shape here would let the write path admit a
+    record the read path then refuses, which strands the filing on disk as a
+    line nobody can materialize. Validating through `parse_spec_change_tier`
+    also means the write path refuses a `tier: spec-change` that no
+    `partial`/`unstated` verdict earned, so "written without a spec-change
+    tier" is a property of the store rather than a convention of its callers.
+    """
+    tier_result = parse_spec_change_tier(path=path, line_number=line_number, parsed=parsed)
+    if isinstance(tier_result, Failure):
+        return tier_result.failure()
+    return None
 
 
 def _required_or_enum_error(
     *, path: Path, line_number: int, parsed: dict[str, Any]
 ) -> SchemaViolationError | None:
-    required_error = _check_required_keys(
+    required_error = required_keys_error(
         path=path,
         line_number=line_number,
         parsed=parsed,
@@ -153,7 +181,7 @@ def _first_enum_error(
     for field_name, value, allowed in fields:
         if field_name == "resolution" and value is None:
             continue
-        enum_error = _check_in_enum(
+        enum_error = enum_membership_error(
             path=path,
             line_number=line_number,
             field_name=field_name,
@@ -185,7 +213,7 @@ def _optional_fields_error(
     *, path: Path, line_number: int, parsed: dict[str, Any]
 ) -> SchemaViolationError | None:
     for key in ("rank", "spec_commitment_hint", "supersedes", "acceptance_criteria", "notes"):
-        string_error = _check_optional_string_key(
+        string_error = optional_string_key_error(
             path=path,
             line_number=line_number,
             parsed=parsed,
@@ -202,7 +230,7 @@ def _factory_safety_error(
     factory_safety_value = parsed.get("factory_safety")
     if factory_safety_value is None:
         return None
-    return _check_in_enum(
+    return enum_membership_error(
         path=path,
         line_number=line_number,
         field_name="factory_safety",
@@ -217,78 +245,13 @@ def _review_requirement_error(
     review_requirement_value = parsed.get("review_requirement")
     if review_requirement_value is None:
         return None
-    return _check_in_enum(
+    return enum_membership_error(
         path=path,
         line_number=line_number,
         field_name="review_requirement",
         value=review_requirement_value,
         allowed=get_args(ReviewRequirement),
     )
-
-
-def _check_required_keys(
-    *,
-    path: Path,
-    line_number: int,
-    parsed: dict[str, Any],
-    required: frozenset[str],
-    optional: frozenset[str] = frozenset(),
-) -> SchemaViolationError | None:
-    """Return a SchemaViolationError when required/extraneous keys fail validation."""
-    parsed_keys = frozenset(parsed.keys())
-    allowed = required | optional
-    missing = required - parsed_keys
-    extra = parsed_keys - allowed
-    if missing:
-        return SchemaViolationError(
-            path=path,
-            line_number=line_number,
-            detail=f"missing required keys: {sorted(missing)}",
-        )
-    if extra:
-        return SchemaViolationError(
-            path=path,
-            line_number=line_number,
-            detail=f"unexpected extra keys: {sorted(extra)}",
-        )
-    return None
-
-
-def _check_optional_string_key(
-    *,
-    path: Path,
-    line_number: int,
-    parsed: dict[str, Any],
-    key: str,
-) -> SchemaViolationError | None:
-    """Return a SchemaViolationError when an optional string key has the wrong shape."""
-    if key not in parsed:
-        return None
-    value = parsed[key]
-    if value is not None and not isinstance(value, str):
-        return SchemaViolationError(
-            path=path,
-            line_number=line_number,
-            detail=(f"field {key!r} must be string or null, got {type(value).__name__}"),
-        )
-    return None
-
-
-def _check_in_enum(
-    *,
-    path: Path,
-    line_number: int,
-    field_name: str,
-    value: object,
-    allowed: tuple[str, ...],
-) -> SchemaViolationError | None:
-    if value not in allowed:
-        return SchemaViolationError(
-            path=path,
-            line_number=line_number,
-            detail=(f"field {field_name!r} value {value!r} not in allowed set {list(allowed)}"),
-        )
-    return None
 
 
 def parse_work_item(

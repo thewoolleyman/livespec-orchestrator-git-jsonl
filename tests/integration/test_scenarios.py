@@ -15,6 +15,7 @@ import pytest
 from livespec_orchestrator_git_jsonl.commands.detect_impl_gaps import main as detect_main
 from livespec_orchestrator_git_jsonl.commands.list_work_items import main as list_main
 from livespec_orchestrator_git_jsonl.commands.next import main as next_main
+from livespec_orchestrator_git_jsonl.errors import SchemaViolationError
 from livespec_orchestrator_git_jsonl.store import (
     append_work_item,
     materialize_work_items,
@@ -22,6 +23,8 @@ from livespec_orchestrator_git_jsonl.store import (
     work_item_record_identity,
 )
 from livespec_orchestrator_git_jsonl.types import AuditRecord, WorkItem
+from livespec_runtime.spec_stated import SpecChangeTier, SpecStatedVerdict
+from returns.io import IOFailure, IOSuccess
 from returns.unsafe import unsafe_perform_io
 
 
@@ -244,3 +247,127 @@ def test_scenario_5_ledger_intent_scan_is_read_only(
     head = materialized["li-intent01"]
     assert head.status == "active"
     assert head.description == "encodes a behavior not yet reflected in the spec"
+
+
+def test_scenario_6_a_feature_the_spec_does_not_state_is_filed_at_spec_change_tier(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Scenario 6: the filing branch of the shared spec-stated judgement, end to end.
+
+    Three of the scenario's branches cross the store, the schema validator and
+    the tier codec together, so they are exercised here rather than per unit:
+
+    - step 4 — a `feature` the judgement reports `unstated` is appended at
+      `tier: spec-change` carrying the verdict and the linked proposal's
+      canonical topic;
+    - step 5 — the same filing with the proposal DECLINED still carries
+      `tier: spec-change` and the verdict, with `linked_proposal_topic` null;
+    - step 6 — an item the judgement classifies `bug` is appended with
+      `spec_change_tier.tier` of `none` and a null topic and verdict, i.e.
+      WITHOUT a spec-change tier.
+
+    And the fail-closed guard that makes step 6's "without" meaningful: a
+    record claiming `tier: spec-change` that no `partial`/`unstated` verdict
+    earned is REFUSED by the write path. Without the refusal, "without a
+    spec-change tier" is a convention rather than a property — any caller
+    could write the tier that routes an item to a proposed change while
+    carrying a verdict saying no change is owed, and every reader downstream
+    would believe it.
+    """
+    monkeypatch.chdir(tmp_path)
+    path = tmp_path / "work-items.jsonl"
+
+    filed = _ready_item(id_="li-feat0001")
+    unstated = SpecStatedVerdict(
+        kind="unstated",
+        stated_by=(),
+        generalization_target="## The seven-skill surface",
+        rationale="no ratified clause states this filing behaviour",
+    )
+    assert isinstance(
+        append_work_item(
+            path=path,
+            item=filed,
+            spec_change_tier=SpecChangeTier(
+                tier="spec-change",
+                linked_proposal_topic="spec-stated-judgement-consumer",
+                verdict=unstated,
+                judged_at="2026-10-25T09:00:00Z",
+            ),
+        ),
+        IOSuccess,
+    )
+    declined = _ready_item(id_="li-feat0002")
+    assert isinstance(
+        append_work_item(
+            path=path,
+            item=declined,
+            spec_change_tier=SpecChangeTier(
+                tier="spec-change",
+                linked_proposal_topic=None,
+                verdict=unstated,
+                judged_at="2026-10-25T09:05:00Z",
+            ),
+        ),
+        IOSuccess,
+    )
+    reported_bug = _ready_item(id_="li-bug00001")
+    assert isinstance(
+        append_work_item(
+            path=path,
+            item=reported_bug,
+            spec_change_tier=SpecChangeTier(
+                tier="none",
+                linked_proposal_topic=None,
+                verdict=None,
+                judged_at="2026-10-25T09:10:00Z",
+            ),
+        ),
+        IOSuccess,
+    )
+
+    tiers = {
+        json.loads(line)["id"]: json.loads(line)["spec_change_tier"]
+        for line in path.read_text(encoding="utf-8").splitlines()
+    }
+    assert tiers["li-feat0001"]["tier"] == "spec-change"
+    assert tiers["li-feat0001"]["linked_proposal_topic"] == "spec-stated-judgement-consumer"
+    assert tiers["li-feat0001"]["verdict"]["kind"] == "unstated"
+    assert tiers["li-feat0002"]["tier"] == "spec-change"
+    assert tiers["li-feat0002"]["linked_proposal_topic"] is None
+    assert tiers["li-feat0002"]["verdict"]["kind"] == "unstated"
+    assert tiers["li-bug00001"] == {
+        "tier": "none",
+        "linked_proposal_topic": None,
+        "verdict": None,
+        "judged_at": "2026-10-25T09:10:00Z",
+    }
+
+    # Every one of the three records still reads back through the store, so the
+    # tier the filing recorded is schema-admitted rather than merely written.
+    assert [one.id for one in _read(path=path)] == [
+        "li-feat0001",
+        "li-feat0002",
+        "li-bug00001",
+    ]
+
+    unearned = tmp_path / "unearned.jsonl"
+    refusal = append_work_item(
+        path=unearned,
+        item=_ready_item(id_="li-feat0003"),
+        spec_change_tier=SpecChangeTier(
+            tier="spec-change",
+            linked_proposal_topic="not-owed",
+            verdict=SpecStatedVerdict(
+                kind="stated",
+                stated_by=("## The seven-skill surface",),
+                generalization_target=None,
+                rationale="the ratified text already states this",
+            ),
+            judged_at="2026-10-25T09:15:00Z",
+        ),
+    )
+    assert isinstance(refusal, IOFailure)
+    assert isinstance(unsafe_perform_io(refusal.failure()), SchemaViolationError)
+    assert not unearned.exists()

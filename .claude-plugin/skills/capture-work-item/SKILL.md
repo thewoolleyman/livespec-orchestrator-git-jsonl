@@ -43,7 +43,72 @@ Optional follow-ups (skip-confirmable):
   `list-work-items --json` to verify each declared spec→impl
   commitment maps to a filed work-item.
 
-### Step 2 — Confirm and file
+### Step 2 — Classify the item through the shared spec-stated judgement
+
+Before appending, classify the item through the `classify` function of
+the `livespec_runtime.spec_stated` module of the livespec-runtime
+release this plugin vendors — the one judgement every orchestrator
+shares. The class decides whether the record carries a spec-change
+tier, so it MUST be settled while the record can still carry it: a
+record appended first and classified afterwards can only be amended by
+a second record, and until that lands the materialized view carries a
+filing with no tier at all.
+
+The four classes are the module's own vocabulary, and nothing else:
+`feature` (new observable behaviour), `bug` (behaviour contradicting
+what is already stated), `chore` (work changing no observable
+behaviour), and `non_functional` (a constraint on HOW the system
+behaves rather than on what it does). `classify` refuses any other
+answer, so a fifth class or a misspelled one reports as a judgement
+that could not run rather than as the typo it is.
+
+An `epic` is not classified. It is a container for other items rather
+than a behaviour of its own, so the judgement has nothing to read.
+
+The supplied `type` from Step 1 is passed **as evidence**, never as the
+answer:
+
+```python
+from livespec_runtime.spec_stated import classify
+
+captured: list[str] = []
+_ = classify(
+    title=title,
+    description=description,
+    item_type=type_,
+    run_model=captured.append,
+)
+# `captured[0]` is the module's rendered prompt. Read it, answer it as
+# yourself, and bind that one-word answer as `answer`.
+item_class = classify(
+    title=title,
+    description=description,
+    item_type=type_,
+    run_model=lambda _: answer,
+)
+```
+
+This plugin runs no Dispatcher and holds no model credential, so the
+module's injected `run_model` callable is supplied by YOU, the invoking
+agent session: the first call captures the module's own rendered
+prompt, you answer it, and the second call parses that answer through
+the module's own parser. `run_model=captured.append` returns `None`, so
+the first call rides the module's `Failure` track — expected, and its
+value is discarded. Only the SECOND call's `Result` is a class.
+
+Weigh the supplied `type` against the title and the description, and
+disagree with it when they say otherwise. The stored type is whatever
+a human happened to record, so trusting it as the answer would skip
+the judgement for exactly the items that need it.
+
+**When the classification cannot run** — no model, a timeout, or an
+answer the module's parser refuses (a `Failure` from the second call) —
+say so to the user and append the record with `spec_change_tier: null`.
+Both halves matter: a silent null tier is indistinguishable from a
+legacy record authored before the field existed, and refusing to file
+at all loses the work-item the user asked for.
+
+### Step 3 — Confirm and file
 
 Show the user the assembled record and ask "file?". On `yes`, append:
 

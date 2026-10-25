@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.12.1](https://github.com/thewoolleyman/livespec-orchestrator-git-jsonl/compare/v0.12.0...v0.12.1) (2026-10-25)
+
+
+### Bug Fixes
+
+* **config:** declare claude-sonnet-5-5 in the model catalog for the Codex-first fallbacks ([dcf5f94](https://github.com/thewoolleyman/livespec-orchestrator-git-jsonl/commit/dcf5f94ef5d128fdb25db47e7ef1962e2a1cce66))
+
 ## [0.12.0](https://github.com/thewoolleyman/livespec-orchestrator-git-jsonl/compare/v0.11.7...v0.12.0) (2026-10-25)
 
 

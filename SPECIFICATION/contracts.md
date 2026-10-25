@@ -55,7 +55,29 @@ workflow.
 
 #### `capture-spec-drift`
 
-Detect impl → spec drift heuristically (LLM-driven). For each
+Detect impl → spec drift heuristically (LLM-driven): candidate
+behaviour statements are extracted from the implementation by an
+LLM pass, and each candidate is then judged by the spec-stated
+judgement of the `livespec_runtime.spec_stated` module of the
+livespec-runtime release this plugin vendors (the one judgement
+every orchestrator shares, which answers whether a behaviour is
+stated by the ratified specification and names the heading whose
+generalization would state it). The skill MUST obtain that verdict
+from the module's `judge` function, which renders the module's own
+`JUDGE_PROMPT`, supplying the model only through the module's
+injected `run_model` callable; it MUST NOT define a stated/unstated
+prompt, verdict schema or verdict parser of its own. Because this
+plugin runs no Dispatcher and holds no model credential, the
+`run_model` callable is supplied by the invoking agent session,
+which answers the rendered prompt itself: the skill's helper MAY
+call `judge` once with a runner that captures the rendered prompt,
+have the session answer it, and call `judge` again with a runner
+that returns that answer, so the prompt is never rendered outside
+the module. A candidate the judgement
+reports `stated` MUST NOT become a finding. For each finding the skill
+MUST name the judgement's `generalization_target`, when one is
+returned, as the existing heading the recommended proposed change
+amends in preference to a new clause. For each
 finding, present it to the user with a recommended action; on
 consent, hand off to `/livespec:propose-change` via the
 cross-boundary handoff (per
@@ -69,7 +91,10 @@ heuristic above, and a **ledger-intent scan** — a read-only pass over
 recent work-items in the store that surfaces work-item intent (its
 `title`, `description`, `acceptance_criteria`, and closure `reason`)
 encoding an observable behavior, decision, or invariant NOT reflected in
-the current spec. Each ledger-intent finding MUST be surfaced through the
+the current spec. Whether intent is reflected MUST be decided by the
+same spec-stated judgement, reading the four fields named above; an
+item's `type` is never a detection exclusion. Each ledger-intent
+finding MUST be surfaced through the
 same per-finding consent flow and, on consent, handed off to
 `/livespec:propose-change`; the scan reads the store through the
 append-only materialized-view reduction only, and MUST NOT emit a finding
@@ -92,6 +117,34 @@ position; `priority` is removed — `rank` is the sole ordering
 authority, decision 39), and the supplied fields. No gap detection
 runs; no closure-verification rules attach. Closure is via the
 freeform path in `implement`.
+
+Before appending, the skill MUST classify the item as `feature`,
+`bug`, `chore` or `non_functional` through the `classify` function
+of the same `livespec_runtime.spec_stated` module, passing the
+supplied `type` as evidence rather than as the answer, and MUST
+record the resulting tier in the record's `spec_change_tier` field
+(§"Work-items JSONL record schema"); the class itself is not
+persisted, and the model is supplied through the module's
+`run_model` callable exactly as in §"`capture-spec-drift`". An item classified `feature`
+MUST then be judged through `judge` against the ratified
+specification for its asked-for behaviour, the `statement` being the
+item's title and description; when the verdict is
+`partial` or `unstated` the item is spec-change tier: the skill
+MUST offer to file a linked proposed change through the
+`/livespec:propose-change` cross-boundary handoff, naming the
+verdict's `generalization_target` as the heading to amend when one
+is returned, and MUST record the resulting canonical topic as the
+tier's `linked_proposal_topic`. When the user declines the linked
+proposal, or the handoff does not complete, the record MUST still
+carry `tier: spec-change` and the verdict, with
+`linked_proposal_topic: null`. An item classified `bug`, `chore`
+or `non_functional` is not spec-change tier and is recorded with
+`tier: none` and `verdict: null`; a `feature` judged `stated` is
+not spec-change tier either and is recorded with `tier: none` and
+its `stated` verdict. When the classification or the judgement cannot
+run (no model, a timeout, or a verdict the module's parser refuses),
+the skill MUST say so to the user and append the record with
+`spec_change_tier: null`. An `epic` is not classified.
 
 The skill accepts an optional `--spec-commitment-hint <id_hint>`
 flag. When supplied, the resulting work-item's
@@ -372,18 +425,18 @@ output and the gap-rule enumeration.
 ## Work-items JSONL record schema
 
 Each line in the work-items file is a single JSON object. The
-nineteen keys enumerated below are the canonical schema. Fourteen
+twenty keys enumerated below are the canonical schema. Fourteen
 (`id`, `type`, `status`, `title`, `description`, `origin`, `gap_id`,
 `assignee`, `depends_on`, `captured_at`, `resolution`, `reason`,
 `audit`, `superseded_by`) are required-on-write AND required-on-read.
 `rank` is required-on-write (always serialized) but optional-on-read:
 a legacy record authored before `rank` reads back as the
 store-adapter bottom-sentinel (NOT a schema violation, NOT `null`).
-`spec_commitment_hint`, `supersedes`, `acceptance_criteria`, and
-`notes` are required-on-write but optional-on-read
+`spec_commitment_hint`, `supersedes`, `acceptance_criteria`,
+`notes`, and `spec_change_tier` are required-on-write but optional-on-read
 (legacy records authored before each field's introduction read back as
 `null` without firing a schema violation).
-Additional keys beyond this nineteen are forbidden — schema
+Additional keys beyond these twenty are forbidden — schema
 violations fire as doctor `fail` findings. The three abstract
 `WorkItem` policy fields the vendored `livespec_runtime` adds
 (`admission_policy`, `acceptance_policy`, `blocked_reason`) are NOT
@@ -502,6 +555,22 @@ Dispatcher/admission this plugin does not run); they default to
   always written explicitly on append. Free-form working notes — the
   vendored `livespec_runtime` `WorkItem.notes` field. `null` when the
   work-item carries no notes.
+- `spec_change_tier` — object or `null`. OPTIONAL on the read path
+  (records authored before this field's introduction read back as
+  `null`); always written explicitly on append. When non-null it is
+  the JSON serialization of the vendored release's
+  `livespec_runtime.spec_stated.SpecChangeTier`: one key per
+  dataclass field under the field's own name, a nested
+  `SpecStatedVerdict` serialized the same way (a tuple field as a
+  JSON array), and `None` as `null`. `judged_at` is the time of the
+  last judgement or classification that ran. A record whose `tier`
+  is `spec-change` MUST carry a non-null verdict whose kind is
+  `partial` or `unstated`. `null` when the classification did not
+  run (an `epic`, a gap-tied record filed by `capture-impl-gaps`, a
+  legacy record, or a judgement that could not run per
+  §"`capture-work-item`"). A closing or amending record MUST carry
+  forward the value of the chain head it closes or amends, so the
+  materialized view never loses a recorded tier.
 
 ### Materialized view
 
@@ -811,6 +880,9 @@ participates in these red-edge handoffs:
    `/livespec-orchestrator-git-jsonl:detect-impl-gaps --json` (gap-
    detection invariants `gap-tracking-one-to-one` and
    `no-stale-gap-tied`).
+4. `/livespec-orchestrator-git-jsonl:capture-work-item` →
+   `/livespec:propose-change` (the linked proposal for a
+   spec-change-tier feature).
 
 The handoff mechanism is namespace invocation (per
 `livespec/SPECIFICATION/contracts.md`) — never direct CLI

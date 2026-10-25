@@ -193,5 +193,13 @@
     "spec_file": "scenarios.md",
     "test": "tests.integration.test_scenarios.test_scenario_5_ledger_intent_scan_is_read_only",
     "reason": "Integration-tier: exercises the ledger-intent scan's read path across the store and the append-only materialized-view reduction — materialize the supersession-chain head and assert the store file bytes are unchanged by the read (the scan never writes work-item state)."
+  },
+  {
+    "heading": "## Scenario 6 — A feature the spec does not state is filed at spec-change tier",
+    "spec_root": "SPECIFICATION",
+    "spec_file": "scenarios.md",
+    "test": "TODO",
+    "work_item": "bd-gj-bez",
+    "reason": "Added by the revision ratifying spec-stated-judgement-consumer. An integration-tier test is owed and will land under bd-gj-bez once the vendored livespec-runtime is bumped to v0.28.0 or later (the first release with livespec_runtime.spec_stated) and orchestrator-tenant item bd-ib-jik5ko lands the filing behaviour."
   }
 ]

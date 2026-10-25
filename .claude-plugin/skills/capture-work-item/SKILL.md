@@ -108,7 +108,88 @@ Both halves matter: a silent null tier is indistinguishable from a
 legacy record authored before the field existed, and refusing to file
 at all loses the work-item the user asked for.
 
-### Step 3 — Confirm and file
+### Step 3 — A `feature` is judged against the ratified specification
+
+An item the classification reports `feature` asks for NEW observable
+behaviour, so the next question is whether the ratified specification
+already states it. Judge it through the `judge` function of the SAME
+`livespec_runtime.spec_stated` module, with the item's title and
+description as the statement:
+
+```python
+from livespec_orchestrator_git_jsonl.spec_reader import read_current_specification
+from livespec_runtime.spec_stated import judge
+from pathlib import Path
+
+spec_tree = read_current_specification(spec_root=Path("SPECIFICATION")).files
+statement = f"{title}\n\n{description}"
+
+captured: list[str] = []
+_ = judge(spec_tree=spec_tree, statement=statement, run_model=captured.append)
+# `captured[0]` is the module's rendered prompt. Read it, answer it as
+# yourself, and bind that answer as `answer`.
+verdict = judge(spec_tree=spec_tree, statement=statement, run_model=lambda _: answer)
+```
+
+The same capture-answer-replay shape as Step 2, and for the same
+reason: this plugin holds no model credential, so the session is the
+`run_model`, and the prompt is never rendered outside the module. Pass
+`spec_tree` VERBATIM — the module derives the heading set a verdict may
+cite from the tree it was handed, so a trimmed tree makes it refuse
+headings the real spec carries.
+
+Branch on the verdict's `kind`:
+
+- **`partial` or `unstated` — the item is SPEC-CHANGE TIER.** The spec
+  states part of the behaviour, or none of it, so a spec change is
+  owed before the implementation can be spec-governed. Offer to file a
+  linked proposed change through the `/livespec:propose-change`
+  cross-boundary handoff, naming the verdict's
+  `generalization_target` as the heading to amend when one was
+  returned:
+
+  ```bash
+  /livespec:propose-change --spec-target SPECIFICATION/ --topic <slug> --body <draft>
+  ```
+
+  Record the resulting canonical topic as the tier's
+  `linked_proposal_topic`. That topic is the only thread from the
+  filing back to the proposal that would state its behaviour — without
+  it the record claims a spec change is owed and names nothing anybody
+  can open.
+
+  When the user DECLINES the linked proposal, or the handoff does not
+  complete, the record still carries `tier: "spec-change"` and the
+  verdict, with `linked_proposal_topic=None`. The judgement happened
+  and its answer stands; only the proposal is missing, and downgrading
+  the tier would erase the one signal that says so.
+
+- **`stated` — not spec-change tier.** The ratified text already
+  states the behaviour, so no proposal is owed. Record
+  `tier: "none"` carrying the `stated` verdict, so a later reader can
+  see that the question was asked and answered rather than skipped.
+
+Assemble the tier as the vendored dataclass, never as a hand-built
+dict — the store serializes it, and a hand-built dict is a second
+account of a schema this plugin does not own:
+
+```python
+from datetime import datetime, timezone
+from livespec_runtime.spec_stated import SpecChangeTier
+
+spec_change_tier = SpecChangeTier(
+    tier="spec-change" if verdict.kind in ("partial", "unstated") else "none",
+    linked_proposal_topic=topic,  # str | None; None when declined or not filed.
+    verdict=verdict,
+    judged_at=datetime.now(tz=timezone.utc).isoformat(),
+)
+```
+
+`judged_at` is the time of the LAST judgement or classification that
+ran — for a feature that is this judgement, for every other class it
+is the classification in Step 2.
+
+### Step 4 — Confirm and file
 
 Show the user the assembled record and ask "file?". On `yes`, append:
 
@@ -122,12 +203,12 @@ from pathlib import Path
 item = WorkItem(
     id=new_work_item_id(),
     type=type_,
-    status="open",
+    status="ready",
     title=title,
     description=description,
     origin="freeform",
     gap_id=None,
-    priority=priority,
+    rank=rank,
     assignee=assignee,
     depends_on=tuple(depends_on),
     captured_at=datetime.now(tz=timezone.utc).isoformat(),
@@ -137,8 +218,20 @@ item = WorkItem(
     superseded_by=None,
     spec_commitment_hint=spec_commitment_hint,  # str | None; None for freeform.
 )
-append_work_item(path=Path("work-items.jsonl"), item=item)
+append_work_item(
+    path=Path("work-items.jsonl"),
+    item=item,
+    spec_change_tier=spec_change_tier,  # SpecChangeTier | None.
+)
 ```
+
+`spec_change_tier` is a SEPARATE argument rather than a `WorkItem`
+field: the work-item model is the shared surface
+`livespec_runtime.work_items.types` owns, and the tier is persisted
+per orchestrator realization — labels on a beads tenant, this record
+key here. Pass `None` only when no classification ran at all (an
+`epic`, or a judgement that could not run); it is written as an
+explicit `null`.
 
 Print the assigned id back to the user.
 

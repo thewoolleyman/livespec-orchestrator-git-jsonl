@@ -27,6 +27,14 @@ Top-level modules:
   four required capabilities from `livespec/SPECIFICATION/
   contracts.md` §"Spec Reader required-capability surface". MUST NOT
   mutate the spec tree (§"Spec Reader implementation constraints").
+- `spec_change_tier.py` — the codec for the `spec_change_tier` record
+  key: the JSON serialization of the vendored
+  `livespec_runtime.spec_stated.SpecChangeTier` the two capture skills
+  file a judged work-item with. The tier is NOT a `WorkItem` field —
+  the shared model carries none — so it travels beside the item
+  through `append_work_item`'s own keyword argument. `None` (no
+  classification ran) and `tier: "none"` (one ran and reported no spec
+  change owed) are DIFFERENT answers and must never be collapsed.
 - `errors.py` — the EXPECTED-error exception surface (missing file,
   malformed line, schema violation, version not found).
 - `_ids.py` — work-item id generation helper.

@@ -68,17 +68,32 @@ def _parse_audit(*, parsed: dict[str, Any]) -> AuditRecord:
 def work_item_to_dict(*, item: WorkItem) -> dict[str, Any]:
     payload = asdict(item)
     payload["depends_on"] = list(item.depends_on)
-    # The abstract WorkItem carries policy fields this JSONL realization does
-    # NOT persist — admission_policy / acceptance_policy / blocked_reason
-    # govern the orchestrator Dispatcher/admission this plugin does not run.
+    # The abstract WorkItem carries fields this JSONL realization does NOT
+    # persist. Dropping them is not housekeeping: the record schema in
+    # SPECIFICATION/contracts.md closes the key set ("additional keys ... are
+    # forbidden"), so a field left in the payload makes the write path emit a
+    # record its OWN read-path validator rejects — which is how a new upstream
+    # field silently empties the store rather than failing loudly at the field.
+    #
+    # admission_policy / acceptance_policy / blocked_reason govern the
+    # orchestrator Dispatcher/admission this plugin does not run.
+    # awaits_scope_override is a materialized current-state signal the vendored
+    # runtime backs with an `awaits-scope-override` BEADS label; this substrate
+    # has no labels and the ratified schema enumerates no key for it, so it is
+    # not persisted either and reads back as its `False` default — the same
+    # default-on-read treatment the schema states for the policy trio.
+    #
     # factory_safety and review_requirement are different: they are shared
     # policy CLASSIFICATIONS a git-jsonl-backed dispatcher must preserve
     # (factory-safety mode; review-before-merge) even though this plugin does
-    # not act on them, so they are kept and round-tripped. Drop only the
-    # non-persisted policy fields so serialized records match the closed-key
-    # schema and round-trip through the read-path validator.
-    for policy_key in ("admission_policy", "acceptance_policy", "blocked_reason"):
-        _ = payload.pop(policy_key, None)
+    # not act on them, so they are kept and round-tripped.
+    for unpersisted_key in (
+        "admission_policy",
+        "acceptance_policy",
+        "blocked_reason",
+        "awaits_scope_override",
+    ):
+        _ = payload.pop(unpersisted_key, None)
     if item.audit is not None:
         payload["audit"] = {
             "verification_timestamp": item.audit.verification_timestamp,

@@ -10,6 +10,7 @@ from livespec_orchestrator_git_jsonl.commands._cross_repo import (
     parse_entry,
 )
 from livespec_orchestrator_git_jsonl.types import WorkItem
+from livespec_runtime.cross_repo.providers.github import GithubFailure
 from livespec_runtime.cross_repo.types import (
     BranchDependency,
     CrossRepoManifest,
@@ -19,6 +20,7 @@ from livespec_runtime.cross_repo.types import (
     RefStatus,
     SiblingWorkItemDependency,
 )
+from returns.io import IOResult, IOSuccess
 
 
 def _item(
@@ -206,12 +208,20 @@ def test_is_item_ready_unknown_kind_with_empty_manifest_does_not_block() -> None
 
 
 def test_is_item_ready_open_pr_dep_blocks(monkeypatch: pytest.MonkeyPatch) -> None:
-    """When the manifest has the repo and the gh provider returns OPEN, exclude."""
+    """When the manifest has the repo and the gh provider returns OPEN, exclude.
 
-    def _fake_pr_state(*, github_url: str, number: int) -> str | None:
+    The fake answers on the `IOResult` railway because that is the shape
+    `retry_with_backoff` unwraps: since livespec-runtime v0.28.0 the `gh`
+    provider rides the railway rather than returning `str | None`, and a
+    bare-string fake makes the retry layer burn all three attempts on an
+    `AttributeError` and collapse to `RefStatus.UNKNOWN` — which does not
+    block, so the test would pass for the wrong reason in the mirror case.
+    """
+
+    def _fake_pr_state(*, github_url: str, number: int) -> IOResult[str, GithubFailure]:
         _ = github_url
         _ = number
-        return "OPEN"
+        return IOSuccess("OPEN")
 
     from livespec_runtime.cross_repo.providers import github as gh
 
@@ -227,10 +237,17 @@ def test_is_item_ready_open_pr_dep_blocks(monkeypatch: pytest.MonkeyPatch) -> No
 
 
 def test_is_item_ready_merged_pr_dep_does_not_block(monkeypatch: pytest.MonkeyPatch) -> None:
-    def _fake_pr_state(*, github_url: str, number: int) -> str | None:
+    """A MERGED PR resolves to CLOSED, which does not exclude the candidate.
+
+    This is the arm that would pass for the wrong reason on a bare-string
+    fake (retry exhaustion also does not block), so it is the control for
+    its OPEN sibling above rather than an independent assertion.
+    """
+
+    def _fake_pr_state(*, github_url: str, number: int) -> IOResult[str, GithubFailure]:
         _ = github_url
         _ = number
-        return "MERGED"
+        return IOSuccess("MERGED")
 
     from livespec_runtime.cross_repo.providers import github as gh
 

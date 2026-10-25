@@ -49,6 +49,23 @@ _APPEND_CALL = "append_work_item("
 # of it carries this verbatim.
 _PROMPT_FRAGMENT = "Classify ONE work item into exactly one class."
 
+# The three classes the clause excludes from spec-change tier, derived from the
+# module's own vocabulary rather than spelled out here — a hand-written triple
+# keeps passing after `ItemClass` gains or renames a member, which is the one
+# change that would make this test's scope wrong.
+_NON_FEATURE_CLASSES = tuple(one for one in get_args(ItemClass) if one != "feature")
+
+# The two values the clause requires a non-feature record to carry, in the
+# ratified spelling of `SPECIFICATION/contracts.md` — "is recorded with
+# `tier: none` and `verdict: null`".
+_NO_TIER = "`tier: none`"
+_NO_VERDICT = "`verdict: null`"
+
+# Scenario 6 step 6: filing a `bug` "yields a record whose `spec_change_tier.tier`
+# is `none` ... no proposal is offered". The absence of the handoff is an
+# obligation of its own, so it carries its own needle.
+_NO_PROPOSAL = "no proposal is offered"
+
 
 def _skill_text() -> str:
     return _SKILL.read_text(encoding="utf-8")
@@ -129,6 +146,65 @@ def test_a_judgement_that_cannot_run_is_reported_and_files_a_null_tier() -> None
     text = _skill_text()
     assert "`spec_change_tier: null`" in text
     assert "say so to the user" in text
+
+
+def _between(*, text: str, start: str, end: str) -> str:
+    """The text from the first `start` up to the first `end` after it, or "".
+
+    The POSITIONAL scope the non-feature branch is asserted inside. A branch is
+    only useful where the agent reads it — after it has a class in hand and
+    before it files — so the region is bounded by the two calls that mark those
+    moments rather than by a heading, which lets the prose be reorganized
+    without rewriting this test.
+
+    "" for either marker missing, so an absent landmark certifies nothing.
+    """
+    opened = text.find(start)
+    if opened < 0:
+        return ""
+    closed = text.find(end, opened)
+    if closed < 0:
+        return ""
+    return text[opened:closed]
+
+
+def test_the_region_locator_spans_the_two_markers_and_nothing_else() -> None:
+    # Positive + negative controls for the locator the assertion below rests
+    # on, per this tree's convention: a locator that silently matches nothing
+    # certifies prose it never read.
+    document = "before\nSTART\ninside\nEND\nafter\n"
+    found = _between(text=document, start="START", end="END")
+    assert "inside" in found
+    assert "before" not in found
+    assert "after" not in found
+    assert _between(text=document, start="ABSENT", end="END") == ""
+    assert _between(text=document, start="START", end="ABSENT") == ""
+
+
+def test_a_non_feature_class_is_filed_without_a_spec_change_tier() -> None:
+    """contracts.md "capture-work-item": a non-feature carries no spec-change tier.
+
+    "An item classified `bug`, `chore` or `non_functional` is not spec-change
+    tier and is recorded with `tier: none` and `verdict: null`", and scenario 6
+    step 6 adds that no proposal is offered for one.
+
+    ASSERTED IN THE REGION BETWEEN CLASSIFYING AND FILING, because that is the
+    only place the branch does any work. The three class names appear in the
+    skill already — Step 2 lists the vocabulary `classify` returns — so a
+    whole-file needle passes for a prompt that names the classes and then tells
+    the agent nothing about what to do with three of them. Such a prompt leaves
+    a `bug` falling through a step titled for features, reaching the append with
+    no tier assembled at all; the record is then written without the field the
+    clause requires, or with whatever the feature branch's snippet happened to
+    leave bound. Control: moving these sentences above the classification, or
+    below the append, fails here while every needle still exists in the file.
+    """
+    branch = _between(text=_skill_text(), start=f"{classify.__name__}(", end=_APPEND_CALL)
+    for one in _NON_FEATURE_CLASSES:
+        assert f"`{one}`" in branch
+    assert _NO_TIER in branch
+    assert _NO_VERDICT in branch
+    assert _NO_PROPOSAL in branch
 
 
 def test_the_skill_defines_no_classification_prompt_of_its_own() -> None:

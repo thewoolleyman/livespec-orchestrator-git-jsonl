@@ -4,10 +4,15 @@ from dataclasses import asdict
 from pathlib import Path
 from typing import Any
 
+from livespec_runtime.spec_stated import SpecChangeTier
 from livespec_runtime.work_items.rank import BOTTOM_SENTINEL
 from returns.result import Failure, Result, Success
 
 from livespec_orchestrator_git_jsonl.errors import SchemaViolationError
+from livespec_orchestrator_git_jsonl.spec_change_tier import (
+    SPEC_CHANGE_TIER_KEY,
+    spec_change_tier_to_dict,
+)
 from livespec_orchestrator_git_jsonl.types import AuditRecord, WorkItem
 
 __all__: list[str] = ["parse_work_item", "work_item_to_dict"]
@@ -65,9 +70,23 @@ def _parse_audit(*, parsed: dict[str, Any]) -> AuditRecord:
     )
 
 
-def work_item_to_dict(*, item: WorkItem) -> dict[str, Any]:
+def work_item_to_dict(
+    *, item: WorkItem, spec_change_tier: SpecChangeTier | None = None
+) -> dict[str, Any]:
+    """One work-item as the record carries it, with its spec-change tier beside it.
+
+    `spec_change_tier` is a SEPARATE argument because the shared `WorkItem`
+    carries no such field — the tier is persisted per orchestrator realization
+    (see `spec_change_tier`). It defaults to `None`, which is the honest answer
+    for every caller that ran no classification: a gap-tied filing, a migration,
+    an amending record authored by a reader that never judged anything. The key
+    is still written EXPLICITLY, because the read path treats an absent key as
+    `null` and a forgotten key is therefore indistinguishable from a record
+    authored before the field existed.
+    """
     payload = asdict(item)
     payload["depends_on"] = list(item.depends_on)
+    payload[SPEC_CHANGE_TIER_KEY] = spec_change_tier_to_dict(tier=spec_change_tier)
     # The abstract WorkItem carries fields this JSONL realization does NOT
     # persist. Dropping them is not housekeeping: the record schema in
     # SPECIFICATION/contracts.md closes the key set ("additional keys ... are

@@ -543,7 +543,14 @@ def test_append_work_item_serializes_exactly_twenty_keys(tmp_path: Path) -> None
     realization does not persist them); `priority` is gone (replaced by
     `rank`). The serialized line carries the 14 required keys + `rank`
     + `spec_commitment_hint` + `supersedes` + `acceptance_criteria`
-    + `notes` + `factory_safety` + `review_requirement`.
+    + `notes` + `factory_safety` + `review_requirement`
+    + `spec_change_tier`.
+
+    `spec_change_tier` is present and `null` on a caller that supplied no
+    tier, which is the "always written explicitly on append" half of its
+    schema bullet: the read path reads an ABSENT key as `None`, so a write
+    path that omitted it would emit records indistinguishable from the legacy
+    ones authored before the field existed.
     """
     path = tmp_path / "work-items.jsonl"
     append_work_item(path=path, item=_minimal_work_item())
@@ -570,14 +577,16 @@ def test_append_work_item_serializes_exactly_twenty_keys(tmp_path: Path) -> None
         "notes",
         "factory_safety",
         "review_requirement",
+        "spec_change_tier",
     }
-    assert len(payload) == 21
+    assert len(payload) == 22
     assert "priority" not in payload
     assert "admission_policy" not in payload
     assert "acceptance_policy" not in payload
     assert "blocked_reason" not in payload
     assert payload["factory_safety"] is None
     assert payload["review_requirement"] is None
+    assert payload["spec_change_tier"] is None
 
 
 # -- acceptance_criteria + notes fields (bd-gj-lxr; runtime v0.8.0) ------

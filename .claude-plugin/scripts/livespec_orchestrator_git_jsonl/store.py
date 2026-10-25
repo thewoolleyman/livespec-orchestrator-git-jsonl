@@ -31,7 +31,9 @@ Public API:
 - `read_work_items(*, path)` — stream WorkItem records from the file
   (a missing file rides the IOFailure track as StoreFileMissingError;
   this function does not raise).
-- `append_work_item(*, path, item)` — write a new record line.
+- `append_work_item(*, path, item, spec_change_tier)` — write a new
+  record line. `spec_change_tier` travels beside the item because the
+  SHARED `WorkItem` carries no such field; see `spec_change_tier`.
 - `work_item_record_identity(*, item)` — re-exported canonical
   per-record identity (`sha256:<hex-digest>` over the canonical
   serialization).
@@ -53,6 +55,7 @@ as EXPECTED errors per the Result-vs-bugs split.
 from pathlib import Path
 from typing import Any
 
+from livespec_runtime.spec_stated import SpecChangeTier
 from livespec_runtime.work_items.reduce import (
     materialize_work_items,
     reduce_work_item_heads,
@@ -99,7 +102,9 @@ def read_work_items(*, path: Path) -> IOResult[list[WorkItem], Exception]:
     return IOSuccess(work_items)
 
 
-def append_work_item(*, path: Path, item: WorkItem) -> IOResult[None, Exception]:
+def append_work_item(
+    *, path: Path, item: WorkItem, spec_change_tier: SpecChangeTier | None = None
+) -> IOResult[None, Exception]:
     """Append a single WorkItem as a new line in the JSONL file.
 
     Validates the dict-serialized payload against the same schema the
@@ -107,8 +112,14 @@ def append_work_item(*, path: Path, item: WorkItem) -> IOResult[None, Exception]
     `IOResult` failure track when the payload would not round-trip
     through `read_work_items`. The write is symmetric with the read so a
     record landing on disk is guaranteed to parse back cleanly.
+
+    `spec_change_tier` is the shared judgement's verdict on this filing, which
+    travels beside the item rather than inside it because the shared `WorkItem`
+    carries no such field (see `spec_change_tier`). `None` — the default — is
+    the honest value for a caller that ran no classification, and is written as
+    an explicit `null` rather than omitted.
     """
-    payload = work_item_to_dict(item=item)
+    payload = work_item_to_dict(item=item, spec_change_tier=spec_change_tier)
     validation = validate_work_item_payload(path=path, line_number=0, parsed=payload)
     if isinstance(validation, Failure):
         return IOFailure(validation.failure())
@@ -134,9 +145,11 @@ class JsonlWorkItemStore:
         """Read every WorkItem record the backing JSONL file holds."""
         return read_work_items(path=self._path)
 
-    def append_work_item(self, *, item: WorkItem) -> IOResult[None, Exception]:
+    def append_work_item(
+        self, *, item: WorkItem, spec_change_tier: SpecChangeTier | None = None
+    ) -> IOResult[None, Exception]:
         """Append a single WorkItem record to the backing JSONL file."""
-        return append_work_item(path=self._path, item=item)
+        return append_work_item(path=self._path, item=item, spec_change_tier=spec_change_tier)
 
 
 _REDUCTION_EXPORTS = (materialize_work_items, reduce_work_item_heads, work_item_record_identity)

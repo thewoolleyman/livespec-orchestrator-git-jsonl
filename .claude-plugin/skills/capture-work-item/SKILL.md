@@ -108,8 +108,31 @@ Both halves matter: a silent null tier is indistinguishable from a
 legacy record authored before the field existed, and refusing to file
 at all loses the work-item the user asked for.
 
-### Step 3 — A `feature` is judged against the ratified specification
+### Step 3 — Branch on the class
 
+Only a `feature` asks for new observable behaviour, so only a `feature`
+raises the question of whether the spec already states it. The other
+three classes answer that question by what they are, and are filed
+without a spec-change tier.
+
+**A `bug`, `chore` or `non_functional` is NOT spec-change tier.** Skip
+the judgement below entirely and record `tier: none` with
+`verdict: null`; no proposal is offered. Each class is already a
+statement about the spec rather than a question for it: a `bug` is
+behaviour contradicting what is stated, so the clause it offends
+exists; a `chore` changes no observable behaviour, so there is nothing
+for a clause to state; and a `non_functional` constrains HOW the
+system behaves, which the specification's constraints already govern.
+Judging one anyway would put a verdict on a question it does not ask,
+and a `partial` or `unstated` answer would route a bug report to a
+proposed change while the behaviour it contradicts stays broken.
+
+The `verdict` is null here rather than a `stated` verdict, and the
+difference is readable: a null verdict says no judgement was owed,
+while a `stated` verdict says one ran and found the behaviour already
+specified. Only a `feature` can produce the latter.
+
+**A `feature` is judged against the ratified specification.**
 An item the classification reports `feature` asks for NEW observable
 behaviour, so the next question is whether the ratified specification
 already states it. Judge it through the `judge` function of the SAME
@@ -171,16 +194,24 @@ Branch on the verdict's `kind`:
 
 Assemble the tier as the vendored dataclass, never as a hand-built
 dict — the store serializes it, and a hand-built dict is a second
-account of a schema this plugin does not own:
+account of a schema this plugin does not own. `verdict` is bound only
+on the `feature` path, so bind it to `None` on the other three rather
+than reading a name Step 3's judgement never set:
 
 ```python
 from datetime import datetime, timezone
 from livespec_runtime.spec_stated import SpecChangeTier
 
+# `verdict` is the judged verdict for a `feature`, and None for a
+# `bug`, `chore` or `non_functional`, which skipped the judgement.
 spec_change_tier = SpecChangeTier(
-    tier="spec-change" if verdict.kind in ("partial", "unstated") else "none",
+    tier=(
+        "spec-change"
+        if verdict is not None and verdict.kind in ("partial", "unstated")
+        else "none"
+    ),
     linked_proposal_topic=topic,  # str | None; None when declined or not filed.
-    verdict=verdict,
+    verdict=verdict,  # SpecStatedVerdict | None.
     judged_at=datetime.now(tz=timezone.utc).isoformat(),
 )
 ```

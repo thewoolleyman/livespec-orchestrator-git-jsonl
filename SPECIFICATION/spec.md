@@ -29,7 +29,14 @@ the `compat` block format, the per-plugin Persistent Agent Knowledge
 store realization slot — is FIXED by `livespec`'s published
 contract. This `SPECIFICATION/` MUST NOT re-state `livespec`'s
 contract; it MUST concretize the contract for the JSONL substrate and
-point upstream for anything else.
+point upstream for anything else. The same holds for the shared
+livespec-runtime contracts this plugin consumes: the spec-stated
+judgement — its prompt, its inputs, its verdict schema and its
+parser — is FIXED by livespec-runtime's `livespec_runtime.spec_stated`
+contract, and this `SPECIFICATION/` MUST NOT restate them; it names
+the verdict values only by reference, and states only where this
+plugin's skills obtain its verdicts and how the JSONL substrate
+serializes the stored tier.
 
 When `livespec`'s contract changes, this plugin's `compat` block
 pin moves forward in a discrete bump-pin PR (per `livespec`'s

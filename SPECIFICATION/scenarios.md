@@ -112,10 +112,36 @@ the ledger scan with `--since-version <vN>`.
    ledger-intent scan** over recent work-items, reading the store through
    the append-only materialized-view reduction.
 2. It finds a recent work-item whose `description` encodes a behavior
-   that never made it into the spec, and surfaces it as a ledger-intent
+   that the shared spec-stated judgement reports `partial` or `unstated`, and surfaces it as a ledger-intent
    drift finding with a recommended action.
 3. On the maintainer's consent, the skill hands the finding off to
    `/livespec:propose-change`; it never mutates the work-item and never
    writes spec-side state directly.
-4. Intent already reflected in the spec produces no finding, so the scan
+4. Intent the judgement reports `stated` produces no finding, so the scan
    raises no spurious propose-changes.
+
+## Scenario 6 — A feature the spec does not state is filed at spec-change tier
+
+The user files a feature whose asked-for behaviour no ratified clause
+states.
+
+1. The user invokes
+   `/livespec-orchestrator-git-jsonl:capture-work-item` with title,
+   description and `type: feature`.
+2. The skill classifies the item through
+   `livespec_runtime.spec_stated.classify` as `feature`, then judges
+   its asked-for behaviour through `judge`; the verdict is `unstated`
+   and names an existing heading as its `generalization_target`.
+3. The skill offers the linked proposed change; on consent it hands
+   off to `/livespec:propose-change`, naming that heading as the one
+   to amend.
+4. The appended record carries `spec_change_tier` with `tier:
+   spec-change`, the proposal's canonical topic as
+   `linked_proposal_topic`, the verdict, and `judged_at`.
+5. Had the user declined the linked proposal, the record would
+   still carry `tier: spec-change` and the verdict, with
+   `linked_proposal_topic: null`.
+6. Filing an item the judgement classifies `bug` instead yields a
+   record whose `spec_change_tier.tier` is `none` and whose
+   `linked_proposal_topic` and `verdict` are `null`; no proposal is
+   offered.

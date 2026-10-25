@@ -70,6 +70,13 @@ _WORK_ITEM_OPTIONAL_KEYS = frozenset(
         # `work_item_to_dict` keep-not-drop treatment; enforcement is separate.
         "factory_safety",
         "review_requirement",
+        # `spec_change_tier` (the v022 spec-stated-judgement-consumer revision)
+        # is required-on-WRITE and optional-on-READ: every record this store
+        # serializes carries the key explicitly, and a legacy line authored
+        # before it reads back as `None`. The tolerance is also what hides a
+        # write path that forgot the key, which is why the paired tests assert
+        # the key's PRESENCE on a record carrying no tier.
+        "spec_change_tier",
     }
 )
 

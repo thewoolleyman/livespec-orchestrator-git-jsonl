@@ -14,10 +14,14 @@ check enforces this boundary across the rest of the package.
   `JsoncParseError` carried on the failure track). A caller wanting the
   absent-shaped answer writes `.value_or(None)` at its own call site.
   Re-exported by `commands/_jsonc.py` for backwards compatibility.
-- `_cross_repo.py` — cross-repo manifest and entry parsing: wraps
-  `livespec_runtime.cross_repo.types.parse_cross_repo_manifest` and
-  `parse_depends_on_entry` with optional-return semantics so callers
-  outside io/ need no try/except.
+- `_cross_repo.py` — cross-repo manifest and entry parsing on the
+  `Result` railway, so callers outside io/ need no try/except:
+  `parse_cross_repo_manifest_result` converts the
+  `CrossRepoSchemaError` that
+  `livespec_runtime.cross_repo.types.parse_cross_repo_manifest` raises,
+  while `parse_depends_on_entry_result` passes its upstream parser's
+  own `Result` straight through (since livespec-runtime v0.28.0
+  `parse_depends_on_entry` answers on the failure track itself).
 
 Rules an agent editing this tree must follow:
 

@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.12.0](https://github.com/thewoolleyman/livespec-orchestrator-git-jsonl/compare/v0.11.7...v0.12.0) (2026-10-25)
+
+
+### Features
+
+* **store:** persist the spec-change tier a filed work-item was judged at ([bdf31cd](https://github.com/thewoolleyman/livespec-orchestrator-git-jsonl/commit/bdf31cd5c511d1597dfb17df05611cd676510803))
+* **store:** refuse a spec-change tier no partial or unstated verdict earned ([fb1fd08](https://github.com/thewoolleyman/livespec-orchestrator-git-jsonl/commit/fb1fd08905cce0529348a1a8d34c9347bac6dfea))
+
 ## [0.11.7](https://github.com/thewoolleyman/livespec-orchestrator-git-jsonl/compare/v0.11.6...v0.11.7) (2026-10-21)
 
 

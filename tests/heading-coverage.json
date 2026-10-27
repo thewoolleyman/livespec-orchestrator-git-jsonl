@@ -200,5 +200,21 @@
     "spec_file": "scenarios.md",
     "test": "tests.integration.test_scenarios.test_scenario_6_a_feature_the_spec_does_not_state_is_filed_at_spec_change_tier",
     "reason": "Integration-tier: exercises the filing branch of the shared spec-stated judgement across the store, the schema validator and the tier codec — a `feature` judged `unstated` is appended at `tier: spec-change` carrying the verdict and the linked proposal's topic (step 4), the same filing with the proposal declined still carries the tier with a null topic (step 5), an item classified `bug` is appended with `tier: none` and a null topic and verdict (step 6), and a record claiming a tier no `partial`/`unstated` verdict earned is refused by the write path."
+  },
+  {
+    "heading": "## Delegated pre-push gate",
+    "spec_root": "SPECIFICATION",
+    "spec_file": "constraints.md",
+    "test": "TODO",
+    "reason": "A real test at the integration tier or above is owed for this heading: the repository's pre-push recipe delegating to the remote executor only from a credentialed host, with no local fallback. bd-gj-cbbyic, this repository's delegation opt-in carrier, owns it.",
+    "work_item": "bd-gj-cbbyic"
+  },
+  {
+    "heading": "## Scenario: a delegating host's push gates on the remote executor and refuses on no verdict",
+    "spec_root": "SPECIFICATION",
+    "spec_file": "scenarios.md",
+    "test": "TODO",
+    "reason": "A real test at the integration tier or above is owed for this heading: a delegating host's pre-push running the delegation client in place of just check and refusing on no verdict. bd-gj-cbbyic, this repository's delegation opt-in carrier, owns it.",
+    "work_item": "bd-gj-cbbyic"
   }
 ]

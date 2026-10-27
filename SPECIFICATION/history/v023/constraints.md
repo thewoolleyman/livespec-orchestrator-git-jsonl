@@ -1,0 +1,180 @@
+# constraints.md — livespec-orchestrator-git-jsonl
+
+Architecture-level constraints this plugin operates under. Each
+constraint is a binary, mechanically-checkable rule; lint /
+type-check / test failures are the enforcement mechanism.
+
+## Inherited from livespec
+
+Every constraint in
+`livespec/SPECIFICATION/non-functional-requirements.md`
+applies to this plugin without restatement. The list below
+captures only the constraints that are PLUGIN-LOCAL refinements
+or that bear directly on the JSONL substrate.
+
+Inherited (verbatim, NOT re-stated here):
+
+- Toolchain pins (mise + uv); `just` as the single dev-tooling
+  entry point.
+- Ruff rule set; Pyright strict mode plus the seven strict-plus
+  diagnostics.
+- 100% line + branch coverage; pytest discipline; hypothesis
+  property-based test coverage on pure modules.
+- Conventional Commits subjects; rebase-merge-only master.
+- Lefthook pre-commit / commit-msg / pre-push step ordering.
+- Comment discipline (Ruff ERA; no historical references inline).
+- Keyword-only arguments and dataclasses (Python K4).
+- Domain errors vs bugs split — Result-track for expected errors;
+  raised exceptions for unexpected (Python K10).
+- ROP-style composition of expected errors at the supervisor
+  boundary.
+- No relative imports; no banned-API surface (`abc.ABC`, `pickle`,
+  etc.); typing.Protocol over abc.
+- Vendored dependencies in `.claude-plugin/scripts/_vendor/`; no
+  PyPI runtime dependencies.
+
+## Delegated pre-push gate
+
+Where the repository has delegated its pre-push gate per the next
+paragraph, a pre-push from a delegating host obtains the same `just
+check` aggregate's verdict from the remote executor against the
+pushed tree instead of running it on the pushing host, save the
+checks the delegation contract places on the pushing host, and
+except where an explicit local run has already authorized the tree.
+This changes WHERE the aggregate runs and MUST NOT change WHAT it
+verifies.
+
+The repository MAY delegate its pre-push gate to the remote executor
+of the fleet enforcement suite's delegation client
+(livespec-dev-tooling §"Delegated pre-push gate"). When it does, it
+MUST conform to the delegation contract livespec ratifies in
+§"Enforcement-suite invocation", clause **Delegated gate
+execution**. For this repository that means:
+
+- Delegation MUST be opted in by the repository's version-controlled
+  configuration. It MUST be withdrawn only by a change to that
+  configuration, never per push or per host. The gate MUST remain
+  runnable on the pushing host by an explicit act whether or not
+  delegation is opted in.
+- A push MUST delegate only from a host that holds the credential
+  authorizing it to submit to the executor. A host that holds none,
+  such as a factory sandbox, MUST run the repository's gate recipe
+  on that host without delegation, and MUST report that it gated
+  locally.
+- The pre-push path for a delegating host MUST run the delegation
+  client in place of the aggregate, and MUST have no branch from the
+  client's result to a local run of the gate. An absent verdict MUST
+  refuse the push.
+- A check that reads an authorization held outside the tree MUST run
+  on the pushing host with that host's own credentials, not in the
+  executor, and its result MUST join the delegated verdict, so an
+  authorization the executor cannot read is never treated as
+  granted.
+- The check recipe MUST read the fleet's recognised skip variable,
+  `SKIP_TARGETS`, so the members the delegation contract places on
+  the pushing host are left out of the executor's run. A run that
+  skipped any member MUST NOT write the green token.
+
+## JSONL substrate constraints
+
+- The work-items file is append-only at the write boundary. No
+  skill code MAY truncate, rewrite, or delete records in the file.
+  State transitions are new records, not edits.
+- Each record line is a single JSON object terminated with `\n`.
+  Empty lines between records are FORBIDDEN. A trailing newline
+  after the last record is REQUIRED.
+- Records MUST conform to the schema in `contracts.md` §"Work-items
+  JSONL record schema" exactly; extra keys are not permitted. The
+  doctor `no-extra-keys` invariant (a plugin-side check, not a
+  livespec check) fires `fail` on violation.
+- The materialized view is the LAST record per `id` by file order.
+  All readers MUST implement this reduction; in-place state queries
+  are FORBIDDEN.
+- File-system isolation: skills MUST NOT shell out to read or
+  write `.beads/`, GitHub APIs, Linear APIs, or any other tracking
+  substrate. The plugin's substrate is JSONL files only.
+
+## Process boundaries
+
+- Each skill invocation is a single Python process; no daemons,
+  no long-lived state, no in-memory caches that span invocations.
+  The on-disk JSONL is the only persistent state.
+- Concurrent invocations on the same JSONL file are not guarded by
+  the plugin (no lockfile, no advisory lock). Git's commit
+  serialization is the conflict-resolution boundary; consumer
+  workflows that produce racing writes MUST resolve the race via
+  git merge.
+
+## Spec Reader implementation constraints
+
+- The initial implementation is a thin file pass-through; caching
+  layers, indexes, embeddings, RAG adapters, and similar
+  optimizations are explicitly OUT-OF-SCOPE for v001. Future
+  revisions MAY introduce them so long as the four-capability API
+  surface remains identical.
+- The Spec Reader MUST be a Python module; the implementation
+  language is not implementation-dependent at this granularity
+  even though the upstream contract allows it — keeping all
+  plugin code in one language reduces the toolchain surface.
+- The Spec Reader MUST NOT mutate the spec tree. Read-only is
+  the only mode of operation.
+
+## Skill orchestration constraints
+
+- Heavyweight skills (capture-impl-gaps, capture-spec-drift,
+  capture-work-item, implement) carry their orchestration logic
+  in the SKILL.md prose; thin Python helpers MAY exist for
+  utilities (record-formatting, schema validation) but the
+  dialogue logic lives in markdown.
+- Thin-transport skills (list-work-items, next) carry
+  ZERO orchestration in SKILL.md beyond a one-line invocation of
+  the wrapper script. All logic lives in
+  `.claude-plugin/scripts/bin/<skill>.py`. This is the upstream
+  thin-transport doctrine, enforced here.
+- Codex support is REQUIRED as a first-class agent-runtime consideration. Codex adapters MUST be thin runtime bindings over the same wrapper CLIs, JSONL store semantics, and consent rules as the Claude Code skills; they MUST NOT copy Claude-specific `SKILL.md` bodies. Thin-transport behavior remains zero-orchestration under Codex too: ranking, listing, and formatting logic stays in the wrapper scripts. Claude-only hooks are NOT assumed to run under Codex; any Codex adapter or hook replacement MUST be manually verified before Codex support is claimed.
+
+## Persistent Agent Knowledge constraints
+
+- The `.ai/<topic>.md` files MUST be referenced from `CLAUDE.md`
+  and/or `AGENTS.md` (orphaned files are forbidden).
+- Writing persistent-knowledge content MUST create the
+  `.ai/<topic>.md` file AND add the reference if missing in
+  one atomic operation. A partial state (file written,
+  reference missing) is a bug.
+- Doctor invariants from `livespec` do NOT apply to this
+  durable-pending store content; the `.ai/<topic>.md` files are
+  durable-pending, not transient.
+
+## Factory routing
+
+Every entry this repository commits in `.livespec.jsonc` under
+`dispatcher.factories` MUST be registry-backed: it declares `"registry": true`
+and carries no `server` and no `docker_host` value, so no committed factory
+entry names a machine. Which Fabro server answers to a factory name is bound
+only in the fleet gitops inventory's factory registry (the Fabro factory
+registry section of `livespec-dev-tooling/SPECIFICATION/non-functional-requirements.md`),
+which each dispatching host renders as `/etc/livespec/fabro-factories.json`; a
+dispatch resolves a registry-backed entry from that file by name.
+`dispatcher.default_factory` MUST name `petri`.
+
+## Forbidden patterns
+
+- No mutating writes from `capture-spec-drift`'s ledger-intent scan. The
+  scan MUST be read-only — it MUST NOT append, supersede, or otherwise
+  write any work-item record — and MUST NOT auto-file a propose-change
+  without per-finding user consent.
+- No mutating CLI flags on `list-*` or `next` skills. These are
+  query-only by contract; adding `--update` / `--write` / similar
+  flags is a contract violation.
+- No guessing an unresolvable decision. Where this plugin cannot decide
+  with sufficient confidence, or lacks information it cannot obtain, it
+  MUST NOT substitute a guess — it MUST block and surface the decision to
+  a human (mirroring Scenario 3's "no silent skips").
+- No silent close of work-items. Every `status: closed` record
+  MUST carry `resolution` and `reason` non-null; doctor catches
+  violations.
+- No off-substrate persistence. State that doesn't go in the
+  JSONL files (and the Spec Reader's read-only view of the spec
+  tree) MUST be re-derivable from the on-disk substrate. Skills
+  MUST NOT store sidecar JSON, sidecar SQLite, environment-
+  variable state, or similar.

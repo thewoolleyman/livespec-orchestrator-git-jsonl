@@ -94,6 +94,15 @@
   //   required checks are green, with no manual merge click.
   // Maintainer-directed fleet-wide autonomy lever rollout, epic livespec-jvdvx4
   // (livespec-jvdvx4.15), 2026-08-16.
+  // Cross-repository citations the spec may make (doctor-no-cross-spec-reference).
+  // constraints.md §"Delegated pre-push gate" cites livespec-dev-tooling's
+  // §"Delegated pre-push gate" and livespec's §"Enforcement-suite invocation".
+  // BARE heading form: a file-qualified entry is validated against a local
+  // sibling clone that CI runners do not have.
+  "external_references": {
+    "livespec-dev-tooling": ["§\"Delegated pre-push gate\""],
+    "livespec": ["§\"Enforcement-suite invocation\""]
+  },
   "spec_governance": {
     "propose_change_mode": "batch",
     "critique_mode": "batch",

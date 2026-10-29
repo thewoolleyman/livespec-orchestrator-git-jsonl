@@ -13,4 +13,16 @@ if uv run python -m livespec_dev_tooling.green_token check 2>&1; then
     echo ":: pre-push: green token matched - tree byte-identical to last green check; skipping full aggregate (CI is authoritative)"
     exit 0
 fi
+# Delegated gate (bd-gj-cbbyic; constraints.md §"Delegated pre-push gate"): on a
+# host that can read the gates kubeconfig the gate runs as a cluster Job, in
+# place of the local aggregate below. `exec` is load-bearing: the client's
+# result IS the push's result, so a delegated run that reaches no verdict
+# refuses the push and can never fall through to a local `just check`. A host
+# that cannot delegate (a Fabro sandbox, or the gate pod itself) gets a non-zero
+# `enabled`, reports that it gated locally, and continues to the aggregate.
+if uv run python -m livespec_dev_tooling.gate_remote_delegate enabled; then
+    echo ":: pre-push: delegating the gate to the cluster (the local aggregate does not run)"
+    exec uv run python -m livespec_dev_tooling.gate_remote_delegate run
+fi
+echo ":: pre-push: gated locally - delegation does not apply to this host; running full just check"
 just check

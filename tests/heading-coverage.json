@@ -205,16 +205,14 @@
     "heading": "## Delegated pre-push gate",
     "spec_root": "SPECIFICATION",
     "spec_file": "constraints.md",
-    "test": "TODO",
-    "reason": "A real test at the integration tier or above is owed for this heading: the repository's pre-push recipe delegating to the remote executor only from a credentialed host, with no local fallback. bd-gj-cbbyic, this repository's delegation opt-in carrier, owns it.",
-    "work_item": "bd-gj-cbbyic"
+    "test": "tests.integration.test_pre_push_delegated_gate.test_delegating_push_runs_the_client_and_never_the_local_aggregate",
+    "reason": "Integration-tier: runs the repository's real pre-push script against stubbed `uv`/`just` executables — with `enabled` answering yes the delegation client runs in place of `just check` and its result is the push's result with no branch to a local gate; with it answering no the host reports that it gated locally and runs `just check`; the version-controlled opt-in is declared."
   },
   {
     "heading": "## Scenario: a delegating host's push gates on the remote executor and refuses on no verdict",
     "spec_root": "SPECIFICATION",
     "spec_file": "scenarios.md",
-    "test": "TODO",
-    "reason": "A real test at the integration tier or above is owed for this heading: a delegating host's pre-push running the delegation client in place of just check and refusing on no verdict. bd-gj-cbbyic, this repository's delegation opt-in carrier, owns it.",
-    "work_item": "bd-gj-cbbyic"
+    "test": "tests.integration.test_pre_push_delegated_gate.test_delegated_refusal_is_the_push_result_with_no_local_fallthrough",
+    "reason": "Integration-tier: runs the real pre-push script with the delegation client answering yes to `enabled` and exiting non-zero on `run` (no verdict) — the push is refused with the client's exit status and `just check` never runs."
   }
 ]

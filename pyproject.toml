@@ -283,6 +283,10 @@ repo_local_ci_skips = [
 # fleet-check-coverage golden rules). Requires livespec-dev-tooling >= v0.39.0
 # (the flip lever; this repo is pinned at v0.39.0 above).
 file_lloc_hard_gate = true
+# Delegated pre-push gate opt-in (bd-gj-cbbyic; SPECIFICATION/constraints.md
+# §"Delegated pre-push gate"): a push from a host that can read the gates
+# kubeconfig is gated as a k3s cluster Job; any other host gates locally.
+delegated_gate = true
 source_trees = [".claude-plugin/scripts/livespec_orchestrator_git_jsonl"]
 io_trees = [".claude-plugin/scripts/livespec_orchestrator_git_jsonl/io"]
 commands_trees = [

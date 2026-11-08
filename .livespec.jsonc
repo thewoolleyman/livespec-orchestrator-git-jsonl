@@ -178,6 +178,12 @@
     // that surface round-trips the file through json.dumps and silently strips
     // every comment here while reporting green — tracked as bd-ib-lmi5.
     "dispatcher": {
+      // Detection-coverage anchor: the standing backlog ledger item every
+      // capture-impl-gaps / capture-spec-drift run records its ATTEMPT on.
+      // Provisioned 2026-11-08 (plan spec-implementation-lockstep). It MUST NOT
+      // be closed, regroomed, dispatched or parented; only record_detection_run
+      // may append comments to it.
+      "detection_coverage_anchor": "bd-gj-5ku7ns",
       // CODEX-FIRST on every node (maintainer direction 2026-10-25: the factory runs OpenAI
       // models by default with Anthropic minimized; fleet-wide ruling by coordinator
       // gitops-fleet-capacity-monitoring). codex-acp is each node's primary and claude-acp

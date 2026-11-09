@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.12.2](https://github.com/thewoolleyman/livespec-orchestrator-git-jsonl/compare/v0.12.1...v0.12.2) (2026-11-09)
+
+
+### Bug Fixes
+
+* **dev-tooling:** judge heading-coverage.json staging without a pipe under pipefail ([c6805bc](https://github.com/thewoolleyman/livespec-orchestrator-git-jsonl/commit/c6805bc62ee049c624a49d9e753750cbe2019b9c))
+
 ## [0.12.1](https://github.com/thewoolleyman/livespec-orchestrator-git-jsonl/compare/v0.12.0...v0.12.1) (2026-10-25)
 
 

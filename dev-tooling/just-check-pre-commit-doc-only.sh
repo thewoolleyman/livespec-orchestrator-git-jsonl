@@ -20,7 +20,8 @@ done
 # for the commit that itself edits tests/heading-coverage.json, because
 # authoring an UNOWNED TODO entry is never valid per the check's contract.
 printf '\n::: just check-no-todo-registry\n'
-if git diff --cached --name-only | grep -qx 'tests/heading-coverage.json'; then
+staged_files="$(git diff --cached --name-only)"
+if grep -qx 'tests/heading-coverage.json' <<<"$staged_files"; then
     echo ":: staged changeset edits tests/heading-coverage.json — arming the TODO-ownership release tier"
     if ! LIVESPEC_FAIL_IF_HEADING_COVERAGE_TODOS_EXIST=true just check-no-todo-registry; then
         failed+=(check-no-todo-registry)

@@ -8,15 +8,12 @@ control host runs from this repository's root — cannot reach into a
 sandbox, so the mirror is what it reads. With the key absent the
 preflight refuses outright rather than grading its capability check.
 
-The mirror is MEASURED, never guessed. The values asserted here were
-probed inside the sandbox of this repository's own dispatch on
-2026-10-21 (Ubuntu 24.04.5 LTS): the image published exactly `terminal`,
-`tmux`, `headless_browser`, `herdr`, and each was exercised rather than
-merely looked up — bash 5.2.21 as the shell, tmux 3.4 creating and
-listing a detached session, Playwright 1.63.0 driving Chromium
-153.0.8010.12 to render a page to a PNG, and herdr 0.9.3 printing its
-usage. Declaration ORDER follows the published file, which the resolving
-module preserves rather than sorts.
+The mirror is MEASURED, never guessed, but which capabilities the
+sandbox image publishes is a committed VALUE, not a contract: the image
+changes and the mirror is re-measured to follow it. This test therefore
+asserts only the mirror's SHAPE — the key is present and is a list of
+lowercase snake_case capability names — and never the committed names or
+their order, so re-measuring the mirror leaves it passing.
 
 The surface under test is this repository's OWN committed
 `.livespec.jsonc`, read from the checkout — the mirror is a thing this
@@ -31,7 +28,9 @@ Control-armed: `_malformed` is exercised against a synthetic list
 carrying the shapes the resolving module rejects — a hyphenated name, a
 capitalised one, and the empty string — and flags exactly those, so the
 clean verdict on the committed array is a reading rather than a vacuous
-pass.
+pass; `_shape_problem` is exercised against synthetic blocks the test
+writes itself, so the absent-key and not-a-list-of-names failures are
+proven without touching the committed file.
 """
 
 from __future__ import annotations
@@ -46,10 +45,6 @@ _REPO_ROOT = Path(__file__).resolve().parents[1]
 _CONFIG_FILE = ".livespec.jsonc"
 _IMPL_PLUGIN = "livespec-orchestrator-beads-fabro"
 _MIRROR_KEY = "sandbox_capabilities"
-
-# The capabilities measured inside this repository's dispatch sandbox, in
-# the order the image publishes them.
-_MEASURED = ("terminal", "tmux", "headless_browser", "herdr")
 
 # Lowercase snake_case as the contract spells it: a lowercase letter
 # first, then lowercase letters and digits, with single underscores
@@ -78,6 +73,18 @@ def _dispatcher_block() -> dict[str, Any]:
     return config[_IMPL_PLUGIN]["dispatcher"]
 
 
+def _shape_problem(*, dispatcher: dict[str, Any]) -> str | None:
+    """Return why the block's mirror is not a list of capability names, or None."""
+    if _MIRROR_KEY not in dispatcher:
+        return "absent"
+    capabilities: Any = dispatcher[_MIRROR_KEY]
+    if not isinstance(capabilities, list):
+        return "not a list"
+    if _malformed(names=capabilities):
+        return "malformed names"
+    return None
+
+
 def test_the_predicate_flags_names_that_are_not_lowercase_snake_case() -> None:
     # Positive control for the offender branch: the three shapes the
     # resolving module rejects are flagged, and the conforming names
@@ -86,10 +93,15 @@ def test_the_predicate_flags_names_that_are_not_lowercase_snake_case() -> None:
     assert _malformed(names=synthetic) == ("headless-browser", "HeadlessBrowser", "", 7)
 
 
-def test_this_repository_commits_the_measured_sandbox_capability_mirror() -> None:
-    dispatcher = _dispatcher_block()
-    assert _MIRROR_KEY in dispatcher
-    capabilities: Any = dispatcher[_MIRROR_KEY]
-    assert isinstance(capabilities, list)
-    assert tuple(capabilities) == _MEASURED
-    assert _malformed(names=capabilities) == ()
+def test_the_shape_check_fails_on_an_absent_or_non_list_or_malformed_mirror() -> None:
+    assert _shape_problem(dispatcher={}) == "absent"
+    assert _shape_problem(dispatcher={_MIRROR_KEY: "terminal"}) == "not a list"
+    assert _shape_problem(dispatcher={_MIRROR_KEY: None}) == "not a list"
+    assert _shape_problem(dispatcher={_MIRROR_KEY: ["terminal", "Bad-Name"]}) == "malformed names"
+    assert _shape_problem(dispatcher={_MIRROR_KEY: [3]}) == "malformed names"
+    assert _shape_problem(dispatcher={_MIRROR_KEY: ["alpha", "beta_2"]}) is None
+    assert _shape_problem(dispatcher={_MIRROR_KEY: []}) is None
+
+
+def test_this_repository_commits_a_well_shaped_sandbox_capability_mirror() -> None:
+    assert _shape_problem(dispatcher=_dispatcher_block()) is None

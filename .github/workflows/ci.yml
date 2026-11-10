@@ -667,6 +667,7 @@ jobs:
           just check-aggregate-completeness || failed="$failed check-aggregate-completeness"
           just check-codex-hook-reconcilable || failed="$failed check-codex-hook-reconcilable"
           just check-delegated-gate-check-suite || failed="$failed check-delegated-gate-check-suite"
+          just check-delegated-job-authority-skip || failed="$failed check-delegated-job-authority-skip"
           just check-handoff-dispatch-routing || failed="$failed check-handoff-dispatch-routing"
           just check-heading-coverage-debt-register || failed="$failed check-heading-coverage-debt-register"
           just check-hook-trees-not-io-exempt || failed="$failed check-hook-trees-not-io-exempt"

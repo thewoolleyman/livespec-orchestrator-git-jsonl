@@ -1,15 +1,12 @@
 # Workflow-edit exemption — one exemption binds to one reviewed change.
 #
-# The change: .github/workflows/ci.yml gains one step per pytest-running job
-# (check-per-file-coverage, e2e-cli and acceptance), each placed after the job's pytest step with if: ${{ !cancelled() }}
-# and calling thewoolleyman/livespec-dev-tooling/.github/actions/publish-flake-retries@v1.189.0.
+# The change: .github/workflows/ci.yml gains ONE line in the check-metadata-batch
+# job, running the canonical check that livespec-dev-tooling v1.192.0 requires:
+#   just check-delegated-job-authority-skip || failed="$failed check-delegated-job-authority-skip"
 # ADDITIVE ONLY: no workflow line is deleted or modified and no job is added.
-# The step uploads tmp/flake-retries/ when the livespec_flake_retry plugin
-# re-ran a test, and ships nothing otherwise (if-no-files-found: ignore).
-# Rest-of-fleet consumer leg of livespec-dev-tooling-ljea46 under plan
-# fleet-flaky-tests; the same step is proven in livespec, livespec-overseer and
-# livespec-orchestrator-beads-fabro.
-work_item=bd-gj-inpdgb
-reason=Deliver each CI job's flake-retry records to the dev-host reader so every retried test files one root-fix item; the shared action owns the artifact contract.
+# Canary-only v1.192.0 pin bump for the orchestrator v0.312.1 canary adopt
+# (livespec-orchestrator-git-jsonl#1151); the same shape #1146 added for rule-26.
+work_item=bd-gj-zvhdz6
+reason=CI matrix completeness requires every canonical just-check slug to run in CI; v1.192.0 adds check-delegated-job-authority-skip, so ci.yml runs it beside the other metadata checks.
 change=additive
 ci_runtime=no-significant-increase

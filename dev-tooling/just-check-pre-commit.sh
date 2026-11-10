@@ -15,6 +15,10 @@ if [[ -z "$py_staged" ]]; then
     just check-pre-commit-doc-only
     exit $?
 fi
+# Cheapest refusals first: lint and type errors in the staged Python files are
+# named (file, line, rule) in seconds, before any aggregate member starts.
+# Under `set -e` a refusal (exit 4) stops the hook here.
+uv run python -m livespec_dev_tooling.workflow_checks.staged_precheck
 if [[ "$test_count" -eq 1 ]] && [[ "$impl_count" -eq 0 ]]; then
     echo ":: Red-mode shape detected: $test_staged"
     echo ":: skipping coverage gates (commit-msg replay hook is the verifier; coverage runs at Green amend)"

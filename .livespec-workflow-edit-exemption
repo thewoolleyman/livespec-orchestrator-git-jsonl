@@ -1,12 +1,10 @@
 # Workflow-edit exemption — one exemption binds to one reviewed change.
 #
-# The change: .github/workflows/ci.yml gains ONE line in the check-metadata-batch
-# job, running the canonical check that livespec-dev-tooling v1.192.0 requires:
-#   just check-delegated-job-authority-skip || failed="$failed check-delegated-job-authority-skip"
-# ADDITIVE ONLY: no workflow line is deleted or modified and no job is added.
-# Canary-only v1.192.0 pin bump for the orchestrator v0.312.1 canary adopt
-# (livespec-orchestrator-git-jsonl#1151); the same shape #1146 added for rule-26.
-work_item=bd-gj-zvhdz6
-reason=CI matrix completeness requires every canonical just-check slug to run in CI; v1.192.0 adds check-delegated-job-authority-skip, so ci.yml runs it beside the other metadata checks.
+# The change: one NEW file, .github/workflows/disarm-on-hold-label.yml, the
+# copier render of livespec's template at v0.47.3 (livespec v240). It turns a
+# pull request's auto-merge off when do-not-merge is added to it. No existing
+# workflow line is deleted or modified.
+work_item=bd-gj-hol5z5
 change=additive
 ci_runtime=no-significant-increase
+reason=ADDITIVE tier (approval:workflow-edit-additive under legacy-coordinator-agent's delegation, the tier granted for the same change on bd-ib-jdaawy 2026-11-11, recorded on bd-gj-hol5z5). Adds the hold-label disarm workflow livespec non-functional-requirements.md §"Shared content sync — copier template" makes fleet policy, inherited via constraints.md ## Inherited from livespec; without it every revise fails copier-template-workflow-coverage. It runs only on pull_request labeled events for do-not-merge (one short job), so CI runtime does not grow measurably. actionlint exit 0. Plan ci-runtime-and-cost (livespec-dev-tooling-ib3oe3).

@@ -502,8 +502,8 @@ wheels = [
 
 [[package]]
 name = "livespec-dev-tooling"
-version = "1.195.0"
-source = { git = "https://github.com/thewoolleyman/livespec-dev-tooling.git?tag=v1.195.0#d4b723761270091517e83dd3ac5d5db48e9f2205" }
+version = "1.196.0"
+source = { git = "https://github.com/thewoolleyman/livespec-dev-tooling.git?tag=v1.196.0#34112db52569b659d05cc4d26305ed499e6ceebf" }
 dependencies = [
     { name = "anyio" },
     { name = "typing-extensions" },
@@ -540,7 +540,7 @@ dev = [
     { name = "hypothesis", specifier = "==6.122.3" },
     { name = "hypothesis-jsonschema", specifier = "==0.23.1" },
     { name = "import-linter", specifier = "==2.1" },
-    { name = "livespec-dev-tooling", git = "https://github.com/thewoolleyman/livespec-dev-tooling.git?tag=v1.195.0" },
+    { name = "livespec-dev-tooling", git = "https://github.com/thewoolleyman/livespec-dev-tooling.git?tag=v1.196.0" },
     { name = "livespec-runtime", git = "https://github.com/thewoolleyman/livespec-runtime.git?tag=v0.28.0" },
     { name = "mutmut", specifier = "==3.2.3" },
     { name = "pyright", specifier = "==1.1.391" },

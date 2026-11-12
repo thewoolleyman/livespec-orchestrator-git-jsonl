@@ -1,0 +1,94 @@
+# Check-membership and purity inventory for `just check`.
+#
+# The inventory mirrors the literal `targets=(...)` array in the `check:`
+# recipe, in the same order. Shipped livespec-dev-tooling checks declare their
+# purity in their own module. Repository-private checks carry their measured
+# declaration here, so a green token can memoize only tree-pure members.
+check-agents-ai-references-resolve
+check-aggregate-completeness
+check-all-declared
+check-assert-never-exhaustiveness
+check-branch-protection-alignment
+check-canonical-recipe-fidelity
+check-check-coverage-incremental
+check-check-mutation
+check-check-tools
+check-ci-gate-parity
+check-ci-matrix-completeness
+check-claude-md-coverage
+check-codex-hook-reconcilable
+check-comment-line-anchors
+check-commit-pairs-source-and-test
+check-delegated-gate-check-suite
+check-delegated-job-authority-skip
+check-file-lloc
+check-fleet-marketplace-relative-sources
+check-global-writes
+check-handoff-dispatch-routing
+check-heading-coverage
+check-heading-coverage-debt-register
+check-hook-trees-not-io-exempt
+check-keyword-only-args
+check-local-memory-drift-audit
+check-main-guard
+check-marketplace-ref-release-only
+check-master-ci-green
+check-match-keyword-only
+check-newtype-domain-primitives
+check-no-direct-destructive-cli
+check-no-direct-tool-invocation
+check-no-except-outside-io
+check-no-fmt-directives
+check-no-inheritance
+check-no-lloc-soft-warnings
+check-no-raise-outside-io
+check-no-shadow-ledger-body-identical
+check-no-shadow-ledger-body-typechecks
+check-no-todo-registry
+check-no-write-direct
+check-partition-completeness
+check-pbt-coverage-pure-modules
+check-per-file-coverage
+check-plan-anchor-declared
+check-plan-epic-parity
+check-plan-no-live-handoff-file
+check-plan-no-tombstone
+check-plan-record-conformance
+check-plugin-resolution
+check-primary-checkout-commit-refuse-hook-installed
+check-private-calls
+check-public-api-result-typed
+check-red-green-replay
+check-required-role-keys-declared
+check-rop-pipeline-shape
+check-rule-26-keep-out
+check-self-hosted-routing
+check-self-hosted-uv-lane
+check-shell-quality
+check-skill-invocation-paths
+check-source-trees-scoped-to-consumer
+check-supervisor-discipline
+check-tests-mirror-pairing
+check-tests-no-subprocess-spawn
+check-tool-backed-check-completeness
+check-vendor-manifest
+check-work-item-interpolation-delimiters
+check-work-item-status-vocabulary
+check-wrapper-shape
+
+# Repository-private members: measured from their actual read sets.
+check-format  # purity: tree-pure
+check-lint  # purity: tree-pure
+check-types  # purity: tree-pure
+# Runs only the committed test and source tree with tools pinned by uv.lock.
+check-coverage  # purity: tree-pure
+# Reads the committed work-items store through the canonical reducer.
+check-no-divergent-heads  # purity: tree-pure
+check-no-raw-store-read  # purity: tree-pure
+# Reads the current Git range and, for workflow edits, ledger-held authorization.
+check-no-workflow-edits  # purity: world-reading
+check-spec-governance-default-block  # purity: tree-pure
+# Tests reachability against origin/master, whose ref can change without this tree.
+check-work-item-merge-evidence  # purity: world-reading
+# Resolves the host-installed livespec CORE plugin before running its static checks.
+check-doctor-static  # purity: world-reading

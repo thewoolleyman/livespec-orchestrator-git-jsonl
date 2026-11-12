@@ -12,78 +12,26 @@ fi
 export UV_NO_SYNC=1
 
 skip_targets=("$@")
-targets=(
-    check-agents-ai-references-resolve
-    check-aggregate-completeness
-    check-all-declared
-    check-assert-never-exhaustiveness
-    check-branch-protection-alignment
-    check-canonical-recipe-fidelity
-    check-check-coverage-incremental
-    check-check-mutation
-    check-check-tools
-    check-ci-matrix-completeness
-    check-claude-md-coverage
-    check-comment-line-anchors
-    check-commit-pairs-source-and-test
-    check-file-lloc
-    check-fleet-marketplace-relative-sources
-    check-global-writes
-    check-handoff-dispatch-routing
-    check-heading-coverage
-    check-heading-coverage-debt-register
-    check-hook-trees-not-io-exempt
-    check-keyword-only-args
-    check-local-memory-drift-audit
-    check-main-guard
-    check-marketplace-ref-release-only
-    check-master-ci-green
-    check-match-keyword-only
-    check-newtype-domain-primitives
-    check-no-direct-destructive-cli
-    check-no-direct-tool-invocation
-    check-no-except-outside-io
-    check-no-fmt-directives
-    check-no-inheritance
-    check-no-lloc-soft-warnings
-    check-no-raise-outside-io
-    check-no-shadow-ledger-body-identical
-    check-no-shadow-ledger-body-typechecks
-    check-no-todo-registry
-    check-no-write-direct
-    check-partition-completeness
-    check-pbt-coverage-pure-modules
-    check-per-file-coverage
-    check-plan-anchor-declared
-    check-plan-epic-parity
-    check-plan-no-live-handoff-file
-    check-plugin-resolution
-    check-primary-checkout-commit-refuse-hook-installed
-    check-private-calls
-    check-public-api-result-typed
-    check-red-green-replay
-    check-required-role-keys-declared
-    check-rop-pipeline-shape
-    check-self-hosted-routing
-    check-skill-invocation-paths
-    check-source-trees-scoped-to-consumer
-    check-supervisor-discipline
-    check-tests-mirror-pairing
-    check-tests-no-subprocess-spawn
-    check-tool-backed-check-completeness
-    check-vendor-manifest
-    check-wrapper-shape
-    check-format
-    check-lint
-    check-types
-    check-coverage
-    check-no-divergent-heads
-    check-no-raw-store-read
-    check-no-workflow-edits
-    check-spec-governance-default-block
-    check-work-item-merge-evidence
-    check-doctor-static
+mapfile -t targets < <(
+    sed -E 's/[[:space:]]*#.*$//; s/^[[:space:]]+//; s/[[:space:]]+$//' check-targets.txt \
+        | grep -E '^check-' || true
 )
+if [[ ${#targets[@]} -eq 0 ]]; then
+    echo "ERROR: check-targets.txt declares no check aggregate members" >&2
+    exit 1
+fi
+
+# Each member declares whether the committed tree alone decides its verdict.
+# Refuse before dispatch when one does not: an undeclared member is safely
+# treated as world-reading by the token resolver, but without this refusal the
+# token's saving can silently shrink whenever a new aggregate member is added.
+if ! undeclared_members=$(uv run python -m livespec_dev_tooling.green_token \
+    undeclared "${targets[@]}"); then
+    printf 'ERROR: these check aggregate members carry no purity declaration: %s\n' \
+        "${undeclared_members//$'\n'/ }" >&2
+    printf 'Declare a shipped check with CHECK_PURITY or a repository-private member with a # purity: tree-pure or # purity: world-reading annotation in check-targets.txt.\n' >&2
+    exit 1
+fi
 
 failed=()
 ran=0

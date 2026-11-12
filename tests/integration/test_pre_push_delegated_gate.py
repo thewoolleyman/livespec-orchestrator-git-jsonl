@@ -163,3 +163,48 @@ def test_every_check_aggregate_member_declares_purity(
     monkeypatch.chdir(_REPO_ROOT)
     monkeypatch.setattr(sys, "argv", ["green_token", "undeclared", *aggregate_members])
     assert green_token_main() == 0, capsys.readouterr().err
+
+
+def test_check_aggregate_refuses_and_names_an_undeclared_member(tmp_path: Path) -> None:
+    """An incomplete declaration inventory cannot produce a green aggregate verdict."""
+    inventory = tmp_path / "check-targets.txt"
+    inventory.write_text("check-fixture-bare\n", encoding="utf-8")
+    bin_dir = tmp_path / "bin"
+    bin_dir.mkdir()
+    invoked = tmp_path / "invoked.log"
+    _write_executable(
+        path=bin_dir / "uv",
+        body="""#!/usr/bin/env bash
+case "$*" in
+  "sync --all-groups") exit 0 ;;
+  *"green_token undeclared"*) printf 'check-fixture-bare\\n'; exit 1 ;;
+  *) exit 99 ;;
+esac
+""",
+    )
+    _write_executable(
+        path=bin_dir / "just",
+        body=f"""#!/usr/bin/env bash
+printf '%s\\n' "$*" >> "{invoked}"
+exit 99
+""",
+    )
+    bash = shutil.which("bash")
+    assert bash is not None
+    env = _scrub_coverage_env(env=os.environ.copy())
+    env.update(
+        {"PATH": f"{bin_dir}{os.pathsep}{env['PATH']}", "CHECK_TARGETS_FILE": str(inventory)}
+    )
+
+    completed = subprocess.run(
+        [bash, str(_REPO_ROOT / "dev-tooling" / "just-check.sh")],
+        cwd=tmp_path,
+        env=env,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+
+    assert completed.returncode != 0
+    assert "check-fixture-bare" in completed.stdout + completed.stderr
+    assert not invoked.exists(), "the purity audit must refuse before dispatching a member"

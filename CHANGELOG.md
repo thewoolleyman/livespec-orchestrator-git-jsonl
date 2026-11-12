@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.13.0](https://github.com/thewoolleyman/livespec-orchestrator-git-jsonl/compare/v0.12.2...v0.13.0) (2026-11-12)
+
+
+### Features
+
+* declare check aggregate purity ([32f4360](https://github.com/thewoolleyman/livespec-orchestrator-git-jsonl/commit/32f43609ad888d62ae553bc3b76b29e7952cc62a))
+* refuse undeclared check purity ([4a64604](https://github.com/thewoolleyman/livespec-orchestrator-git-jsonl/commit/4a6460462e546d415c7c6f80c2ea962c1d39fba4))
+
 ## [0.12.2](https://github.com/thewoolleyman/livespec-orchestrator-git-jsonl/compare/v0.12.1...v0.12.2) (2026-11-09)
 
 

@@ -8,18 +8,25 @@ of `just check`; any other host (a Fabro sandbox) runs the gate locally and says
 from __future__ import annotations
 
 import os
+import re
 import shutil
 import stat
 import subprocess
+import sys
 from pathlib import Path
 
+import pytest
 from livespec_dev_tooling.config import load_delegated_gate
+from livespec_dev_tooling.green_token import main as green_token_main
 
 __all__: list[str] = []
 
 _REPO_ROOT = Path(__file__).resolve().parents[2]
 _SCRIPT = _REPO_ROOT / "dev-tooling" / "just-check-pre-push.sh"
 _CLIENT = "livespec_dev_tooling.gate_remote_delegate"
+_AGGREGATE_TARGETS = re.compile(
+    r"^check:\n.*?^    targets=\(\n(?P<targets>.*?)^    \)$", re.MULTILINE | re.DOTALL
+)
 
 
 def _write_executable(*, path: Path, body: str) -> None:
@@ -128,3 +135,31 @@ def test_non_delegating_host_gates_locally_and_reports_it(
     assert f"run python -m {_CLIENT} run" not in uv_calls
     assert "check" in just_calls
     assert "gated locally" in completed.stdout
+
+
+def test_every_check_aggregate_member_declares_purity(
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """The token may memoize only members whose declaration makes that decision explicit."""
+    inventory_path = _REPO_ROOT / "check-targets.txt"
+    assert inventory_path.is_file(), "the check aggregate needs a committed purity inventory"
+
+    justfile = (_REPO_ROOT / "justfile").read_text(encoding="utf-8")
+    targets_match = _AGGREGATE_TARGETS.search(justfile)
+    assert targets_match is not None
+    aggregate_members = tuple(
+        line.strip()
+        for line in targets_match.group("targets").splitlines()
+        if line.strip().startswith("check-")
+    )
+    inventory_members = tuple(
+        line.split("#", 1)[0].strip()
+        for line in inventory_path.read_text(encoding="utf-8").splitlines()
+        if line.split("#", 1)[0].strip().startswith("check-")
+    )
+    assert inventory_members == aggregate_members
+
+    monkeypatch.chdir(_REPO_ROOT)
+    monkeypatch.setattr(sys, "argv", ["green_token", "undeclared", *aggregate_members])
+    assert green_token_main() == 0, capsys.readouterr().err

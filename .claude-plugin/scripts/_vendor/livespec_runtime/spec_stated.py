@@ -41,6 +41,7 @@ from returns.result import Failure, Result, Success
 __all__: list[str] = [
     "CLASSIFY_PROMPT",
     "JUDGE_PROMPT",
+    "ClauseEvidence",
     "ItemClass",
     "ModelRunner",
     "SpecChangeTier",
@@ -119,6 +120,14 @@ does.
 
 
 @dataclass(frozen=True, slots=True, kw_only=True)
+class ClauseEvidence:
+    """One verbatim quotation supporting a heading a judgement names."""
+
+    heading: str
+    quote: str
+
+
+@dataclass(frozen=True, slots=True, kw_only=True)
 class SpecStatedVerdict:
     """One judgement: whether the spec states a behaviour, and by which clause.
 
@@ -132,6 +141,7 @@ class SpecStatedVerdict:
     stated_by: tuple[str, ...]
     generalization_target: str | None
     rationale: str
+    evidence: tuple[ClauseEvidence, ...] = ()
 
 
 @dataclass(frozen=True, slots=True, kw_only=True)
@@ -216,6 +226,36 @@ def _stated_by(
     return Success(tuple(cast("list[str]", entries)))
 
 
+def _evidence(*, value: object) -> Result[tuple[ClauseEvidence, ...], SpecStatedParseError]:
+    """Read optional, typed model evidence without widening legacy verdicts."""
+    if value is None:
+        return Success(())
+    if not isinstance(value, list):
+        return Failure(
+            SpecStatedParseError(field="evidence", detail=f"evidence is not a list: {value!r}")
+        )
+    evidence: list[ClauseEvidence] = []
+    for entry in cast("list[object]", value):
+        if not isinstance(entry, dict):
+            return Failure(
+                SpecStatedParseError(
+                    field="evidence", detail=f"evidence has a non-object entry: {entry!r}"
+                )
+            )
+        fields = cast("dict[str, object]", entry)
+        heading = fields.get("heading")
+        quote = fields.get("quote")
+        if not isinstance(heading, str) or not isinstance(quote, str) or not quote.strip():
+            return Failure(
+                SpecStatedParseError(
+                    field="evidence",
+                    detail=f"evidence entry is not a heading and quote: {entry!r}",
+                )
+            )
+        evidence.append(ClauseEvidence(heading=heading, quote=quote))
+    return Success(tuple(evidence))
+
+
 def _verdict_from(
     *, payload: Mapping[str, object], headings: Collection[str]
 ) -> Result[SpecStatedVerdict, SpecStatedParseError]:
@@ -242,12 +282,19 @@ def _verdict_from(
                 field="rationale", detail=f"rationale is not a string: {rationale!r}"
             )
         )
-    return _stated_by(value=payload["stated_by"], headings=headings).map(
-        lambda stated_by: SpecStatedVerdict(
+    stated_by = _stated_by(value=payload["stated_by"], headings=headings)
+    if isinstance(stated_by, Failure):
+        return stated_by
+    evidence = _evidence(value=payload.get("evidence"))
+    if isinstance(evidence, Failure):
+        return evidence
+    return Success(
+        SpecStatedVerdict(
             kind=kind,
-            stated_by=stated_by,
+            stated_by=stated_by.unwrap(),
             generalization_target=target,
             rationale=rationale,
+            evidence=evidence.unwrap(),
         )
     )
 

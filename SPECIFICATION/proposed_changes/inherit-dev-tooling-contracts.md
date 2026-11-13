@@ -1,7 +1,7 @@
 ---
 topic: inherit-dev-tooling-contracts
 author: claude-opus-5-5:implement-test-performance
-created_at: 2026-11-13T01:25:44Z
+created_at: 2026-11-13T02:10:36Z
 ---
 
 ## Proposal: Inherit livespec-dev-tooling's contracts.md by declaration
@@ -12,7 +12,7 @@ created_at: 2026-11-13T01:25:44Z
 
 ### Summary
 
-Add one H2, `## Inherited from livespec-dev-tooling`, to SPECIFICATION/constraints.md, immediately after the existing `## Inherited from livespec` section, before `## Binding constraints`. Its body is exactly one sentence on a single line, declaration form one of livespec-orchestrator-beads-fabro SPECIFICATION/contracts.md (ratified v362) quoted verbatim: "Every constraint in `livespec-dev-tooling/SPECIFICATION/contracts.md` applies to this plugin without restatement." This plugin already consumes livespec-dev-tooling's shared checks and contracts at its pin, and the declaration makes that inheritance explicit, so the orchestrator's spec-stated judgement reads livespec-dev-tooling/SPECIFICATION/contracts.md as part of this repository's specification text.
+Add one H2, `## Inherited from livespec-dev-tooling`, to SPECIFICATION/constraints.md, immediately after the existing `## Inherited from livespec` section, before `## Delegated pre-push gate`. Its body is exactly one sentence on a single line, declaration form one of livespec-orchestrator-beads-fabro SPECIFICATION/contracts.md (ratified v362) quoted verbatim: "Every constraint in `livespec-dev-tooling/SPECIFICATION/contracts.md` applies to this plugin without restatement." This plugin already consumes livespec-dev-tooling's shared checks and contracts at its pin, and the declaration makes that inheritance explicit, so the orchestrator's spec-stated judgement reads livespec-dev-tooling/SPECIFICATION/contracts.md as part of this repository's specification text.
 
 ### Motivation
 
@@ -20,7 +20,7 @@ Orchestrator spec v362 (livespec-orchestrator-beads-fabro#5031, ratified 2026-11
 
 ### Proposed Changes
 
-Insert, in SPECIFICATION/constraints.md, immediately after the existing `## Inherited from livespec` section, before `## Binding constraints`:
+Insert, in SPECIFICATION/constraints.md, immediately after the existing `## Inherited from livespec` section, before `## Delegated pre-push gate`:
 
 ```markdown
 ## Inherited from livespec-dev-tooling

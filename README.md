@@ -1,5 +1,7 @@
 # livespec-orchestrator-git-jsonl
 
+Built with [livespec](https://livespec-ai.org/)
+
 The **JSONL-backed reference realization** of
 [livespec](https://github.com/thewoolleyman/livespec)'s
 implementation-plugin contract, and livespec's **designated dogfood
